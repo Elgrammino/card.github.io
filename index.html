@@ -467,7 +467,7 @@ a,button,.btn{ touch-action:manipulation; }
    из rAF-цикла (без GSAP-scrub — тот давал рывки), внутренний
    .deco__card — непрерывное CSS-парение (слои не конфликтуют).
    ============================================================ */
-.deco{ position:absolute; inset:0; z-index:1; pointer-events:none; overflow:hidden; will-change:transform; }
+.deco{ position:absolute; inset:0; z-index:1; pointer-events:none; overflow:hidden; }
 .deco__c{ position:absolute; width:calc(168*var(--u)); }
 .deco__card{
   display:block; width:100%; aspect-ratio:620/1107;
@@ -477,62 +477,142 @@ a,button,.btn{ touch-action:manipulation; }
   animation:cardFloat var(--cf-dur,26s) ease-in-out var(--cf-delay,0s) infinite alternate;
   will-change:transform; backface-visibility:hidden;
 }
-/* три разные карты в колоде — разные «глубины»/масти на фоне */
+/* три разные карты в колоде — файлы: cards.png / «cards 2.png» / «cards 3.png» */
 .deco__card--b{ background-image:url("media/site/cards%202.png"); }
 .deco__card--c{ background-image:url("media/site/cards%203.png"); }
-/* плавное парение: только translate по Y + мягкий наклон, через translate3d
-   (GPU-слой, без пере-растеризации) — раньше рывки давал внешний scrub */
+/* плавное парение: только translate по Y + мягкий наклон, через translate3d */
 @keyframes cardFloat{
-  from{ transform:translate3d(0, calc(-10*var(--u)), 0) rotate(calc(var(--tilt,0deg) - 1.2deg)); }
-  to  { transform:translate3d(0, calc(20*var(--u)),  0) rotate(calc(var(--tilt,0deg) + 1.2deg)); }
-}
-/* Опорные карты по макету: у героя внизу-справа и слева у «Прайса» —
-   крупные, почти без размытия. Остальные — тише, глубже, для живости
-   фона на каждой секции. Все ориентированы «вверх» (как в макете),
-   угол варьируется мягко. */
-.deco__c--hero1  { right:calc(-90*var(--u)); top:calc(660*var(--u));  width:calc(186*var(--u)); --tilt:11deg;  --cf-dur:24s; --cf-delay:-4s;  }
-.deco__c--hero2  { left:calc(-84*var(--u));  top:calc(1140*var(--u)); width:calc(140*var(--u)); --tilt:-12deg; --cf-dur:33s; --cf-delay:-11s; }
-.deco__c--hero2  .deco__card{ opacity:.5;  filter:blur(1.8px) drop-shadow(0 calc(20*var(--u)) calc(34*var(--u)) rgba(0,0,0,.5)); }
-.deco__c--micro  { right:calc(-58*var(--u)); top:calc(1900*var(--u)); width:calc(140*var(--u)); --tilt:15deg;  --cf-dur:37s; --cf-delay:-6s;  }
-.deco__c--micro  .deco__card{ opacity:.5;  filter:blur(1.7px) drop-shadow(0 calc(18*var(--u)) calc(30*var(--u)) rgba(0,0,0,.45)); }
-.deco__c--show   { right:calc(-64*var(--u)); top:calc(2850*var(--u)); width:calc(126*var(--u)); --tilt:-16deg; --cf-dur:41s; --cf-delay:-18s; }
-.deco__c--show   .deco__card{ opacity:.42; filter:blur(2px)   drop-shadow(0 calc(16*var(--u)) calc(28*var(--u)) rgba(0,0,0,.42)); }
-.deco__c--levit  { left:calc(-68*var(--u));  top:calc(3780*var(--u)); width:calc(150*var(--u)); --tilt:-9deg;  --cf-dur:28s; --cf-delay:-14s; }
-.deco__c--levit  .deco__card{ opacity:.5;  filter:blur(1.6px) drop-shadow(0 calc(18*var(--u)) calc(30*var(--u)) rgba(0,0,0,.45)); }
-/* карты у прайса — подняты выше, вплотную к видео «Левитации» */
-.deco__c--price  { left:calc(-92*var(--u));  top:calc(4020*var(--u)); width:calc(190*var(--u)); --tilt:-8deg;  --cf-dur:27s; --cf-delay:-9s;  }
-.deco__c--price  .deco__card{ opacity:.82; filter:blur(.4px)  drop-shadow(0 calc(22*var(--u)) calc(38*var(--u)) rgba(0,0,0,.55)); }
-.deco__c--contact{ right:calc(-60*var(--u)); top:calc(5320*var(--u)); width:calc(132*var(--u)); --tilt:14deg;  --cf-dur:34s; --cf-delay:-2s;  }
-.deco__c--contact .deco__card{ opacity:.4;  filter:blur(2px)   drop-shadow(0 calc(16*var(--u)) calc(26*var(--u)) rgba(0,0,0,.4)); }
-
-/* добавочная колода — разбросана по всей странице, глубокие слои
-   (мельче, мягче, без тени): фон живёт на каждом экране, не только у героя */
-.deco__c--x1{ right:calc(-72*var(--u)); top:calc(300*var(--u));  width:calc(112*var(--u)); --tilt:-17deg; --cf-dur:38s; --cf-delay:-3s;  }
-.deco__c--x2{ left:calc(-70*var(--u));  top:calc(1520*var(--u)); width:calc(104*var(--u)); --tilt:12deg;  --cf-dur:44s; --cf-delay:-13s; }
-.deco__c--x3{ right:calc(-52*var(--u)); top:calc(2380*var(--u)); width:calc(120*var(--u)); --tilt:-13deg; --cf-dur:35s; --cf-delay:-7s;  }
-.deco__c--x4{ left:calc(-58*var(--u));  top:calc(3280*var(--u)); width:calc(110*var(--u)); --tilt:10deg;  --cf-dur:40s; --cf-delay:-20s; }
-.deco__c--x5{ left:calc(-80*var(--u));  top:calc(3880*var(--u)); width:calc(132*var(--u)); --tilt:-10deg; --cf-dur:30s; --cf-delay:-5s;  }
-.deco__c--x6{ right:calc(-56*var(--u)); top:calc(4950*var(--u)); width:calc(116*var(--u)); --tilt:14deg;  --cf-dur:36s; --cf-delay:-16s; }
-.deco__c--x7{ right:calc(-64*var(--u)); top:calc(5750*var(--u)); width:calc(122*var(--u)); --tilt:-12deg; --cf-dur:33s; --cf-delay:-8s;  }
-.deco__c--x1 .deco__card, .deco__c--x2 .deco__card, .deco__c--x3 .deco__card,
-.deco__c--x4 .deco__card, .deco__c--x6 .deco__card, .deco__c--x7 .deco__card{
-  opacity:.34; filter:blur(2.4px);
-}
-.deco__c--x5 .deco__card{ opacity:.5; filter:blur(1.3px) drop-shadow(0 calc(16*var(--u)) calc(26*var(--u)) rgba(0,0,0,.4)); }
-
-/* карты ПО ЦЕНТРУ полосы — летают позади фото и текста, глубокий
-   тихий слой, дают объём в середине, а не только по краям */
-.deco__c--m1{ left:33%; top:calc(950*var(--u));  width:calc(152*var(--u)); --tilt:8deg;   --cf-dur:31s; --cf-delay:-7s;  }
-.deco__c--m2{ left:50%; top:calc(2150*var(--u)); width:calc(128*var(--u)); --tilt:-11deg; --cf-dur:38s; --cf-delay:-15s; }
-.deco__c--m3{ left:28%; top:calc(3450*var(--u)); width:calc(162*var(--u)); --tilt:-6deg;  --cf-dur:29s; --cf-delay:-3s;  }
-.deco__c--m4{ left:46%; top:calc(4700*var(--u)); width:calc(140*var(--u)); --tilt:12deg;  --cf-dur:35s; --cf-delay:-19s; }
-.deco__c--m5{ left:38%; top:calc(5720*var(--u)); width:calc(134*var(--u)); --tilt:-9deg;  --cf-dur:33s; --cf-delay:-11s; }
-.deco__c--m1 .deco__card, .deco__c--m2 .deco__card, .deco__c--m3 .deco__card,
-.deco__c--m4 .deco__card, .deco__c--m5 .deco__card{
-  opacity:.15; filter:blur(3px);
+  from{ transform:translate3d(0, calc(-9*var(--u)),  0) rotate(calc(var(--tilt,0deg) - 1.1deg)); }
+  to  { transform:translate3d(0, calc(18*var(--u)), 0) rotate(calc(var(--tilt,0deg) + 1.1deg)); }
 }
 
-/* мобильная версия — показываем ВСЕ карты (ничего не прячем) */
+/* ── Раскладка карт (одна колода, ~12 штук, поштучно по просьбе) ──
+   Все летают ПОЗАДИ фото и текста (deco z1 < фото z2 < текст z3).
+   Справа у hero карт нет (убраны). Возле «форматов» — только у самого
+   левого края и в глубине. У секций — прижаты к краям, у видео опущены. */
+
+/* hero: одна тихая карта в центре, глубоко за именем */
+.deco__c--h1 { left:24%; top:calc(560*var(--u));  width:calc(150*var(--u)); --tilt:7deg;   --cf-dur:34s; --cf-delay:-7s;  }
+.deco__c--h1 .deco__card{ opacity:.14; filter:blur(3.4px); }
+
+/* за списком «множество форматов» — левее точек (у левого края) */
+.deco__c--f1 { left:calc(-96*var(--u)); top:calc(940*var(--u));  width:calc(128*var(--u)); --tilt:-13deg; --cf-dur:37s; --cf-delay:-4s;  }
+.deco__c--f1 .deco__card{ opacity:.34; filter:blur(1.7px); }
+
+/* возле «Форматы выступлений» — сильно влево, в глубину (едва край) */
+.deco__c--f2 { left:calc(-104*var(--u)); top:calc(1545*var(--u)); width:calc(92*var(--u)); --tilt:11deg; --cf-dur:45s; --cf-delay:-16s; }
+.deco__c--f2 .deco__card{ opacity:.16; filter:blur(3.6px); }
+
+/* МИКРОМАГИЯ: одна под фото у левого края, вторая ниже у видео */
+.deco__c--mi1{ left:calc(-86*var(--u)); top:calc(2250*var(--u)); width:calc(120*var(--u)); --tilt:-12deg; --cf-dur:36s; --cf-delay:-9s;  }
+.deco__c--mi1 .deco__card{ opacity:.28; filter:blur(2.4px); }
+.deco__c--mi2{ left:calc(-92*var(--u)); top:calc(2500*var(--u)); width:calc(110*var(--u)); --tilt:9deg;   --cf-dur:41s; --cf-delay:-19s; }
+.deco__c--mi2 .deco__card{ opacity:.22; filter:blur(2.8px); }
+
+/* ШОУ: у левого края, опущены к видео */
+.deco__c--sh1{ left:calc(-80*var(--u)); top:calc(3270*var(--u)); width:calc(124*var(--u)); --tilt:-14deg; --cf-dur:33s; --cf-delay:-6s;  }
+.deco__c--sh1 .deco__card{ opacity:.3;  filter:blur(2px); }
+.deco__c--sh2{ left:calc(-98*var(--u)); top:calc(3470*var(--u)); width:calc(106*var(--u)); --tilt:12deg;  --cf-dur:43s; --cf-delay:-21s; }
+.deco__c--sh2 .deco__card{ opacity:.22; filter:blur(2.8px); }
+
+/* ЛЕВИТАЦИЯ: верхняя — в правый край (за фото), нижняя — левый край у видео */
+.deco__c--le1{ right:calc(-90*var(--u)); top:calc(3640*var(--u)); width:calc(126*var(--u)); --tilt:16deg;  --cf-dur:35s; --cf-delay:-3s;  }
+.deco__c--le1 .deco__card{ opacity:.3;  filter:blur(2px); }
+.deco__c--le2{ left:calc(-74*var(--u));  top:calc(4080*var(--u)); width:calc(150*var(--u)); --tilt:-8deg;  --cf-dur:29s; --cf-delay:-14s; }
+.deco__c--le2 .deco__card{ opacity:.44; filter:blur(1.3px) drop-shadow(0 calc(18*var(--u)) calc(30*var(--u)) rgba(0,0,0,.45)); }
+
+/* ПРАЙС: крупная опорная карта у левого края */
+.deco__c--pr1{ left:calc(-88*var(--u)); top:calc(4560*var(--u)); width:calc(182*var(--u)); --tilt:-8deg;  --cf-dur:28s; --cf-delay:-9s;  }
+.deco__c--pr1 .deco__card{ opacity:.5;  filter:blur(.5px) drop-shadow(0 calc(20*var(--u)) calc(34*var(--u)) rgba(0,0,0,.5)); }
+
+/* КОНТАКТЫ: у левого края */
+.deco__c--co1{ left:calc(-72*var(--u)); top:calc(5320*var(--u)); width:calc(132*var(--u)); --tilt:13deg;  --cf-dur:34s; --cf-delay:-2s;  }
+.deco__c--co1 .deco__card{ opacity:.32; filter:blur(1.8px); }
+.deco__c--co2{ left:calc(-96*var(--u)); top:calc(5620*var(--u)); width:calc(108*var(--u)); --tilt:-10deg; --cf-dur:40s; --cf-delay:-17s; }
+.deco__c--co2 .deco__card{ opacity:.2;  filter:blur(2.6px); }
+
+/* ============================================================
+   ВРЕМЕННО · тест обводки цифры «2» (12 вариантов — выбрать один)
+   Каждая ячейка подписана техникой (CSS-свойство / SVG).
+   Цифра — тем же шрифтом, что номера разделов (Unbounded / --font-geo).
+   ============================================================ */
+.numtest{
+  position:relative; z-index:3;
+  padding:var(--sp-6) var(--pad-x);
+  border-top:1px solid var(--line); background:var(--bg-deep);
+}
+.numtest__h{
+  margin:0 0 6px; text-align:center;
+  font-weight:600; font-size:.8rem; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-faint);
+}
+.numtest__sub{ margin:0 0 var(--sp-4); text-align:center; font-size:12px; color:var(--ink-dim); }
+.numtest__grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+@media (min-width:440px){ .numtest__grid{ grid-template-columns:repeat(3,1fr); } }
+.nt{
+  display:flex; flex-direction:column; align-items:center; gap:10px;
+  padding:16px 6px 12px; border-radius:12px;
+  background:linear-gradient(180deg,#17120f,#100c0b); border:1px solid var(--line);
+}
+.nt__fig{
+  position:relative; width:108px; height:126px;
+  display:flex; align-items:center; justify-content:center;
+}
+.nt__fig span{ position:relative; display:block;
+  font-family:var(--font-geo); font-weight:700; font-size:118px; line-height:1; }
+.nt__svg{ width:108px; height:126px; overflow:visible; }
+.nt__svg text{ font-family:var(--font-geo); font-weight:700; font-size:116px; }
+.nt__cap{ font-size:11px; line-height:1.32; text-align:center; color:var(--ink-dim); }
+.nt__cap b{ display:block; color:var(--ink); font-weight:600; font-size:12px; margin-bottom:2px; }
+
+/* 1 — -webkit-text-stroke, по центру контура (полый) */
+.nt--1 .nt__fig span{ -webkit-text-stroke:3px var(--ink); -webkit-text-fill-color:transparent; }
+/* 2 — -webkit-text-stroke + paint-order:stroke (штрих под заливкой) */
+.nt--2 .nt__fig span{ -webkit-text-stroke:3px var(--ink); -webkit-text-fill-color:transparent; paint-order:stroke; }
+/* 3 — контур СНАРУЖИ: paint-order:stroke fill + заливка цветом фона */
+.nt--3 .nt__fig span{ color:var(--bg); -webkit-text-stroke:6px var(--ink); paint-order:stroke fill; }
+/* 4 — -webkit-text-stroke цветом акцента (тёплый контур) */
+.nt--4 .nt__fig span{ -webkit-text-stroke:3px var(--accent-hi); -webkit-text-fill-color:transparent; }
+/* 5 — text-shadow ×8 вокруг заливки фоном (контур снаружи через тень) */
+.nt--5 .nt__fig span{
+  color:var(--bg);
+  text-shadow:2px 0 var(--ink),-2px 0 var(--ink),0 2px var(--ink),0 -2px var(--ink),
+    2px 2px var(--ink),-2px -2px var(--ink),2px -2px var(--ink),-2px 2px var(--ink);
+}
+/* 6 — filter: drop-shadow() ×4 вокруг заливки фоном */
+.nt--6 .nt__fig span{
+  color:var(--bg);
+  filter:drop-shadow(1.5px 0 0 var(--ink)) drop-shadow(-1.5px 0 0 var(--ink))
+         drop-shadow(0 1.5px 0 var(--ink)) drop-shadow(0 -1.5px 0 var(--ink));
+}
+/* 7 — SVG <text> stroke + fill:none, штрих по центру */
+.nt--7 .nt__svg .vis{ fill:none; stroke:var(--ink); stroke-width:3; paint-order:stroke; }
+/* 8 — SVG <text> + <mask>: контур ТОЛЬКО СНАРУЖИ, нутро прозрачное */
+.nt--8 .nt__svg .vis{ fill:none; stroke:var(--ink); stroke-width:7; }
+.nt--8 .nt__svg .mk{ fill:#000; }
+/* 9 — SVG два слоя: толстый светлый штрих + тонкий фоновый сверху (контур внутри) */
+.nt--9 .nt__svg .a{ fill:none; stroke:var(--ink); stroke-width:9; }
+.nt--9 .nt__svg .b{ fill:none; stroke:var(--bg);  stroke-width:5; }
+/* 10 — -webkit-background-clip:text (тонкий штрих + матовая заливка-градиент) */
+.nt--10 .nt__fig span{
+  -webkit-text-fill-color:transparent; color:transparent;
+  background:linear-gradient(180deg, color-mix(in srgb,var(--ink) 34%,transparent), color-mix(in srgb,var(--ink) 8%,transparent));
+  -webkit-background-clip:text; background-clip:text;
+  -webkit-text-stroke:1.5px var(--ink);
+}
+/* 11 — ::before-клон + scale + text-stroke: контур ИЗНУТРИ */
+.nt--11 .nt__fig span{ -webkit-text-stroke:5px var(--ink); -webkit-text-fill-color:transparent; }
+.nt--11 .nt__fig span::before{
+  content:"2"; position:absolute; inset:0;
+  -webkit-text-stroke:5px var(--bg); -webkit-text-fill-color:transparent;
+  transform:scale(1.07); transform-origin:50% 54%;
+}
+/* 12 — тонкий штрих + размытый ::before-дубль (контур со свечением) */
+.nt--12 .nt__fig span{ -webkit-text-stroke:1.5px var(--ink); -webkit-text-fill-color:transparent; }
+.nt--12 .nt__fig span::before{
+  content:"2"; position:absolute; inset:0;
+  -webkit-text-stroke:2.5px var(--accent-hi); -webkit-text-fill-color:transparent;
+  filter:blur(4px); opacity:.75;
+}
 
 /* ============================================================
    Reduced motion / без JS — всё в финальном читаемом виде
@@ -567,25 +647,18 @@ a,button,.btn{ touch-action:manipulation; }
   </div>
 
   <div class="deco" aria-hidden="true">
-    <div class="deco__c deco__c--x1"><span class="deco__card deco__card--b"></span></div>
-    <div class="deco__c deco__c--hero1"><span class="deco__card"></span></div>
-    <div class="deco__c deco__c--hero2"><span class="deco__card deco__card--b"></span></div>
-    <div class="deco__c deco__c--m1"><span class="deco__card deco__card--c"></span></div>
-    <div class="deco__c deco__c--x2"><span class="deco__card deco__card--c"></span></div>
-    <div class="deco__c deco__c--micro"><span class="deco__card deco__card--c"></span></div>
-    <div class="deco__c deco__c--x3"><span class="deco__card"></span></div>
-    <div class="deco__c deco__c--m2"><span class="deco__card deco__card--b"></span></div>
-    <div class="deco__c deco__c--show"><span class="deco__card"></span></div>
-    <div class="deco__c deco__c--x4"><span class="deco__card deco__card--b"></span></div>
-    <div class="deco__c deco__c--m3"><span class="deco__card"></span></div>
-    <div class="deco__c deco__c--levit"><span class="deco__card deco__card--b"></span></div>
-    <div class="deco__c deco__c--x5"><span class="deco__card deco__card--c"></span></div>
-    <div class="deco__c deco__c--m4"><span class="deco__card deco__card--c"></span></div>
-    <div class="deco__c deco__c--price"><span class="deco__card"></span></div>
-    <div class="deco__c deco__c--x6"><span class="deco__card deco__card--c"></span></div>
-    <div class="deco__c deco__c--contact"><span class="deco__card deco__card--c"></span></div>
-    <div class="deco__c deco__c--m5"><span class="deco__card deco__card--b"></span></div>
-    <div class="deco__c deco__c--x7"><span class="deco__card deco__card--b"></span></div>
+    <div class="deco__c deco__c--h1"><span class="deco__card deco__card--c"></span></div>
+    <div class="deco__c deco__c--f1"><span class="deco__card deco__card--b"></span></div>
+    <div class="deco__c deco__c--f2"><span class="deco__card deco__card--c"></span></div>
+    <div class="deco__c deco__c--mi1"><span class="deco__card"></span></div>
+    <div class="deco__c deco__c--mi2"><span class="deco__card deco__card--b"></span></div>
+    <div class="deco__c deco__c--sh1"><span class="deco__card deco__card--c"></span></div>
+    <div class="deco__c deco__c--sh2"><span class="deco__card"></span></div>
+    <div class="deco__c deco__c--le1"><span class="deco__card deco__card--b"></span></div>
+    <div class="deco__c deco__c--le2"><span class="deco__card deco__card--c"></span></div>
+    <div class="deco__c deco__c--pr1"><span class="deco__card"></span></div>
+    <div class="deco__c deco__c--co1"><span class="deco__card deco__card--b"></span></div>
+    <div class="deco__c deco__c--co2"><span class="deco__card deco__card--c"></span></div>
   </div>
 
   <!-- ===================== HERO ===================== -->
@@ -749,6 +822,58 @@ a,button,.btn{ touch-action:manipulation; }
     </footer>
   </section>
 
+  <!-- ВРЕМЕННО: тест обводки цифры «2» — выбрать вариант, потом удалю блок -->
+  <section class="numtest" aria-label="Тест обводки цифры">
+    <p class="numtest__h">Обводка цифры — 12 вариантов</p>
+    <p class="numtest__sub">Скажи номер — оставлю его для всех цифр разделов и прайса, блок удалю.</p>
+    <div class="numtest__grid">
+
+      <div class="nt nt--1"><div class="nt__fig"><span>2</span></div>
+        <p class="nt__cap"><b>1</b>-webkit-text-stroke, по центру</p></div>
+
+      <div class="nt nt--2"><div class="nt__fig"><span>2</span></div>
+        <p class="nt__cap"><b>2</b>-webkit-text-stroke + paint-order: stroke</p></div>
+
+      <div class="nt nt--3"><div class="nt__fig"><span>2</span></div>
+        <p class="nt__cap"><b>3</b>paint-order: stroke fill + заливка фоном (контур снаружи)</p></div>
+
+      <div class="nt nt--4"><div class="nt__fig"><span>2</span></div>
+        <p class="nt__cap"><b>4</b>-webkit-text-stroke цветом акцента</p></div>
+
+      <div class="nt nt--5"><div class="nt__fig"><span>2</span></div>
+        <p class="nt__cap"><b>5</b>text-shadow ×8 + заливка фоном (контур снаружи)</p></div>
+
+      <div class="nt nt--6"><div class="nt__fig"><span>2</span></div>
+        <p class="nt__cap"><b>6</b>filter: drop-shadow() ×4</p></div>
+
+      <div class="nt nt--7"><svg class="nt__svg" viewBox="0 0 108 126"><text class="vis" x="54" y="104" text-anchor="middle">2</text></svg>
+        <p class="nt__cap"><b>7</b>SVG &lt;text&gt; stroke, fill:none (по центру)</p></div>
+
+      <div class="nt nt--8"><svg class="nt__svg" viewBox="0 0 108 126">
+        <defs><mask id="ntm8" maskUnits="userSpaceOnUse" x="-30" y="-30" width="168" height="186">
+          <rect x="-30" y="-30" width="168" height="186" fill="#fff"/>
+          <text class="mk" x="54" y="104" text-anchor="middle">2</text>
+        </mask></defs>
+        <text class="vis" x="54" y="104" text-anchor="middle" mask="url(#ntm8)">2</text></svg>
+        <p class="nt__cap"><b>8</b>SVG &lt;mask&gt; + stroke — контур ТОЛЬКО снаружи, полый</p></div>
+
+      <div class="nt nt--9"><svg class="nt__svg" viewBox="0 0 108 126">
+        <text class="a" x="54" y="104" text-anchor="middle">2</text>
+        <text class="b" x="54" y="104" text-anchor="middle">2</text></svg>
+        <p class="nt__cap"><b>9</b>SVG два слоя stroke (контур внутри)</p></div>
+
+      <div class="nt nt--10"><div class="nt__fig"><span>2</span></div>
+        <p class="nt__cap"><b>10</b>-webkit-background-clip: text + text-stroke</p></div>
+
+      <div class="nt nt--11"><div class="nt__fig"><span>2</span></div>
+        <p class="nt__cap"><b>11</b>::before-клон + scale + text-stroke (контур изнутри)</p></div>
+
+      <div class="nt nt--12"><div class="nt__fig"><span>2</span></div>
+        <p class="nt__cap"><b>12</b>тонкий text-stroke + размытый ::before (свечение)</p></div>
+
+    </div>
+  </section>
+
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
@@ -795,127 +920,106 @@ a,button,.btn{ touch-action:manipulation; }
   /* ---------- Живой фон: диагональные лучи (canvas, без библиотек) ----------
      Идея из beams-background, но чистый JS/canvas — без React/Motion.
      Наклонные лучи в ТЁПЛОЙ палитре акцента (красный/терракота, не синий)
-     плывут вдоль своей оси с пульсацией прозрачности; уходя за верх —
-     возвращаются снизу по колонкам. Тот же rAF-цикл ведёт «ветер»
-     контейнера карт .deco ОДНИМ сглаженным transform:
-       velRaw — мгновенная скорость скролла (копится в обработчике);
-       vel    — сглаженно догоняет velRaw и затухает к покою.
-     В покое — тихий дрейф; при скролле лучи ускоряются и карты слегка
-     сносит пропорционально скорости; при остановке всё плавно замирает.
-     Одна точка правды => нет конкурирующих scrub-слоёв и рывков. */
+     просто плывут вдоль своей оси с лёгкой пульсацией; уходя за верх —
+     возвращаются снизу. НИКАКОЙ реакции на скролл (яркость/скорость не
+     нарастают — это и вызывало ощущение лагов), только ровное движение.
+     Градиент каждого луча строится ОДИН раз и переиспользуется, пульс
+     идёт через ctx.globalAlpha — на кадр почти нет аллокаций. */
   (function livingBg () {
     var cv = document.getElementById('raysCv');
-    var deco = document.querySelector('.deco');
     var mq = window.matchMedia('(prefers-reduced-motion: reduce)');
     var ctx = cv && cv.getContext ? cv.getContext('2d') : null;
+    if (!ctx) return;
 
     var DPR = Math.min(window.devicePixelRatio || 1, 2);
-    var W = 1, H = 1, beams = [], raf = 0, lastT = 0, N = 22;
-    var HUE_MIN = 6, HUE_SPAN = 22;   /* тёплый диапазон: акцент → терракота → бордо */
-
-    var velRaw = 0, vel = 0, lastScroll = window.scrollY || 0;
+    var W = 1, H = 1, beams = [], raf = 0, lastT = 0, N = 14;
+    var HUE_MIN = 6, HUE_SPAN = 22;   /* тёплый: акцент → терракота → бордо */
 
     function mkBeam (i) {
       return {
-        col: (i % 3) / 3,
+        hue: HUE_MIN + ((i % 3) / 3) * HUE_SPAN,
         xFrac: (i + 0.5) / N + (Math.random() - 0.5) * 0.8 / N,
         y: Math.random() * 1.6 - 0.3,
         width: 46 + Math.random() * 92,
         len: 1.5 + Math.random() * 0.8,
         angle: (-34 + Math.random() * 8) * Math.PI / 180,
-        speed: 0.00035 + Math.random() * 0.00060,
-        opacity: 0.05 + Math.random() * 0.06,
+        speed: 0.00040 + Math.random() * 0.00055,   /* доля высоты за «кадр 60fps» */
+        base: 0.085 + Math.random() * 0.06,          /* базовая яркость — слегка выше */
         pulse: Math.random() * 6.2832,
-        pulseSpeed: 0.010 + Math.random() * 0.016
+        pulseSpeed: 0.010 + Math.random() * 0.014,
+        grad: null
       };
     }
     function seed () {
-      N = (window.innerWidth < 560) ? 11 : 16;
+      N = (window.innerWidth < 560) ? 10 : 14;
       beams = [];
       for (var i = 0; i < N; i++) beams.push(mkBeam(i));
     }
+    function gradFor (b) {
+      /* фикс-градиент вдоль луча, альфа=1; пульс наложим через globalAlpha */
+      var L = b.len * H, h = b.hue;
+      var g = ctx.createLinearGradient(0, -L / 2, 0, L / 2);
+      g.addColorStop(0,    'hsla(' + h + ',72%,52%,0)');
+      g.addColorStop(0.18, 'hsla(' + h + ',72%,52%,0.5)');
+      g.addColorStop(0.5,  'hsla(' + h + ',72%,52%,1)');
+      g.addColorStop(0.82, 'hsla(' + h + ',72%,52%,0.5)');
+      g.addColorStop(1,    'hsla(' + h + ',72%,52%,0)');
+      return g;
+    }
     function size () {
-      if (!cv || !ctx) return;
       var r = cv.getBoundingClientRect();
       W = Math.max(1, r.width); H = Math.max(1, r.height);
       cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      for (var i = 0; i < beams.length; i++) beams[i].grad = gradFor(beams[i]);
     }
-    function drawBeam (b, pulseK) {
-      var hue = HUE_MIN + b.col * HUE_SPAN;
-      var a = b.opacity * (0.72 + 0.28 * Math.sin(b.pulse)) * pulseK;
+    function drawBeam (b) {
+      var a = b.base * (0.78 + 0.22 * Math.sin(b.pulse));   /* без scroll-boost */
       if (a < 0.004) return;
       var L = b.len * H;
       ctx.save();
+      ctx.globalAlpha = a;
       ctx.translate(b.xFrac * W, b.y * H);
       ctx.rotate(b.angle);
-      var g = ctx.createLinearGradient(0, -L / 2, 0, L / 2);
-      g.addColorStop(0,    'hsla(' + hue + ',72%,52%,0)');
-      g.addColorStop(0.18, 'hsla(' + hue + ',72%,52%,' + (a * 0.5).toFixed(3) + ')');
-      g.addColorStop(0.5,  'hsla(' + hue + ',72%,52%,' + a.toFixed(3) + ')');
-      g.addColorStop(0.82, 'hsla(' + hue + ',72%,52%,' + (a * 0.5).toFixed(3) + ')');
-      g.addColorStop(1,    'hsla(' + hue + ',72%,52%,0)');
-      ctx.fillStyle = g;
+      ctx.fillStyle = b.grad || (b.grad = gradFor(b));
       ctx.fillRect(-b.width / 2, -L / 2, b.width, L);
       ctx.restore();
+    }
+    function render () {
+      ctx.clearRect(0, 0, W, H);
+      ctx.globalCompositeOperation = 'lighter';
+      for (var i = 0; i < beams.length; i++) drawBeam(beams[i]);
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.globalAlpha = 1;
     }
     function frame (t) {
       var dt = lastT ? Math.min(2.5, (t - lastT) / 16.667) : 1;
       lastT = t;
-
-      vel += (velRaw - vel) * Math.min(1, 0.15 * dt);
-      velRaw *= Math.pow(0.86, dt);
-
-      if (deco) {
-        var wind = -Math.min(vel * 0.25, 26);
-        deco.style.transform = 'translate3d(0,' + wind.toFixed(2) + 'px,0)';
-      }
-      if (ctx) {
-        var boost = 1 + Math.min(vel * 0.08, 7);
-        var pulseK = 1 + Math.min(vel * 0.010, 1.8);
-        ctx.clearRect(0, 0, W, H);
-        ctx.globalCompositeOperation = 'lighter';
-        for (var i = 0; i < beams.length; i++) {
-          var b = beams[i];
-          b.y -= b.speed * boost * dt;
-          b.pulse += b.pulseSpeed * dt;
-          if (b.y + b.len * 0.5 < -0.4) {
-            b.y = 1.4 + Math.random() * 0.3;
-            b.xFrac = (i + 0.5) / N + (Math.random() - 0.5) * 0.9 / N;
-            b.width = 46 + Math.random() * 92;
-            b.opacity = 0.05 + Math.random() * 0.06;
-          }
-          drawBeam(b, pulseK);
+      for (var i = 0; i < beams.length; i++) {
+        var b = beams[i];
+        b.y -= b.speed * dt;
+        b.pulse += b.pulseSpeed * dt;
+        if (b.y + b.len * 0.5 < -0.4) {
+          b.y = 1.4 + Math.random() * 0.3;
+          b.xFrac = (i + 0.5) / N + (Math.random() - 0.5) * 0.9 / N;
         }
-        ctx.globalCompositeOperation = 'source-over';
       }
+      render();
       raf = requestAnimationFrame(frame);
     }
     function stop () { if (raf) cancelAnimationFrame(raf); raf = 0; lastT = 0; }
-    function staticFrame () {
-      if (!ctx) return;
-      ctx.clearRect(0, 0, W, H);
-      ctx.globalCompositeOperation = 'lighter';
-      for (var i = 0; i < beams.length; i++) drawBeam(beams[i], 1);
-      ctx.globalCompositeOperation = 'source-over';
-    }
     function start () {
       stop();
       DPR = Math.min(window.devicePixelRatio || 1, 2);
-      size(); seed();
-      if (mq.matches) { staticFrame(); if (deco) deco.style.transform = 'none'; return; }
+      seed(); size();
+      if (mq.matches) { render(); return; }   /* один статичный кадр */
       raf = requestAnimationFrame(frame);
     }
 
-    window.addEventListener('scroll', function () {
-      var y = window.scrollY || 0;
-      velRaw = Math.min(velRaw + Math.abs(y - lastScroll), 240);
-      lastScroll = y;
-    }, { passive: true });
     window.addEventListener('resize', function () {
       DPR = Math.min(window.devicePixelRatio || 1, 2);
       size();
-      if (mq.matches) staticFrame();
+      if (mq.matches) render();
     }, { passive: true });
     document.addEventListener('visibilitychange', function () {
       if (document.hidden) stop();
