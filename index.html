@@ -199,26 +199,24 @@ a,button,.btn{ touch-action:manipulation; }
 .nav__menu a:last-child{ border-bottom:0; }
 
 /* ============================================================
-   Живой фон: непрерывно дрейфующее дымчатое свечение.
-   Чистая CSS-анимация, НЕ привязана к скроллу, одинаковая
-   по характеру на всех секциях. Заменяет статичное пятно .glow.
+   Живой фон: плывущие лучи (canvas, чистый JS — без библиотек).
+   Мягкие вертикальные пятна-лучи в палитре акцента медленно
+   плывут вверх с пульсацией. В покое — дрейфуют сами по себе;
+   при скролле ускоряются пропорционально скорости прокрутки и
+   затухают обратно до фонового дрейфа при остановке. Одинаково
+   на всех секциях, не привязано к позиции скролла. Заменяет
+   CSS-дымку .smoke.
    ============================================================ */
-.smoke{
+.rays{
   position:fixed; top:0; bottom:0; left:50%; transform:translateX(-50%);
   width:100%; max-width:var(--maxw); z-index:1;
   pointer-events:none; overflow:hidden; contain:layout paint;
 }
-.smoke__p{
-  position:absolute; display:block; border-radius:50%; will-change:transform;
-  background:radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--accent) 58%, transparent), transparent 70%);
-  filter:blur(clamp(36px, 11cqw, 72px));
+.rays__cv{
+  position:absolute; inset:0; display:block; width:100%; height:100%;
+  filter:blur(26px) saturate(118%);
+  opacity:.92;
 }
-.smoke__p--1{ width:78%; aspect-ratio:1; left:-16%; top:6%;   opacity:.115; animation:smokeDrift1 46s ease-in-out infinite alternate; }
-.smoke__p--2{ width:62%; aspect-ratio:1; right:-20%; top:40%; opacity:.09;  animation:smokeDrift2 61s ease-in-out infinite alternate; }
-.smoke__p--3{ width:88%; aspect-ratio:1; left:-10%; bottom:0; opacity:.07;  animation:smokeDrift3 53s ease-in-out infinite alternate; }
-@keyframes smokeDrift1{ from{ transform:translate3d(0,0,0) scale(1);    } to{ transform:translate3d(7%,6%,0) scale(1.16);  } }
-@keyframes smokeDrift2{ from{ transform:translate3d(0,0,0) scale(1.06); } to{ transform:translate3d(-9%,-5%,0) scale(.9);  } }
-@keyframes smokeDrift3{ from{ transform:translate3d(0,0,0) scale(1);    } to{ transform:translate3d(5%,-7%,0) scale(1.12); } }
 
 /* ============================================================
    Сшивка стыков секций (акцентный блюр, параллакс от скролла)
@@ -287,10 +285,10 @@ a,button,.btn{ touch-action:manipulation; }
   position:relative; z-index:4;
   margin:0; padding:var(--sp-3) var(--pad-x) var(--sp-6);
   text-align:center;
-  font-weight:600; font-size:.82rem; line-height:1.35;
-  letter-spacing:.2em; text-transform:uppercase; color:var(--ink-faint);
+  font-family:var(--font); font-weight:800; font-size:30px; line-height:1.1;
+  letter-spacing:.01em; text-transform:uppercase; color:var(--ink-faint);
 }
-.formats-label .accent{ color:var(--accent); font-weight:600; }
+.formats-label .accent{ color:var(--accent); font-weight:800; }
 
 /* ---------- АКТ (микро / шоу / левитация) ---------- */
 .act{ position:relative; padding-block:0 var(--sp-5); overflow:hidden; }
@@ -301,6 +299,9 @@ a,button,.btn{ touch-action:manipulation; }
   -webkit-mask-image:linear-gradient(#000 54%, transparent);
   mask-image:linear-gradient(#000 54%, transparent);
 }
+/* «Шоу» — фото крупнее на 10% и сдвинуто выше; «Левитация» — тоже выше */
+#show  .act__photo{ height:clamp(396px, 114cqw, 550px); top:clamp(-46px, -11cqw, -24px); }
+#levit .act__photo{ top:clamp(-40px, -9cqw, -22px); }
 .act__wash{
   position:absolute; z-index:1; pointer-events:none; border-radius:50%;
   width:150%; height:clamp(420px, 120cqw, 640px);
@@ -317,22 +318,41 @@ a,button,.btn{ touch-action:manipulation; }
   position:absolute; bottom:clamp(6px, 2.5cqw, 18px); left:clamp(-34px, -9cqw, -18px); z-index:0;
   font-family:var(--font-druk); font-weight:900;
   font-size:clamp(156px, 58cqw, 250px); line-height:.72;
-  color:transparent; -webkit-text-stroke:calc(4.6*var(--u)) rgba(243,237,228,.92);
-  paint-order:stroke fill; user-select:none; pointer-events:none;
-}
-/* полая цифра: тонкая обводка цветом фона поверх толстой светлой —
-   на виду остаётся ТОЛЬКО наружная часть контура, нутро прозрачное */
-.act__num::before{
-  content:attr(data-n); position:absolute; left:0; top:0;
-  color:transparent; -webkit-text-stroke:calc(2.6*var(--u)) var(--bg);
+  color:transparent; user-select:none; pointer-events:none;
 }
 .act__num--geo{ font-family:var(--font-geo); font-weight:700; }
+
+/* ── ТЕСТ: три варианта контура цифр разделов (см. правку 4) ──
+   vA — контур СНАРУЖИ: заливка цветом фона (paint-order) съедает
+        внутреннюю половину центрального штриха, видна только внешняя.
+   vB — контур ПО ЦЕНТРУ: классический -webkit-text-stroke, нутро полое.
+   vC — контур ИЗНУТРИ: сплошной светлый силуэт, фоновый дубль-клон
+        вырезает сердцевину — светлая полоса остаётся вдоль контура внутри. */
+.act__num--vA{
+  color:var(--bg);
+  -webkit-text-stroke:calc(3*var(--u)) rgba(243,237,228,.92);
+  paint-order:stroke fill;
+}
+.act__num--vB{
+  color:transparent;
+  -webkit-text-stroke:calc(2.4*var(--u)) rgba(243,237,228,.92);
+}
+.act__num--vC{ color:rgba(243,237,228,.92); }
+.act__num--vC::before{
+  content:attr(data-n); position:absolute; left:0; top:0;
+  color:var(--bg); -webkit-text-stroke:calc(1*var(--u)) var(--bg);
+  transform:scale(.82); transform-origin:50% 56%;
+}
 .act__title{
   position:relative; z-index:2; margin:0;
   font-weight:800; font-size:clamp(32px, 11.2cqw, 46px); line-height:.84;
   letter-spacing:-.02em; text-transform:uppercase;
   padding-left:clamp(60px, 18cqw, 88px);
 }
+/* «Шоу» и «Левитация»: цифры 2/3 в гео-шрифте шире, поэтому текст
+   заголовка сдвигаем правее — тот же зазор до цифры, что в «Микромагии» */
+#show .act__title,
+#levit .act__title{ padding-left:clamp(104px, 30cqw, 148px); }
 .act__body{
   position:relative; z-index:2; margin-top:var(--sp-3);
   display:grid; gap:6px; max-width:clamp(250px, 84cqw, 340px);
@@ -387,9 +407,8 @@ a,button,.btn{ touch-action:manipulation; }
   position:relative; min-width:0;
   display:grid; grid-template-columns:1fr; gap:var(--sp-1);
 }
-.price__row:nth-child(1){ margin-left:clamp(0px, 11cqw, 48px); }
-.price__row:nth-child(2){ margin-left:clamp(0px, 18cqw, 84px); }
-.price__row:nth-child(3){ margin-left:0; }
+/* весь текст под прайсом — по левому краю (убрана «лесенка» отступов) */
+.price__row{ margin-left:0; }
 .price__name{
   margin:0; font-weight:900; font-size:clamp(20px, 6.2cqw, 26px); line-height:.92;
   text-transform:uppercase; letter-spacing:.01em;
@@ -433,7 +452,8 @@ a,button,.btn{ touch-action:manipulation; }
   width:100%; min-height:46px; padding:12px 0;
   font-size:clamp(13px, 4cqw, 18px); letter-spacing:.04em;
 }
-.contact__media{ position:relative; z-index:2; margin-top:var(--sp-5); }
+/* фото контактов — во всю ширину экрана (выходит за паддинг .wrap) */
+.contact__media{ position:relative; z-index:2; margin-top:var(--sp-5); margin-inline:calc(-1*var(--pad-x)); }
 .contact__photo{
   width:100%; object-fit:cover;
   -webkit-mask-image:linear-gradient(#000 66%, transparent);
@@ -488,22 +508,37 @@ a,button,.btn{ touch-action:manipulation; }
 .deco__c--show   .deco__card{ opacity:.42; filter:blur(2px)   drop-shadow(0 calc(16*var(--u)) calc(28*var(--u)) rgba(0,0,0,.42)); }
 .deco__c--levit  { left:calc(-68*var(--u));  top:calc(3780*var(--u)); width:calc(150*var(--u)); --tilt:-9deg;  --cf-dur:28s; --cf-delay:-14s; }
 .deco__c--levit  .deco__card{ opacity:.5;  filter:blur(1.6px) drop-shadow(0 calc(18*var(--u)) calc(30*var(--u)) rgba(0,0,0,.45)); }
-.deco__c--price  { left:calc(-92*var(--u));  top:calc(4500*var(--u)); width:calc(190*var(--u)); --tilt:-8deg;  --cf-dur:27s; --cf-delay:-9s;  }
+/* карты у прайса — подняты выше, вплотную к видео «Левитации» */
+.deco__c--price  { left:calc(-92*var(--u));  top:calc(4020*var(--u)); width:calc(190*var(--u)); --tilt:-8deg;  --cf-dur:27s; --cf-delay:-9s;  }
 .deco__c--price  .deco__card{ opacity:.82; filter:blur(.4px)  drop-shadow(0 calc(22*var(--u)) calc(38*var(--u)) rgba(0,0,0,.55)); }
 .deco__c--contact{ right:calc(-60*var(--u)); top:calc(5320*var(--u)); width:calc(132*var(--u)); --tilt:14deg;  --cf-dur:34s; --cf-delay:-2s;  }
 .deco__c--contact .deco__card{ opacity:.4;  filter:blur(2px)   drop-shadow(0 calc(16*var(--u)) calc(26*var(--u)) rgba(0,0,0,.4)); }
 
+/* добавочная колода — разбросана по всей странице, глубокие слои
+   (мельче, мягче, без тени): фон живёт на каждом экране, не только у героя */
+.deco__c--x1{ right:calc(-72*var(--u)); top:calc(300*var(--u));  width:calc(112*var(--u)); --tilt:-17deg; --cf-dur:38s; --cf-delay:-3s;  }
+.deco__c--x2{ left:calc(-70*var(--u));  top:calc(1520*var(--u)); width:calc(104*var(--u)); --tilt:12deg;  --cf-dur:44s; --cf-delay:-13s; }
+.deco__c--x3{ right:calc(-52*var(--u)); top:calc(2380*var(--u)); width:calc(120*var(--u)); --tilt:-13deg; --cf-dur:35s; --cf-delay:-7s;  }
+.deco__c--x4{ left:calc(-58*var(--u));  top:calc(3280*var(--u)); width:calc(110*var(--u)); --tilt:10deg;  --cf-dur:40s; --cf-delay:-20s; }
+.deco__c--x5{ left:calc(-80*var(--u));  top:calc(3880*var(--u)); width:calc(132*var(--u)); --tilt:-10deg; --cf-dur:30s; --cf-delay:-5s;  }
+.deco__c--x6{ right:calc(-56*var(--u)); top:calc(4950*var(--u)); width:calc(116*var(--u)); --tilt:14deg;  --cf-dur:36s; --cf-delay:-16s; }
+.deco__c--x7{ right:calc(-64*var(--u)); top:calc(5750*var(--u)); width:calc(122*var(--u)); --tilt:-12deg; --cf-dur:33s; --cf-delay:-8s;  }
+.deco__c--x1 .deco__card, .deco__c--x2 .deco__card, .deco__c--x3 .deco__card,
+.deco__c--x4 .deco__card, .deco__c--x6 .deco__card, .deco__c--x7 .deco__card{
+  opacity:.34; filter:blur(2.4px);
+}
+.deco__c--x5 .deco__card{ opacity:.5; filter:blur(1.3px) drop-shadow(0 calc(16*var(--u)) calc(26*var(--u)) rgba(0,0,0,.4)); }
+
 @media (max-width: 420px){
-  .deco__c--micro, .deco__c--show{ display:none; }
-  .smoke__p--3{ display:none; }
+  .deco__c--x6, .deco__c--x7{ display:none; }
 }
 
 /* ============================================================
    Reduced motion / без JS — всё в финальном читаемом виде
    ============================================================ */
 @media (prefers-reduced-motion: reduce){
-  .smoke__p, .deco__card{ animation:none !important; }
-  .deco__card{ transform:rotate(var(--tilt,0deg)); }
+  .deco__card{ animation:none !important; transform:rotate(var(--tilt,0deg)); }
+  .rays__cv{ opacity:.6; }
   *{ scroll-behavior:auto !important; }
 }
 </style>
@@ -526,25 +561,30 @@ a,button,.btn{ touch-action:manipulation; }
 
 <div class="phone" id="top">
 
-  <div class="smoke" aria-hidden="true">
-    <span class="smoke__p smoke__p--1"></span>
-    <span class="smoke__p smoke__p--2"></span>
-    <span class="smoke__p smoke__p--3"></span>
+  <div class="rays" aria-hidden="true">
+    <canvas class="rays__cv" id="raysCv"></canvas>
   </div>
 
   <div class="deco" aria-hidden="true">
+    <div class="deco__c deco__c--x1"><span class="deco__card deco__card--b"></span></div>
     <div class="deco__c deco__c--hero1"><span class="deco__card"></span></div>
     <div class="deco__c deco__c--hero2"><span class="deco__card deco__card--b"></span></div>
+    <div class="deco__c deco__c--x2"><span class="deco__card deco__card--c"></span></div>
     <div class="deco__c deco__c--micro"><span class="deco__card deco__card--c"></span></div>
+    <div class="deco__c deco__c--x3"><span class="deco__card"></span></div>
     <div class="deco__c deco__c--show"><span class="deco__card"></span></div>
+    <div class="deco__c deco__c--x4"><span class="deco__card deco__card--b"></span></div>
     <div class="deco__c deco__c--levit"><span class="deco__card deco__card--b"></span></div>
+    <div class="deco__c deco__c--x5"><span class="deco__card deco__card--c"></span></div>
     <div class="deco__c deco__c--price"><span class="deco__card"></span></div>
+    <div class="deco__c deco__c--x6"><span class="deco__card deco__card--c"></span></div>
     <div class="deco__c deco__c--contact"><span class="deco__card deco__card--c"></span></div>
+    <div class="deco__c deco__c--x7"><span class="deco__card deco__card--b"></span></div>
   </div>
 
   <!-- ===================== HERO ===================== -->
   <section class="s s--hero" id="hero">
-    <img class="hero__photo" src="media/site/hero.png"
+    <img class="hero__photo" src="media/site/hero.png" data-photo
          alt="Эдуард Грамм в чёрном костюме держит веер игральных карт" fetchpriority="high"
          width="880" height="2042">
 
@@ -580,13 +620,13 @@ a,button,.btn{ touch-action:manipulation; }
   <!-- ===================== МИКРОМАГИЯ ===================== -->
   <section class="s act" id="micro">
     <span class="seam" aria-hidden="true"></span>
-    <img class="act__photo" src="media/site/micro-bg.png" alt="" loading="lazy"
+    <img class="act__photo" src="media/site/micro-bg.png" alt="" loading="lazy" data-photo
          width="880" height="1464" style="object-position:center 22%">
     <div class="act__wash" aria-hidden="true" style="top:clamp(260px,74cqw,420px)"></div>
 
     <div class="wrap">
       <div class="act__head">
-        <span class="act__num" data-n="1" aria-hidden="true">1</span>
+        <span class="act__num act__num--vA" data-n="1" aria-hidden="true">1</span>
         <h2 class="act__title" data-split>Микро<br>магия</h2>
       </div>
       <div class="act__body" data-reveal>
@@ -606,13 +646,13 @@ a,button,.btn{ touch-action:manipulation; }
   <!-- ===================== ШОУ ===================== -->
   <section class="s act" id="show">
     <span class="seam" aria-hidden="true"></span>
-    <img class="act__photo" src="media/site/show-bg.png" alt="" loading="lazy"
+    <img class="act__photo" src="media/site/show-bg.png" alt="" loading="lazy" data-photo
          width="880" height="1480" style="object-position:center 26%">
     <div class="act__wash" aria-hidden="true" style="top:clamp(300px,84cqw,460px)"></div>
 
     <div class="wrap">
       <div class="act__head">
-        <span class="act__num act__num--geo" data-n="2" aria-hidden="true" style="left:clamp(-92px,-24cqw,-62px)">2</span>
+        <span class="act__num act__num--geo act__num--vB" data-n="2" aria-hidden="true" style="left:clamp(-92px,-24cqw,-62px)">2</span>
         <h2 class="act__title" data-split>Шоу</h2>
       </div>
       <div class="act__body" data-reveal>
@@ -632,13 +672,13 @@ a,button,.btn{ touch-action:manipulation; }
   <!-- ===================== ЛЕВИТАЦИЯ ===================== -->
   <section class="s act" id="levit">
     <span class="seam" aria-hidden="true"></span>
-    <img class="act__photo" src="media/site/levit-bg.png" alt="" loading="lazy"
+    <img class="act__photo" src="media/site/levit-bg.png" alt="" loading="lazy" data-photo
          width="880" height="1320" style="object-position:center 20%">
     <div class="act__wash" aria-hidden="true" style="top:clamp(280px,80cqw,440px)"></div>
 
     <div class="wrap">
       <div class="act__head">
-        <span class="act__num act__num--geo" data-n="3" aria-hidden="true" style="left:clamp(-92px,-24cqw,-62px)">3</span>
+        <span class="act__num act__num--geo act__num--vC" data-n="3" aria-hidden="true" style="left:clamp(-92px,-24cqw,-62px)">3</span>
         <h2 class="act__title" data-split>Леви<br>тация</h2>
       </div>
       <div class="act__body" data-reveal>
@@ -693,7 +733,7 @@ a,button,.btn{ touch-action:manipulation; }
     </div>
 
     <div class="contact__media">
-      <img class="contact__photo" src="media/site/contact-bg.png"
+      <img class="contact__photo" src="media/site/contact-bg.png" data-photo
            alt="Эдуард Грамм с веером карт" loading="lazy" width="880" height="1608">
     </div>
 
@@ -746,6 +786,126 @@ a,button,.btn{ touch-action:manipulation; }
     });
   });
 
+  /* ---------- Живой фон: плывущие лучи (canvas, без библиотек) ----------
+     Мягкие пятна-лучи в палитре акцента плывут вверх с пульсацией.
+     scrollVel — накопленная скорость скролла, затухает каждый кадр;
+     чем быстрее листает гость, тем сильнее ускоряются лучи и «ветер»
+     сносит парящие карты, при остановке всё возвращается к дрейфу. */
+  var scrollVel = 0;
+  (function rays () {
+    var cv = document.getElementById('raysCv');
+    if (!cv || !cv.getContext) return;
+    var ctx = cv.getContext('2d');
+    if (!ctx) return;
+
+    var mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    var deco = document.querySelector('.deco');
+    var DPR = Math.min(window.devicePixelRatio || 1, 2);
+    var W = 1, H = 1, beams = [], raf = 0, last = 0;
+    var PAL = [[212, 60, 38], [233, 79, 48], [124, 35, 24]]; /* --accent / --accent-hi / --accent-deep */
+    var N = (window.innerWidth < 480) ? 5 : 7;
+
+    function size () {
+      var r = cv.getBoundingClientRect();
+      W = Math.max(1, r.width); H = Math.max(1, r.height);
+      cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    }
+    function seed () {
+      beams = [];
+      for (var i = 0; i < N; i++) {
+        beams.push({
+          x: (i + 0.5) / N + (Math.random() - 0.5) * 0.14,
+          y: Math.random() * 1.4 - 0.2,
+          w: 0.30 + Math.random() * 0.34,
+          h: 0.55 + Math.random() * 0.6,
+          sp: 0.00045 + Math.random() * 0.00090,
+          dr: (Math.random() - 0.5) * 0.00075,
+          col: PAL[i % PAL.length],
+          ph: Math.random() * 6.2832,
+          pu: 0.010 + Math.random() * 0.016,
+          a: 0.065 + Math.random() * 0.055
+        });
+      }
+    }
+    function paint (step) {
+      scrollVel *= 0.90;
+      var boost = 1 + Math.min(scrollVel * 0.10, 8);
+      var pulseK = 1 + Math.min(scrollVel * 0.012, 2.2);
+
+      ctx.clearRect(0, 0, W, H);
+      ctx.globalCompositeOperation = 'lighter';
+      for (var i = 0; i < beams.length; i++) {
+        var b = beams[i];
+        b.y -= b.sp * boost * step;
+        b.x += b.dr * step * (0.4 + boost * 0.15);
+        b.ph += b.pu * step;
+        if (b.y < -0.5) { b.y = 1.35; b.x = Math.random(); }
+        if (b.x < -0.35) b.x = 1.25; else if (b.x > 1.35) b.x = -0.25;
+
+        var cx = b.x * W, cy = b.y * H;
+        var rr = Math.max(b.w * W, b.h * H) * 0.5;
+        if (rr <= 0) continue;
+        var al = b.a * (0.62 + 0.38 * Math.sin(b.ph)) * pulseK;
+        if (al < 0.003) continue;
+        var c = b.col;
+        var g = ctx.createRadialGradient(cx, cy, 0, cx, cy, rr);
+        g.addColorStop(0, 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + Math.min(al, 0.6).toFixed(3) + ')');
+        g.addColorStop(1, 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',0)');
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.scale((b.w * W) / (2 * rr), (b.h * H) / (2 * rr));
+        ctx.beginPath();
+        ctx.arc(0, 0, rr, 0, 6.2832);
+        ctx.fillStyle = g;
+        ctx.fill();
+        ctx.restore();
+      }
+      ctx.globalCompositeOperation = 'source-over';
+
+      if (deco) {
+        var wind = -Math.min(scrollVel * 0.35, 34);
+        deco.style.transform = 'translate3d(0,' + wind.toFixed(1) + 'px,0)';
+      }
+    }
+    function loop (now) {
+      var dt = last ? Math.min(0.05, (now - last) / 1000) : 0.0167;
+      last = now;
+      paint(dt * 60); /* переводим в «кадры ~60 к/с» — коэффициенты читаемы */
+      raf = requestAnimationFrame(loop);
+    }
+    function stop () { if (raf) cancelAnimationFrame(raf); raf = 0; last = 0; }
+    function go () {
+      stop(); size(); seed();
+      if (mq.matches) { paint(0); return; } /* один статичный кадр */
+      raf = requestAnimationFrame(loop);
+    }
+
+    window.addEventListener('resize', function () {
+      DPR = Math.min(window.devicePixelRatio || 1, 2);
+      size();
+      if (mq.matches) paint(0);
+    }, { passive: true });
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) stop();
+      else if (!mq.matches && !raf) raf = requestAnimationFrame(loop);
+    });
+    if (mq.addEventListener) mq.addEventListener('change', go);
+    else if (mq.addListener) mq.addListener(go);
+
+    go();
+  })();
+
+  (function scrollVelTracker () {
+    var ly = window.scrollY || window.pageYOffset || 0;
+    window.addEventListener('scroll', function () {
+      var y = window.scrollY || window.pageYOffset || 0;
+      scrollVel += Math.abs(y - ly);
+      if (scrollVel > 260) scrollVel = 260;
+      ly = y;
+    }, { passive: true });
+  })();
+
   /* ---------- Премиальная хореография появления (GSAP) ---------- */
   var gsapStarted = false;
   function initGsap() {
@@ -775,7 +935,7 @@ a,button,.btn{ touch-action:manipulation; }
         if (!chars || !chars.length) {
           gsap.from(el, {
             opacity: 0, y: 26, duration: 0.7, ease: 'expo.out',
-            scrollTrigger: { trigger: el, start: 'top 88%', end: 'bottom 12%', toggleActions: REPLAY }
+            scrollTrigger: { trigger: el, start: 'top 86%', end: 'bottom 34%', toggleActions: REPLAY }
           });
           return;
         }
@@ -783,8 +943,19 @@ a,button,.btn{ touch-action:manipulation; }
         gsap.from(chars, {
           opacity: 0, yPercent: 120, rotateX: -55, transformOrigin: '50% 100% -20px',
           duration: 0.62, ease: 'expo.out', stagger: 0.02,
-          scrollTrigger: { trigger: el, start: 'top 86%', end: 'bottom 12%', toggleActions: REPLAY }
+          scrollTrigger: { trigger: el, start: 'top 85%', end: 'bottom 32%', toggleActions: REPLAY }
         });
+      });
+
+      /* — фото: премиальное появление из сильного размытия
+         (герой — заметно сильнее и дольше) — */
+      document.querySelectorAll('[data-photo]').forEach(function (img) {
+        var big = img.classList.contains('hero__photo');
+        gsap.fromTo(img,
+          { filter: 'blur(' + (big ? 48 : 24) + 'px) brightness(0.8)', opacity: big ? 0.3 : 0 },
+          { filter: 'blur(0px) brightness(1)', opacity: 1,
+            duration: big ? 1.7 : 1.15, ease: 'power2.out',
+            scrollTrigger: { trigger: img, start: 'top 94%', end: 'bottom 12%', toggleActions: REPLAY } });
       });
 
       /* — группы текста: stagger fade-up — */
@@ -792,7 +963,7 @@ a,button,.btn{ touch-action:manipulation; }
         var kids = group.children.length ? group.children : [group];
         gsap.from(kids, {
           opacity: 0, y: 26, duration: 0.55, ease: 'power2.out', stagger: 0.07,
-          scrollTrigger: { trigger: group, start: 'top 85%', end: 'bottom 10%', toggleActions: REPLAY }
+          scrollTrigger: { trigger: group, start: 'top 84%', end: 'bottom 34%', toggleActions: REPLAY }
         });
       });
 
@@ -809,7 +980,7 @@ a,button,.btn{ touch-action:manipulation; }
       document.querySelectorAll('[data-video]').forEach(function (v) {
         gsap.from(v, {
           opacity: 0, scale: 0.93, y: 34, duration: 0.75, ease: 'power3.out',
-          scrollTrigger: { trigger: v, start: 'top 82%', end: 'bottom 18%', toggleActions: REPLAY }
+          scrollTrigger: { trigger: v, start: 'top 82%', end: 'bottom 30%', toggleActions: REPLAY }
         });
       });
 
@@ -817,7 +988,7 @@ a,button,.btn{ touch-action:manipulation; }
       document.querySelectorAll('.act__num, .price__n').forEach(function (n) {
         gsap.fromTo(n, { opacity: 0, yPercent: 22 }, {
           opacity: 1, yPercent: 0, duration: 1.1, ease: 'power2.out',
-          scrollTrigger: { trigger: n, start: 'top 94%', end: 'bottom 6%', toggleActions: REPLAY }
+          scrollTrigger: { trigger: n, start: 'top 92%', end: 'bottom 22%', toggleActions: REPLAY }
         });
       });
 
@@ -843,7 +1014,8 @@ a,button,.btn{ touch-action:manipulation; }
 
     /* reduced-motion: моментальный финальный вид */
     mm.add('(prefers-reduced-motion: reduce)', function () {
-      gsap.set('[data-split], [data-reveal] > *, [data-hero], [data-video], .act__num, .price__n', { clearProps: 'all', opacity: 1, y: 0 });
+      gsap.set('[data-split], [data-reveal] > *, [data-hero], [data-video], [data-photo], .act__num, .price__n', { clearProps: 'all', opacity: 1, y: 0 });
+      gsap.set('[data-photo]', { clearProps: 'filter' });
     });
   }
   if (document.fonts && document.fonts.ready) {
