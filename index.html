@@ -321,15 +321,15 @@ a,button,.btn{ touch-action:manipulation; }
   font-family:var(--font-druk); font-weight:900;
   font-size:clamp(156px, 58cqw, 250px); line-height:.72;
   user-select:none; pointer-events:none;
-  /* только контур, без заливки — как в Figma (fill: none, один stroke):
-     полая цифра, сквозь неё виден фон, никакого второго контура */
-  color:transparent;
-  -webkit-text-stroke:calc(2.7*var(--u)) rgba(243,237,228,.94);
-  paint-order:stroke;
+  /* контур СНАРУЖИ (вариант 3): заливка цветом фона + paint-order:stroke fill —
+     заливка перекрывает внутреннюю половину штриха, видна только внешняя */
+  color:var(--bg);
+  -webkit-text-stroke:calc(5.2*var(--u)) rgba(243,237,228,.94);
+  paint-order:stroke fill;
 }
 .act__num--geo{
   font-family:var(--font-geo); font-weight:700;
-  -webkit-text-stroke-width:calc(2.3*var(--u));
+  -webkit-text-stroke-width:calc(4.6*var(--u));
 }
 .act__title{
   position:relative; z-index:2; margin:0;
@@ -415,14 +415,14 @@ a,button,.btn{ touch-action:manipulation; }
   font-family:var(--font-druk); font-weight:900;
   font-size:clamp(92px, 28cqw, 124px); line-height:.7;
   user-select:none; pointer-events:none;
-  /* только контур, без заливки — как у .act__num (fill: none, один stroke) */
-  color:transparent;
-  -webkit-text-stroke:calc(2*var(--u)) rgba(243,237,228,.62);
-  paint-order:stroke;
+  /* контур СНАРУЖИ (вариант 3), как у .act__num — тише */
+  color:var(--bg);
+  -webkit-text-stroke:calc(3.6*var(--u)) rgba(243,237,228,.72);
+  paint-order:stroke fill;
 }
 /* узкая «1» — тянем чуть обратно, чтобы за край уходила так же частично, как «2»/«3» */
 .price__row:nth-child(1) .price__n{ right:clamp(-40px, -9cqw, -22px); }
-.price__n--geo{ font-family:var(--font-geo); font-weight:700; -webkit-text-stroke-width:calc(1.7*var(--u)); }
+.price__n--geo{ font-family:var(--font-geo); font-weight:700; -webkit-text-stroke-width:calc(3.2*var(--u)); }
 
 /* ---------- КОНТАКТЫ ---------- */
 .contact{ position:relative; padding-block:var(--sp-5) 0; overflow:hidden; }
@@ -530,89 +530,6 @@ a,button,.btn{ touch-action:manipulation; }
 .deco__c--co1 .deco__card{ opacity:.32; filter:blur(1.8px); }
 .deco__c--co2{ left:calc(-96*var(--u)); top:calc(5620*var(--u)); width:calc(108*var(--u)); --tilt:-10deg; --cf-dur:40s; --cf-delay:-17s; }
 .deco__c--co2 .deco__card{ opacity:.2;  filter:blur(2.6px); }
-
-/* ============================================================
-   ВРЕМЕННО · тест обводки цифры «2» (12 вариантов — выбрать один)
-   Каждая ячейка подписана техникой (CSS-свойство / SVG).
-   Цифра — тем же шрифтом, что номера разделов (Unbounded / --font-geo).
-   ============================================================ */
-.numtest{
-  position:relative; z-index:3;
-  padding:var(--sp-6) var(--pad-x);
-  border-top:1px solid var(--line); background:var(--bg-deep);
-}
-.numtest__h{
-  margin:0 0 6px; text-align:center;
-  font-weight:600; font-size:.8rem; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-faint);
-}
-.numtest__sub{ margin:0 0 var(--sp-4); text-align:center; font-size:12px; color:var(--ink-dim); }
-.numtest__grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
-@media (min-width:440px){ .numtest__grid{ grid-template-columns:repeat(3,1fr); } }
-.nt{
-  display:flex; flex-direction:column; align-items:center; gap:10px;
-  padding:16px 6px 12px; border-radius:12px;
-  background:linear-gradient(180deg,#17120f,#100c0b); border:1px solid var(--line);
-}
-.nt__fig{
-  position:relative; width:108px; height:126px;
-  display:flex; align-items:center; justify-content:center;
-}
-.nt__fig span{ position:relative; display:block;
-  font-family:var(--font-geo); font-weight:700; font-size:118px; line-height:1; }
-.nt__svg{ width:108px; height:126px; overflow:visible; }
-.nt__svg text{ font-family:var(--font-geo); font-weight:700; font-size:116px; }
-.nt__cap{ font-size:11px; line-height:1.32; text-align:center; color:var(--ink-dim); }
-.nt__cap b{ display:block; color:var(--ink); font-weight:600; font-size:12px; margin-bottom:2px; }
-
-/* 1 — -webkit-text-stroke, по центру контура (полый) */
-.nt--1 .nt__fig span{ -webkit-text-stroke:3px var(--ink); -webkit-text-fill-color:transparent; }
-/* 2 — -webkit-text-stroke + paint-order:stroke (штрих под заливкой) */
-.nt--2 .nt__fig span{ -webkit-text-stroke:3px var(--ink); -webkit-text-fill-color:transparent; paint-order:stroke; }
-/* 3 — контур СНАРУЖИ: paint-order:stroke fill + заливка цветом фона */
-.nt--3 .nt__fig span{ color:var(--bg); -webkit-text-stroke:6px var(--ink); paint-order:stroke fill; }
-/* 4 — -webkit-text-stroke цветом акцента (тёплый контур) */
-.nt--4 .nt__fig span{ -webkit-text-stroke:3px var(--accent-hi); -webkit-text-fill-color:transparent; }
-/* 5 — text-shadow ×8 вокруг заливки фоном (контур снаружи через тень) */
-.nt--5 .nt__fig span{
-  color:var(--bg);
-  text-shadow:2px 0 var(--ink),-2px 0 var(--ink),0 2px var(--ink),0 -2px var(--ink),
-    2px 2px var(--ink),-2px -2px var(--ink),2px -2px var(--ink),-2px 2px var(--ink);
-}
-/* 6 — filter: drop-shadow() ×4 вокруг заливки фоном */
-.nt--6 .nt__fig span{
-  color:var(--bg);
-  filter:drop-shadow(1.5px 0 0 var(--ink)) drop-shadow(-1.5px 0 0 var(--ink))
-         drop-shadow(0 1.5px 0 var(--ink)) drop-shadow(0 -1.5px 0 var(--ink));
-}
-/* 7 — SVG <text> stroke + fill:none, штрих по центру */
-.nt--7 .nt__svg .vis{ fill:none; stroke:var(--ink); stroke-width:3; paint-order:stroke; }
-/* 8 — SVG <text> + <mask>: контур ТОЛЬКО СНАРУЖИ, нутро прозрачное */
-.nt--8 .nt__svg .vis{ fill:none; stroke:var(--ink); stroke-width:7; }
-.nt--8 .nt__svg .mk{ fill:#000; }
-/* 9 — SVG два слоя: толстый светлый штрих + тонкий фоновый сверху (контур внутри) */
-.nt--9 .nt__svg .a{ fill:none; stroke:var(--ink); stroke-width:9; }
-.nt--9 .nt__svg .b{ fill:none; stroke:var(--bg);  stroke-width:5; }
-/* 10 — -webkit-background-clip:text (тонкий штрих + матовая заливка-градиент) */
-.nt--10 .nt__fig span{
-  -webkit-text-fill-color:transparent; color:transparent;
-  background:linear-gradient(180deg, color-mix(in srgb,var(--ink) 34%,transparent), color-mix(in srgb,var(--ink) 8%,transparent));
-  -webkit-background-clip:text; background-clip:text;
-  -webkit-text-stroke:1.5px var(--ink);
-}
-/* 11 — ::before-клон + scale + text-stroke: контур ИЗНУТРИ */
-.nt--11 .nt__fig span{ -webkit-text-stroke:5px var(--ink); -webkit-text-fill-color:transparent; }
-.nt--11 .nt__fig span::before{
-  content:"2"; position:absolute; inset:0;
-  -webkit-text-stroke:5px var(--bg); -webkit-text-fill-color:transparent;
-  transform:scale(1.07); transform-origin:50% 54%;
-}
-/* 12 — тонкий штрих + размытый ::before-дубль (контур со свечением) */
-.nt--12 .nt__fig span{ -webkit-text-stroke:1.5px var(--ink); -webkit-text-fill-color:transparent; }
-.nt--12 .nt__fig span::before{
-  content:"2"; position:absolute; inset:0;
-  -webkit-text-stroke:2.5px var(--accent-hi); -webkit-text-fill-color:transparent;
-  filter:blur(4px); opacity:.75;
-}
 
 /* ============================================================
    Reduced motion / без JS — всё в финальном читаемом виде
@@ -820,58 +737,6 @@ a,button,.btn{ touch-action:manipulation; }
       <span>Эдуард Грамм — иллюзионист</span>
       <span>+7 918 541-80-04</span>
     </footer>
-  </section>
-
-  <!-- ВРЕМЕННО: тест обводки цифры «2» — выбрать вариант, потом удалю блок -->
-  <section class="numtest" aria-label="Тест обводки цифры">
-    <p class="numtest__h">Обводка цифры — 12 вариантов</p>
-    <p class="numtest__sub">Скажи номер — оставлю его для всех цифр разделов и прайса, блок удалю.</p>
-    <div class="numtest__grid">
-
-      <div class="nt nt--1"><div class="nt__fig"><span>2</span></div>
-        <p class="nt__cap"><b>1</b>-webkit-text-stroke, по центру</p></div>
-
-      <div class="nt nt--2"><div class="nt__fig"><span>2</span></div>
-        <p class="nt__cap"><b>2</b>-webkit-text-stroke + paint-order: stroke</p></div>
-
-      <div class="nt nt--3"><div class="nt__fig"><span>2</span></div>
-        <p class="nt__cap"><b>3</b>paint-order: stroke fill + заливка фоном (контур снаружи)</p></div>
-
-      <div class="nt nt--4"><div class="nt__fig"><span>2</span></div>
-        <p class="nt__cap"><b>4</b>-webkit-text-stroke цветом акцента</p></div>
-
-      <div class="nt nt--5"><div class="nt__fig"><span>2</span></div>
-        <p class="nt__cap"><b>5</b>text-shadow ×8 + заливка фоном (контур снаружи)</p></div>
-
-      <div class="nt nt--6"><div class="nt__fig"><span>2</span></div>
-        <p class="nt__cap"><b>6</b>filter: drop-shadow() ×4</p></div>
-
-      <div class="nt nt--7"><svg class="nt__svg" viewBox="0 0 108 126"><text class="vis" x="54" y="104" text-anchor="middle">2</text></svg>
-        <p class="nt__cap"><b>7</b>SVG &lt;text&gt; stroke, fill:none (по центру)</p></div>
-
-      <div class="nt nt--8"><svg class="nt__svg" viewBox="0 0 108 126">
-        <defs><mask id="ntm8" maskUnits="userSpaceOnUse" x="-30" y="-30" width="168" height="186">
-          <rect x="-30" y="-30" width="168" height="186" fill="#fff"/>
-          <text class="mk" x="54" y="104" text-anchor="middle">2</text>
-        </mask></defs>
-        <text class="vis" x="54" y="104" text-anchor="middle" mask="url(#ntm8)">2</text></svg>
-        <p class="nt__cap"><b>8</b>SVG &lt;mask&gt; + stroke — контур ТОЛЬКО снаружи, полый</p></div>
-
-      <div class="nt nt--9"><svg class="nt__svg" viewBox="0 0 108 126">
-        <text class="a" x="54" y="104" text-anchor="middle">2</text>
-        <text class="b" x="54" y="104" text-anchor="middle">2</text></svg>
-        <p class="nt__cap"><b>9</b>SVG два слоя stroke (контур внутри)</p></div>
-
-      <div class="nt nt--10"><div class="nt__fig"><span>2</span></div>
-        <p class="nt__cap"><b>10</b>-webkit-background-clip: text + text-stroke</p></div>
-
-      <div class="nt nt--11"><div class="nt__fig"><span>2</span></div>
-        <p class="nt__cap"><b>11</b>::before-клон + scale + text-stroke (контур изнутри)</p></div>
-
-      <div class="nt nt--12"><div class="nt__fig"><span>2</span></div>
-        <p class="nt__cap"><b>12</b>тонкий text-stroke + размытый ::before (свечение)</p></div>
-
-    </div>
   </section>
 
 </div>
