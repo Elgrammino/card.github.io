@@ -257,13 +257,13 @@ a,button,.btn{ touch-action:manipulation; }
 }
 .hero__tag{
   position:absolute; left:calc(39*var(--u)); top:calc(838*var(--u)); z-index:3;
-  margin:0; font-weight:800; font-size:calc(16*var(--u)); line-height:calc(28*var(--u));
+  margin:0; font-weight:800; font-size:clamp(17px, 4.6cqw, 20px); line-height:1.28;
 }
 .hero__tag .pill{ font-weight:200; text-transform:lowercase; letter-spacing:calc(1*var(--u)); padding:.1em .5em .2em; }
 .hero__points{
   position:absolute; left:calc(102*var(--u)); top:calc(1010*var(--u)); z-index:3;
-  width:calc(300*var(--u)); list-style:none; margin:0; padding:0;
-  font-weight:200; font-size:calc(15*var(--u)); line-height:calc(21*var(--u)); letter-spacing:calc(.3*var(--u));
+  width:calc(340*var(--u)); list-style:none; margin:0; padding:0;
+  font-weight:200; font-size:clamp(17px, 4.6cqw, 20px); line-height:1.4; letter-spacing:.012em;
 }
 .hero__points li{ position:relative; padding-left:calc(20*var(--u)); margin-bottom:calc(3*var(--u)); }
 .hero__points li::before{
@@ -272,7 +272,7 @@ a,button,.btn{ touch-action:manipulation; }
 }
 .hero__more{
   position:absolute; left:calc(88*var(--u)); top:calc(1236*var(--u)); z-index:3;
-  margin:0; font-weight:600; font-size:calc(13*var(--u)); line-height:calc(16.5*var(--u));
+  margin:0; font-weight:600; font-size:clamp(17px, 4.6cqw, 20px); line-height:1.4;
 }
 .hero__more .accent{ font-weight:600; }
 .hero__cta{
@@ -300,10 +300,10 @@ a,button,.btn{ touch-action:manipulation; }
   -webkit-mask-image:linear-gradient(#000 54%, transparent);
   mask-image:linear-gradient(#000 54%, transparent);
 }
-/* «Шоу» — фото крупнее на 10% и сдвинуто выше; «Левитация» — тоже выше.
-   Ещё на 10px выше по просьбе — через вычитание из clamp. */
-#show  .act__photo{ height:clamp(396px, 114cqw, 550px); top:calc(clamp(-46px, -11cqw, -24px) - 10px); }
-#levit .act__photo{ top:calc(clamp(-40px, -9cqw, -22px) - 10px); }
+/* «Шоу» — фото крупнее (+10% ранее, ещё +20% сверху = ~1.32 общее) и сдвинуто выше;
+   «Левитация» — сдвинута левее и немного увеличена. */
+#show  .act__photo{ height:clamp(475px, 137cqw, 660px); top:calc(clamp(-46px, -11cqw, -24px) - 10px); left:calc(-6cqw); width:calc(100% + 6cqw); }
+#levit .act__photo{ height:clamp(378px, 109cqw, 525px); top:calc(clamp(-40px, -9cqw, -22px) - 10px); left:calc(-8cqw); width:calc(100% + 8cqw); }
 .act__wash{
   position:absolute; z-index:1; pointer-events:none; border-radius:50%;
   width:150%; height:clamp(420px, 120cqw, 640px);
@@ -322,8 +322,9 @@ a,button,.btn{ touch-action:manipulation; }
   font-size:clamp(156px, 58cqw, 250px); line-height:.72;
   user-select:none; pointer-events:none;
   /* контур СНАРУЖИ (вариант 3): заливка цветом фона + paint-order:stroke fill —
-     заливка перекрывает внутреннюю половину штриха, видна только внешняя */
-  color:var(--bg);
+     заливка перекрывает внутреннюю половину штриха, видна только внешняя.
+     Заливка сделана существенно прозрачнее (~80%), чтобы не читаться сплошным пятном. */
+  color:color-mix(in srgb, var(--bg) 20%, transparent);
   -webkit-text-stroke:calc(5.2*var(--u)) rgba(243,237,228,.94);
   paint-order:stroke fill;
 }
@@ -382,6 +383,15 @@ a,button,.btn{ touch-action:manipulation; }
   border-color:transparent transparent transparent #fff;
 }
 .video__play:hover{ transform:scale(1.06); }
+.video__frame{
+  position:absolute; inset:0; width:100%; height:100%; border:0; display:none; background:#000;
+}
+.video.is-playing .video__frame{ display:block; }
+.video__ext-note{
+  position:absolute; left:0; right:0; bottom:8px; z-index:3;
+  text-align:center; font-size:11px; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--ink-faint); pointer-events:none;
+}
 
 /* ---------- ПРАЙС ---------- */
 .price{ position:relative; padding-block:var(--sp-5); overflow:hidden; }
@@ -415,8 +425,8 @@ a,button,.btn{ touch-action:manipulation; }
   font-family:var(--font-druk); font-weight:900;
   font-size:clamp(92px, 28cqw, 124px); line-height:.7;
   user-select:none; pointer-events:none;
-  /* контур СНАРУЖИ (вариант 3), как у .act__num — тише */
-  color:var(--bg);
+  /* контур СНАРУЖИ, заливка прозрачнее (~80%) — как у .act__num, тише */
+  color:color-mix(in srgb, var(--bg) 20%, transparent);
   -webkit-text-stroke:calc(3.6*var(--u)) rgba(243,237,228,.72);
   paint-order:stroke fill;
 }
@@ -460,12 +470,9 @@ a,button,.btn{ touch-action:manipulation; }
 /* ============================================================
    Парящие карты на фоне (страничные координаты).
    Летают ПОЗАДИ фото и текста (deco z-index:1 < фото z-index:2 <
-   текст z-index:3), не только по краям — часть колоды идёт по
-   центру полосы. Разные «глубины»: ближе — крупнее/резче/быстрее,
-   дальше — мельче/мягче/медленнее. Контейнер .deco получает общий
-   плавный параллакс + «ветер» от скорости скролла ОДНИМ transform
-   из rAF-цикла (без GSAP-scrub — тот давал рывки), внутренний
-   .deco__card — непрерывное CSS-парение (слои не конфликтуют).
+   текст z-index:3). Сдвинуты ближе к центру, чтобы каждая карта
+   была хотя бы частично видна в кадре (раньше уходили далеко за
+   экран и были не видны).
    ============================================================ */
 .deco{ position:absolute; inset:0; z-index:1; pointer-events:none; overflow:hidden; }
 .deco__c{ position:absolute; width:calc(168*var(--u)); }
@@ -486,49 +493,37 @@ a,button,.btn{ touch-action:manipulation; }
   to  { transform:translate3d(0, calc(18*var(--u)), 0) rotate(calc(var(--tilt,0deg) + 1.1deg)); }
 }
 
-/* ── Раскладка карт (одна колода, ~12 штук, поштучно по просьбе) ──
-   Все летают ПОЗАДИ фото и текста (deco z1 < фото z2 < текст z3).
-   Справа у hero карт нет (убраны). Возле «форматов» — только у самого
-   левого края и в глубине. У секций — прижаты к краям, у видео опущены. */
-
-/* hero: одна тихая карта в центре, глубоко за именем */
+/* ── Раскладка карт — сдвинуты ближе к центру относительно исходной версии ── */
 .deco__c--h1 { left:24%; top:calc(560*var(--u));  width:calc(150*var(--u)); --tilt:7deg;   --cf-dur:34s; --cf-delay:-7s;  }
 .deco__c--h1 .deco__card{ opacity:.14; filter:blur(3.4px); }
 
-/* за списком «множество форматов» — левее точек (у левого края) */
-.deco__c--f1 { left:calc(-96*var(--u)); top:calc(940*var(--u));  width:calc(128*var(--u)); --tilt:-13deg; --cf-dur:37s; --cf-delay:-4s;  }
+.deco__c--f1 { left:calc(-18*var(--u)); top:calc(940*var(--u));  width:calc(128*var(--u)); --tilt:-13deg; --cf-dur:37s; --cf-delay:-4s;  }
 .deco__c--f1 .deco__card{ opacity:.34; filter:blur(1.7px); }
 
-/* возле «Форматы выступлений» — сильно влево, в глубину (едва край) */
-.deco__c--f2 { left:calc(-104*var(--u)); top:calc(1545*var(--u)); width:calc(92*var(--u)); --tilt:11deg; --cf-dur:45s; --cf-delay:-16s; }
+.deco__c--f2 { left:calc(-22*var(--u)); top:calc(1545*var(--u)); width:calc(92*var(--u)); --tilt:11deg; --cf-dur:45s; --cf-delay:-16s; }
 .deco__c--f2 .deco__card{ opacity:.16; filter:blur(3.6px); }
 
-/* МИКРОМАГИЯ: одна под фото у левого края, вторая ниже у видео */
-.deco__c--mi1{ left:calc(-86*var(--u)); top:calc(2250*var(--u)); width:calc(120*var(--u)); --tilt:-12deg; --cf-dur:36s; --cf-delay:-9s;  }
+.deco__c--mi1{ left:calc(-14*var(--u)); top:calc(2250*var(--u)); width:calc(120*var(--u)); --tilt:-12deg; --cf-dur:36s; --cf-delay:-9s;  }
 .deco__c--mi1 .deco__card{ opacity:.28; filter:blur(2.4px); }
-.deco__c--mi2{ left:calc(-92*var(--u)); top:calc(2500*var(--u)); width:calc(110*var(--u)); --tilt:9deg;   --cf-dur:41s; --cf-delay:-19s; }
+.deco__c--mi2{ left:calc(-16*var(--u)); top:calc(2500*var(--u)); width:calc(110*var(--u)); --tilt:9deg;   --cf-dur:41s; --cf-delay:-19s; }
 .deco__c--mi2 .deco__card{ opacity:.22; filter:blur(2.8px); }
 
-/* ШОУ: у левого края, опущены к видео */
-.deco__c--sh1{ left:calc(-80*var(--u)); top:calc(3270*var(--u)); width:calc(124*var(--u)); --tilt:-14deg; --cf-dur:33s; --cf-delay:-6s;  }
+.deco__c--sh1{ left:calc(-12*var(--u)); top:calc(3270*var(--u)); width:calc(124*var(--u)); --tilt:-14deg; --cf-dur:33s; --cf-delay:-6s;  }
 .deco__c--sh1 .deco__card{ opacity:.3;  filter:blur(2px); }
-.deco__c--sh2{ left:calc(-98*var(--u)); top:calc(3470*var(--u)); width:calc(106*var(--u)); --tilt:12deg;  --cf-dur:43s; --cf-delay:-21s; }
+.deco__c--sh2{ left:calc(-16*var(--u)); top:calc(3470*var(--u)); width:calc(106*var(--u)); --tilt:12deg;  --cf-dur:43s; --cf-delay:-21s; }
 .deco__c--sh2 .deco__card{ opacity:.22; filter:blur(2.8px); }
 
-/* ЛЕВИТАЦИЯ: верхняя — в правый край (за фото), нижняя — левый край у видео */
-.deco__c--le1{ right:calc(-90*var(--u)); top:calc(3640*var(--u)); width:calc(126*var(--u)); --tilt:16deg;  --cf-dur:35s; --cf-delay:-3s;  }
+.deco__c--le1{ right:calc(-14*var(--u)); top:calc(3640*var(--u)); width:calc(126*var(--u)); --tilt:16deg;  --cf-dur:35s; --cf-delay:-3s;  }
 .deco__c--le1 .deco__card{ opacity:.3;  filter:blur(2px); }
-.deco__c--le2{ left:calc(-74*var(--u));  top:calc(4080*var(--u)); width:calc(150*var(--u)); --tilt:-8deg;  --cf-dur:29s; --cf-delay:-14s; }
+.deco__c--le2{ left:calc(-10*var(--u));  top:calc(4080*var(--u)); width:calc(150*var(--u)); --tilt:-8deg;  --cf-dur:29s; --cf-delay:-14s; }
 .deco__c--le2 .deco__card{ opacity:.44; filter:blur(1.3px) drop-shadow(0 calc(18*var(--u)) calc(30*var(--u)) rgba(0,0,0,.45)); }
 
-/* ПРАЙС: крупная опорная карта у левого края */
-.deco__c--pr1{ left:calc(-88*var(--u)); top:calc(4560*var(--u)); width:calc(182*var(--u)); --tilt:-8deg;  --cf-dur:28s; --cf-delay:-9s;  }
+.deco__c--pr1{ left:calc(-16*var(--u)); top:calc(4560*var(--u)); width:calc(182*var(--u)); --tilt:-8deg;  --cf-dur:28s; --cf-delay:-9s;  }
 .deco__c--pr1 .deco__card{ opacity:.5;  filter:blur(.5px) drop-shadow(0 calc(20*var(--u)) calc(34*var(--u)) rgba(0,0,0,.5)); }
 
-/* КОНТАКТЫ: у левого края */
-.deco__c--co1{ left:calc(-72*var(--u)); top:calc(5320*var(--u)); width:calc(132*var(--u)); --tilt:13deg;  --cf-dur:34s; --cf-delay:-2s;  }
+.deco__c--co1{ left:calc(-10*var(--u)); top:calc(5320*var(--u)); width:calc(132*var(--u)); --tilt:13deg;  --cf-dur:34s; --cf-delay:-2s;  }
 .deco__c--co1 .deco__card{ opacity:.32; filter:blur(1.8px); }
-.deco__c--co2{ left:calc(-96*var(--u)); top:calc(5620*var(--u)); width:calc(108*var(--u)); --tilt:-10deg; --cf-dur:40s; --cf-delay:-17s; }
+.deco__c--co2{ left:calc(-14*var(--u)); top:calc(5620*var(--u)); width:calc(108*var(--u)); --tilt:-10deg; --cf-dur:40s; --cf-delay:-17s; }
 .deco__c--co2 .deco__card{ opacity:.2;  filter:blur(2.6px); }
 
 /* ============================================================
@@ -630,11 +625,10 @@ a,button,.btn{ touch-action:manipulation; }
         <p class="sub">для небольших групп гостей</p>
         <p class="sub">для Welcome зоны или в перерывах банкета</p>
       </div>
-      <figure class="video" data-video>
+      <figure class="video" data-video data-vk="clip42097195_456239379" data-vk-kind="clip">
         <img class="video__poster" src="media/site/poster-micro.jpg" alt="" loading="lazy">
         <button class="video__play" type="button" aria-label="Смотреть промо микромагии"></button>
-        <video preload="none" playsinline
-               src="media/%D0%9C%D0%B8%D0%BA%D1%80%D0%BE%D0%BC%D0%B0%D0%B3%D0%B8%D1%8F%20%D0%BF%D1%80%D0%BE%D0%BC%D0%BE.mp4"></video>
+        <iframe class="video__frame" allow="autoplay; encrypted-media; fullscreen" allowfullscreen loading="lazy"></iframe>
       </figure>
     </div>
   </section>
@@ -656,11 +650,10 @@ a,button,.btn{ touch-action:manipulation; }
         <p class="sub">Выступление для всех зрителей одновременно во время банкета в качестве шоу-программы мероприятия</p>
         <p class="lead">Интерактив, юмор, вау эффект.</p>
       </div>
-      <figure class="video video--wide" data-video>
+      <figure class="video video--wide" data-video data-vk="wall-230277884_4" data-vk-kind="wall">
         <img class="video__poster" src="media/site/poster-show.jpg" alt="" loading="lazy">
         <button class="video__play" type="button" aria-label="Смотреть промо шоу"></button>
-        <video preload="none" playsinline
-               src="media/%D1%88%D0%BE%D1%83%20%D0%9F%D1%80%D0%BE%D0%BC%D0%BE.mp4"></video>
+        <iframe class="video__frame" allow="autoplay; encrypted-media; fullscreen" allowfullscreen loading="lazy"></iframe>
       </figure>
     </div>
   </section>
@@ -681,11 +674,10 @@ a,button,.btn{ touch-action:manipulation; }
         <p class="lead">Специальный номер</p>
         <p class="sub">с левитацией вашего гостя на празднике</p>
       </div>
-      <figure class="video video--wide" data-video>
+      <figure class="video video--wide" data-video data-vk="video-230277884_456239026" data-vk-kind="video">
         <img class="video__poster" src="media/site/poster-levit.png" alt="" loading="lazy">
         <button class="video__play" type="button" aria-label="Смотреть промо левитации"></button>
-        <video preload="none" playsinline
-               src="media/%D0%9B%D0%B5%D0%B2%D0%B8%D1%82%D0%B0%D1%86%D0%B8%D1%8F%20%D0%BF%D1%80%D0%BE%D0%BC%D0%BE.mp4"></video>
+        <iframe class="video__frame" allow="autoplay; encrypted-media; fullscreen" allowfullscreen loading="lazy"></iframe>
       </figure>
     </div>
   </section>
@@ -768,17 +760,53 @@ a,button,.btn{ touch-action:manipulation; }
     }
   });
 
-  /* ---------- Видео: только по клику ---------- */
+  /* ---------- Видео с VK: встраивание через video_ext.php при клике ----------
+     ВАЖНО (см. пояснение в чате): у VK официально встраивается на чужих
+     доменах контент вида video-OID_ID / wall-OID_ID (через video_ext.php).
+     Короткие "clip..." ссылки (VK Клипы) НЕ имеют официального публичного
+     iframe-эмбеда для сторонних сайтов — поэтому для карточки с data-vk-kind
+     "clip" сделан fallback: кнопка открывает исходную ссылку в новой вкладке
+     вместо встраивания iframe. Если позже VK добавит embed для клипов —
+     достаточно убрать этот if и вписать сюда правильный embed-URL. */
   Array.prototype.forEach.call(document.querySelectorAll('[data-video]'), function (wrap) {
     var btn = wrap.querySelector('.video__play');
-    var video = wrap.querySelector('video');
-    if (!btn || !video) return;
+    var frame = wrap.querySelector('.video__frame');
+    var vk = wrap.getAttribute('data-vk');
+    var kind = wrap.getAttribute('data-vk-kind');
+    if (!btn || !vk) return;
+
     btn.addEventListener('click', function () {
-      video.setAttribute('controls', '');
+      if (kind === 'clip') {
+        /* VK Клипы: официального iframe-эмбеда для сторонних сайтов нет —
+           открываем в новой вкладке/приложении VK. */
+        window.open('https://vk.com/' + vk, '_blank', 'noopener');
+        return;
+      }
+      if (kind === 'wall') {
+        /* ВАЖНО: "wall-OID_ID" — это ID ПОСТА на стене, а не ID видео.
+           video_ext.php встраивает именно видео-объекты (video{oid}_{id}),
+           и число после "_" в ссылке на пост (здесь "4") почти наверняка
+           НЕ совпадает с реальным ID прикреплённого к посту видео — это два
+           разных счётчика. Подставлять их в video_ext.php как есть было бы
+           обманом: плеер, скорее всего, не откроется или откроет не то.
+           Поэтому здесь тоже честный fallback — открываем пост в VK, а не
+           встраиваем "на удачу". Чтобы получить рабочий эмбед для "Шоу",
+           нужна прямая ссылка вида vk.com/video-OID_ID (как для "Левитации"),
+           не ссылка на пост со стены. */
+        window.open('https://vk.com/' + vk, '_blank', 'noopener');
+        return;
+      }
+      /* video-OID_ID -> video_ext.php?oid=OID&id=ID — единственный формат,
+         для которого встраивание официально поддерживается и ID гарантированно
+         указывает на сам видео-объект. */
+      var m = vk.match(/^video(-?\d+)_(\d+)$/);
+      if (!m || !frame) {
+        window.open('https://vk.com/' + vk, '_blank', 'noopener');
+        return;
+      }
+      var oid = m[1], id = m[2];
+      frame.src = 'https://vk.com/video_ext.php?oid=' + oid + '&id=' + id + '&hd=2&autoplay=1';
       wrap.classList.add('is-playing');
-      var p = video.play();
-      if (p && p.catch) p.catch(function () {});
-      video.focus();
     });
   });
 
