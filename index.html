@@ -1,0 +1,828 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Эдуард Грамм · иллюзионист</title>
+<meta name="description" content="Эдуард Грамм, иллюзионист. Современное иллюзионное шоу для частных мероприятий: микромагия, шоу, левитация.">
+<meta name="theme-color" content="#121010">
+<meta property="og:title" content="Эдуард Грамм · иллюзионист">
+<meta property="og:description" content="Современное иллюзионное шоу для частных мероприятий.">
+<meta property="og:type" content="website">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   ЭДУАРД ГРАММ · одностраничная визитка
+   Композиция — по Figma-макету «Сайт» (node 108:72).
+   Секции переведены в поток с единой вертикальной ритмикой
+   (шкала --sp-*), фикс-высоты убраны — текст больше не режется
+   и не «плавает». Стыки секций сшиты мягкими блюр-слоями.
+
+   Сохранено:
+   - liquid glass на кнопках (.btn);
+   - палитра из реальных фото съёмки (:root);
+   Живой фон (DESIGN.md · Motion & Interaction):
+   - .smoke — непрерывно дрейфующее дымчатое свечение, чистый CSS,
+     не привязано к скроллу, одинаково на всех секциях;
+   - парящие карты .deco__c/.deco__card — несколько карт на разной
+     глубине (ближе крупнее/резче/быстрее, дальше мельче/мягче/
+     медленнее): непрерывное CSS-парение + параллакс от скролла
+     (GSAP scrub — замирает, когда скролл стоит).
+   Появления на GSAP + ScrollTrigger — посимвольная сборка
+   заголовков, stagger текста, вылет видео. Все появления
+   ПЕРЕИГРЫВАЕМЫЕ в обе стороны (toggleActions, без once):
+   элемент уходит при выходе из вида и возвращается снова.
+   Всё под prefers-reduced-motion → статичный фон, мгновенный текст.
+   ============================================================ */
+
+@font-face{
+  font-family:"Bounded"; font-weight:100 900; font-display:swap;
+  src:url("fonts/Bounded-Variable.ttf") format("truetype-variations"),
+      url("fonts/Bounded-Regular.ttf")  format("truetype");
+}
+@font-face{ font-family:"Bounded"; font-weight:200; font-display:swap; src:url("fonts/Bounded-ExtraLight.ttf") format("truetype"); }
+@font-face{ font-family:"Bounded"; font-weight:900; font-display:swap; src:url("fonts/Bounded-Black.ttf") format("truetype"); }
+@font-face{ font-family:"Druk Text Cyr"; font-weight:900; font-display:swap; src:url("fonts/Druk%20Text%20Cyr%20Heavy.otf") format("opentype"); }
+@font-face{ font-family:"Druk Text Cyr"; font-weight:500; font-display:swap; src:url("fonts/Druk%20Text%20Cyr%20Medium.otf") format("opentype"); }
+
+:root{
+  --bg:        #121010;
+  --bg-deep:   #0c0a0a;
+  --surface:   #1b1714;
+  --line:      #332a27;
+
+  --ink:       #f3ede4;
+  --ink-dim:   #c2afa7;
+  --ink-faint: #9b8981;
+
+  --accent:      #d43c26;
+  --accent-hi:   #e94f30;
+  --accent-deep: #7c2318;
+
+  --maxw: 460px;
+  --font:      "Bounded","Unbounded",system-ui,sans-serif;
+  --font-druk: "Druk Text Cyr","Unbounded","Bounded",system-ui,sans-serif;
+  --font-geo:  "Unbounded","Bounded",system-ui,sans-serif;
+  --ease: cubic-bezier(.16,1,.3,1);
+}
+
+*,*::before,*::after{ box-sizing:border-box; }
+html{ -webkit-text-size-adjust:100%; background:#0a0908; }
+@media (prefers-reduced-motion: no-preference){ html{ scroll-behavior:smooth; } }
+
+body{
+  margin:0; background:#0a0908; color:var(--ink);
+  font-family:var(--font); font-weight:200; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+img,video,picture{ max-width:100%; height:auto; display:block; }
+a{ color:inherit; text-decoration:none; }
+button{ font:inherit; color:inherit; }
+a,button,.btn{ touch-action:manipulation; }
+
+/* ============================================================
+   Колонка-визитка + единицы измерения
+   --u      : 1 «пиксель» Figma-макета (для постерной композиции hero)
+   --sp-*   : вертикальная ритмика (8-pt, гибкая, привязана к колонке)
+   ============================================================ */
+.phone{
+  position:relative;
+  width:100%; max-width:var(--maxw); margin-inline:auto;
+  overflow:hidden;
+  container-type:inline-size;
+  --u:calc(100cqw / 440);
+
+  --sp-1: clamp(6px, 1.6cqw, 8px);
+  --sp-2: clamp(10px, 3cqw, 16px);
+  --sp-3: clamp(16px, 4.5cqw, 24px);
+  --sp-4: clamp(24px, 7cqw, 40px);
+  --sp-5: clamp(36px, 10cqw, 56px);
+  --sp-6: clamp(52px, 13cqw, 80px);
+  --sp-sec: clamp(64px, 16cqw, 100px);
+  --pad-x: clamp(20px, 7cqw, 34px);
+
+  background:
+    linear-gradient(180deg, #0c0a0a 0%, #151110 26%, #120f0e 55%, #171211 78%, #0c0a0a 100%);
+  box-shadow:0 0 0 1px #17120f, 0 30px 120px -30px rgba(0,0,0,.7);
+}
+
+.wrap{ position:relative; z-index:3; padding-inline:var(--pad-x); }
+.accent{ color:var(--accent); }
+.muted{ color:var(--ink-dim); font-weight:200; }
+
+/* pill-обводка */
+.pill{
+  display:inline-block; padding:.16em .55em .24em;
+  border:calc(2*var(--u)) solid currentColor; border-radius:999px; line-height:1;
+}
+
+/* ---------- liquid glass кнопки ---------- */
+.btn{
+  position:relative; isolation:isolate; overflow:hidden;
+  display:inline-flex; align-items:center; justify-content:center; gap:.5em;
+  border-radius:999px;
+  border:1px solid rgba(243,237,228,.28);
+  background:
+    linear-gradient(135deg, rgba(243,237,228,.13), rgba(243,237,228,.03)),
+    rgba(18,16,15,.28);
+  -webkit-backdrop-filter:blur(16px) saturate(165%);
+  backdrop-filter:blur(16px) saturate(165%);
+  box-shadow:
+    inset 0 1px 0 rgba(243,237,228,.36),
+    inset 0 -1px 0 rgba(0,0,0,.28),
+    0 16px 44px -14px rgba(0,0,0,.62);
+  color:var(--ink);
+  font-family:var(--font); font-weight:200;
+  text-transform:uppercase; white-space:nowrap; cursor:pointer;
+  transition:transform .16s var(--ease), border-color .25s var(--ease), background .25s var(--ease);
+}
+.btn::after{
+  content:""; position:absolute; inset:0; border-radius:inherit; padding:1px;
+  background:linear-gradient(135deg, rgba(243,237,228,.55), transparent 42%, transparent 60%, rgba(243,237,228,.18));
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none;
+}
+.btn:hover{
+  border-color:rgba(243,237,228,.5);
+  background:
+    linear-gradient(135deg, rgba(243,237,228,.2), rgba(243,237,228,.05)),
+    rgba(212,60,38,.14);
+}
+.btn:active{ transform:translateY(1px) scale(.99); }
+@media (prefers-reduced-transparency: reduce){
+  .btn{ -webkit-backdrop-filter:none; backdrop-filter:none; background:rgba(28,23,20,.97); }
+}
+:focus-visible{ outline:2px solid var(--accent-hi); outline-offset:3px; border-radius:4px; }
+
+/* ============================================================
+   Навигация
+   ============================================================ */
+.nav{
+  position:fixed; inset:0 0 auto 0; z-index:100;
+  display:flex; align-items:center; justify-content:space-between; gap:18px;
+  height:54px; padding:0 clamp(16px,5vw,26px);
+  max-width:var(--maxw); margin-inline:auto;
+  background:linear-gradient(#0c0a0a 12%, transparent);
+  transition:background .3s var(--ease);
+}
+.nav.is-scrolled{ background:color-mix(in srgb, var(--bg) 88%, transparent); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); }
+.nav__brand{ font-weight:600; font-size:13px; letter-spacing:.06em; text-transform:uppercase; white-space:nowrap; }
+.nav__toggle{ display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; margin-right:-10px; background:none; border:0; cursor:pointer; }
+.nav__toggle span, .nav__toggle span::before, .nav__toggle span::after{
+  content:""; display:block; width:20px; height:1.6px; background:var(--ink); transition:transform .3s var(--ease);
+}
+.nav__toggle span::before{ transform:translateY(-6px); }
+.nav__toggle span::after{ transform:translateY(4.4px); }
+.nav.is-open .nav__toggle span{ background:transparent; }
+.nav.is-open .nav__toggle span::before{ transform:rotate(45deg); }
+.nav.is-open .nav__toggle span::after{ transform:rotate(-45deg); }
+.nav__menu{
+  position:fixed; inset:54px 0 auto 0; z-index:99;
+  max-width:var(--maxw); margin-inline:auto;
+  display:grid; gap:2px; padding:12px clamp(16px,5vw,26px) 24px;
+  background:var(--bg-deep); border-bottom:1px solid var(--line);
+  transform:translateY(-12px); opacity:0; pointer-events:none;
+  transition:transform .3s var(--ease), opacity .3s var(--ease);
+}
+.nav.is-open .nav__menu{ transform:none; opacity:1; pointer-events:auto; }
+.nav__menu a{
+  padding:13px 2px; font-weight:500; font-size:15px; letter-spacing:.02em; text-transform:uppercase;
+  color:var(--ink-dim); border-bottom:1px solid var(--line);
+}
+.nav__menu a:last-child{ border-bottom:0; }
+
+/* ============================================================
+   Живой фон: непрерывно дрейфующее дымчатое свечение.
+   Чистая CSS-анимация, НЕ привязана к скроллу, одинаковая
+   по характеру на всех секциях. Заменяет статичное пятно .glow.
+   ============================================================ */
+.smoke{
+  position:fixed; top:0; bottom:0; left:50%; transform:translateX(-50%);
+  width:100%; max-width:var(--maxw); z-index:1;
+  pointer-events:none; overflow:hidden; contain:layout paint;
+}
+.smoke__p{
+  position:absolute; display:block; border-radius:50%; will-change:transform;
+  background:radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--accent) 58%, transparent), transparent 70%);
+  filter:blur(clamp(36px, 11cqw, 72px));
+}
+.smoke__p--1{ width:78%; aspect-ratio:1; left:-16%; top:6%;   opacity:.16; animation:smokeDrift1 46s ease-in-out infinite alternate; }
+.smoke__p--2{ width:62%; aspect-ratio:1; right:-20%; top:40%; opacity:.13; animation:smokeDrift2 61s ease-in-out infinite alternate; }
+.smoke__p--3{ width:88%; aspect-ratio:1; left:-10%; bottom:0; opacity:.10; animation:smokeDrift3 53s ease-in-out infinite alternate; }
+@keyframes smokeDrift1{ from{ transform:translate3d(0,0,0) scale(1);    } to{ transform:translate3d(7%,6%,0) scale(1.16);  } }
+@keyframes smokeDrift2{ from{ transform:translate3d(0,0,0) scale(1.06); } to{ transform:translate3d(-9%,-5%,0) scale(.9);  } }
+@keyframes smokeDrift3{ from{ transform:translate3d(0,0,0) scale(1);    } to{ transform:translate3d(5%,-7%,0) scale(1.12); } }
+
+/* ============================================================
+   Сшивка стыков секций (акцентный блюр, параллакс от скролла)
+   ============================================================ */
+.seam{
+  position:absolute; left:50%; top:0; z-index:1;
+  width:150%; height:clamp(240px, 66cqw, 440px);
+  transform:translate(-50%,-50%); pointer-events:none;
+  background:radial-gradient(50% 50% at 50% 50%, color-mix(in srgb, var(--accent) 24%, transparent), transparent 72%);
+  filter:blur(clamp(28px, 10cqw, 58px)); opacity:.5;
+}
+
+/* ============================================================
+   Секции — поток, единая ритмика
+   ============================================================ */
+.s{ position:relative; }
+.s[id]{ scroll-margin-top:64px; }
+
+/* ---------- HERO (постерная композиция, координаты из макета) ---------- */
+.s--hero{ height:calc(1500*var(--u)); overflow:hidden; }
+.hero__photo{
+  position:absolute; left:0; top:calc(-1*var(--u));
+  width:100%; height:calc(1022*var(--u));
+  object-fit:cover; object-position:center top; z-index:0;
+  -webkit-mask-image:linear-gradient(#000 86%, transparent);
+  mask-image:linear-gradient(#000 86%, transparent);
+}
+.hero__name{
+  position:absolute; left:calc(73*var(--u)); top:calc(584*var(--u)); z-index:3;
+  margin:0; font-weight:800; font-size:calc(57*var(--u)); line-height:calc(54*var(--u));
+  letter-spacing:calc(-2*var(--u)); text-transform:uppercase;
+  text-shadow:0 calc(2*var(--u)) calc(34*var(--u)) rgba(0,0,0,.55);
+}
+.hero__role{
+  position:absolute; left:calc(71*var(--u)); top:calc(716*var(--u)); z-index:3;
+  font-weight:500; font-size:calc(16*var(--u)); letter-spacing:calc(4.5*var(--u)); text-transform:uppercase;
+}
+.hero__tag{
+  position:absolute; left:calc(39*var(--u)); top:calc(838*var(--u)); z-index:3;
+  margin:0; font-weight:800; font-size:calc(16*var(--u)); line-height:calc(28*var(--u));
+}
+.hero__tag .pill{ font-weight:500; text-transform:lowercase; letter-spacing:calc(1*var(--u)); padding:.1em .5em .2em; }
+.hero__points{
+  position:absolute; left:calc(102*var(--u)); top:calc(1010*var(--u)); z-index:3;
+  width:calc(300*var(--u)); list-style:none; margin:0; padding:0;
+  font-weight:200; font-size:calc(15*var(--u)); line-height:calc(21*var(--u)); letter-spacing:calc(.3*var(--u));
+}
+.hero__points li{ position:relative; padding-left:calc(20*var(--u)); margin-bottom:calc(3*var(--u)); }
+.hero__points li::before{
+  content:""; position:absolute; left:0; top:calc(8*var(--u));
+  width:calc(6*var(--u)); height:calc(6*var(--u)); border-radius:50%; background:var(--ink);
+}
+.hero__more{
+  position:absolute; left:calc(88*var(--u)); top:calc(1236*var(--u)); z-index:3;
+  margin:0; font-weight:600; font-size:calc(13*var(--u)); line-height:calc(16.5*var(--u));
+}
+.hero__more .accent{ font-weight:600; }
+.hero__cta{
+  position:absolute; left:calc(102*var(--u)); top:calc(1392*var(--u)); z-index:3;
+  width:calc(234*var(--u)); min-height:calc(40*var(--u)); padding:calc(9*var(--u)) 0;
+  font-size:calc(19*var(--u)); text-transform:lowercase; letter-spacing:calc(2*var(--u));
+}
+
+/* ---------- АКТ (микро / шоу / левитация) ---------- */
+.act{ position:relative; padding-block:0 var(--sp-5); overflow:hidden; }
+.act__photo{
+  position:absolute; left:0; top:0; width:100%;
+  height:clamp(360px, 104cqw, 500px);
+  object-fit:cover; z-index:0;
+  -webkit-mask-image:linear-gradient(#000 54%, transparent);
+  mask-image:linear-gradient(#000 54%, transparent);
+}
+.act__wash{
+  position:absolute; z-index:1; pointer-events:none; border-radius:50%;
+  width:150%; height:clamp(420px, 120cqw, 640px);
+  left:50%; transform:translateX(-50%);
+  background:radial-gradient(circle, color-mix(in srgb, var(--accent) 40%, transparent), transparent 66%);
+  filter:blur(clamp(30px, 10cqw, 60px)); opacity:.6;
+}
+.act__head{
+  position:relative; z-index:2;
+  padding-top:clamp(190px, 53cqw, 264px);
+  padding-bottom:clamp(8px, 3cqw, 20px);
+}
+.act__num{
+  position:absolute; bottom:clamp(6px, 2.5cqw, 18px); left:0; z-index:0;
+  font-family:var(--font-druk); font-weight:900;
+  font-size:clamp(156px, 58cqw, 250px); line-height:.72;
+  color:transparent; -webkit-text-stroke:calc(2.4*var(--u)) rgba(243,237,228,.9);
+  paint-order:stroke fill; user-select:none; pointer-events:none;
+}
+.act__num--geo{ font-family:var(--font-geo); font-weight:700; }
+.act__title{
+  position:relative; z-index:2; margin:0;
+  font-weight:800; font-size:clamp(32px, 11.2cqw, 46px); line-height:.84;
+  letter-spacing:-.02em; text-transform:uppercase;
+  padding-left:clamp(42px, 12.5cqw, 56px);
+}
+.act__body{
+  position:relative; z-index:2; margin-top:var(--sp-3);
+  display:grid; gap:3px; max-width:clamp(230px, 76cqw, 320px);
+}
+.act__body p{ text-wrap:pretty; }
+.act__body p{
+  margin:0; font-size:clamp(13px, 3.7cqw, 15px); line-height:1.55; letter-spacing:.015em;
+}
+.act__body .lead{ font-weight:600; color:var(--ink); }
+.act__body .sub { font-weight:200; color:var(--ink-dim); }
+.act__body .lead + .sub{ margin-top:var(--sp-1); }
+
+.video{
+  position:relative; z-index:2; margin-top:var(--sp-5); margin-inline:auto;
+  width:min(100%, clamp(220px, 66cqw, 264px));
+  aspect-ratio:259/399;
+  background:var(--surface); border:1px solid var(--line);
+  border-radius:clamp(14px, 4.5cqw, 20px); overflow:hidden;
+  box-shadow:0 30px 60px -22px rgba(0,0,0,.6);
+}
+.video--wide{ aspect-ratio:233/360; }
+.video video{ width:100%; height:100%; object-fit:cover; background:#000; }
+.video__poster{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transition:opacity .4s var(--ease); }
+.video.is-playing .video__poster,
+.video.is-playing .video__play{ opacity:0; pointer-events:none; }
+.video__play{
+  position:absolute; inset:0; margin:auto;
+  width:clamp(64px, 21cqw, 88px); height:clamp(64px, 21cqw, 88px);
+  display:grid; place-items:center; border-radius:50%;
+  background:linear-gradient(135deg, rgba(20,17,16,.72), rgba(10,8,8,.66));
+  border:1px solid rgba(243,237,228,.3);
+  -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22), 0 18px 40px -12px rgba(0,0,0,.6);
+  color:#fff; cursor:pointer; transition:transform .18s var(--ease), opacity .3s var(--ease);
+}
+.video__play::before{
+  content:""; width:0; height:0; margin-left:5px;
+  border-style:solid; border-width:11px 0 11px 18px;
+  border-color:transparent transparent transparent #fff;
+}
+.video__play:hover{ transform:scale(1.06); }
+
+/* ---------- ПРАЙС ---------- */
+.price{ position:relative; padding-block:var(--sp-5); overflow:hidden; }
+.price__title{
+  position:relative; z-index:3; margin:0 0 var(--sp-5); text-align:center;
+  font-weight:800; font-size:clamp(44px, 15cqw, 62px); line-height:.83;
+  letter-spacing:-.02em; text-transform:uppercase;
+}
+.price__list{ position:relative; z-index:3; display:grid; gap:var(--sp-4); }
+.price__row{
+  position:relative; min-width:0;
+  display:grid; grid-template-columns:1fr; gap:var(--sp-1);
+}
+.price__row:nth-child(1){ margin-left:clamp(0px, 11cqw, 48px); }
+.price__row:nth-child(2){ margin-left:clamp(0px, 18cqw, 84px); }
+.price__row:nth-child(3){ margin-left:0; }
+.price__name{
+  margin:0; font-weight:900; font-size:clamp(18px, 5.6cqw, 23px); line-height:.92;
+  text-transform:uppercase; letter-spacing:.01em;
+}
+.price__dur{
+  font-weight:200; font-size:clamp(12px, 3.4cqw, 14px); color:var(--ink-dim); letter-spacing:.06em;
+}
+.price__sum{
+  margin-top:var(--sp-1);
+  font-weight:900; font-size:clamp(18px, 5.6cqw, 23px);
+  color:var(--accent); text-transform:uppercase; letter-spacing:.05em;
+}
+.price__n{
+  position:absolute; right:clamp(-34px, -8cqw, -4px); top:50%; transform:translateY(-52%);
+  z-index:-1;
+  font-family:var(--font-druk); font-weight:900;
+  font-size:clamp(92px, 28cqw, 124px); line-height:.7;
+  color:transparent; -webkit-text-stroke:calc(1.5*var(--u)) rgba(243,237,228,.4);
+  user-select:none; pointer-events:none;
+}
+.price__n--geo{ font-family:var(--font-geo); font-weight:700; }
+
+/* ---------- КОНТАКТЫ ---------- */
+.contact{ position:relative; padding-block:var(--sp-5) 0; overflow:hidden; }
+.contact__title{
+  position:relative; z-index:3; margin:0 0 var(--sp-4); text-align:center;
+  font-weight:800; font-size:clamp(34px, 11.5cqw, 46px); line-height:.83;
+  letter-spacing:-.02em; text-transform:uppercase;
+}
+.contact__btns{
+  position:relative; z-index:3;
+  display:grid; gap:var(--sp-2); max-width:360px; margin-inline:auto;
+}
+.contact__btns .btn{
+  width:100%; min-height:46px; padding:12px 0;
+  font-size:clamp(13px, 4cqw, 18px); letter-spacing:.04em;
+}
+.contact__media{ position:relative; z-index:2; margin-top:var(--sp-5); }
+.contact__photo{
+  width:100%; object-fit:cover;
+  -webkit-mask-image:linear-gradient(#000 66%, transparent);
+  mask-image:linear-gradient(#000 66%, transparent);
+}
+.contact__foot{
+  position:relative; z-index:3;
+  margin-top:clamp(-120px, -30cqw, -56px);
+  padding-bottom:var(--sp-5);
+  text-align:center;
+  font-weight:600; font-size:clamp(11px, 3.2cqw, 13px); letter-spacing:.14em;
+  text-transform:uppercase; color:var(--ink-dim);
+}
+.contact__foot span{ display:block; }
+.contact__foot span + span{ margin-top:8px; color:var(--ink-faint); }
+
+/* ============================================================
+   Парящие карты на фоне (страничные координаты).
+   Несколько карт на разной «глубине»: ближе — крупнее, резче,
+   быстрее парят и сильнее реагируют на скролл; дальше — мельче,
+   мягче, медленнее. wrapper .deco__c держит позицию и параллакс
+   от скролла (GSAP пишет ему transform), внутренний .deco__card —
+   непрерывное CSS-парение (два transform-слоя не конфликтуют).
+   ============================================================ */
+.deco{ position:absolute; inset:0; z-index:2; pointer-events:none; overflow:hidden; }
+.deco__c{ position:absolute; width:calc(168*var(--u)); }
+.deco__card{
+  display:block; width:100%; aspect-ratio:620/1107;
+  background:center/contain no-repeat url("media/site/cards.png");
+  opacity:.9; filter:drop-shadow(0 calc(24*var(--u)) calc(40*var(--u)) rgba(0,0,0,.55));
+  transform:rotate(var(--tilt,0deg));
+  animation:cardFloat var(--cf-dur,26s) ease-in-out var(--cf-delay,0s) infinite alternate;
+  will-change:transform;
+}
+@keyframes cardFloat{
+  from{ transform:translateY(calc(-9*var(--u)))  rotate(calc(var(--tilt,0deg) - 1.4deg)); }
+  to  { transform:translateY(calc(11*var(--u)))  rotate(calc(var(--tilt,0deg) + 1.4deg)); }
+}
+/* Опорные карты по макету: у героя внизу-справа и слева у «Прайса» —
+   крупные, почти без размытия. Остальные — тише, глубже, для живости
+   фона на каждой секции. Все ориентированы «вверх» (как в макете),
+   угол варьируется мягко. */
+.deco__c--hero1  { right:calc(-90*var(--u)); top:calc(660*var(--u));  width:calc(186*var(--u)); --tilt:11deg;  --cf-dur:24s; --cf-delay:-4s;  }
+.deco__c--hero2  { left:calc(-84*var(--u));  top:calc(1140*var(--u)); width:calc(140*var(--u)); --tilt:-12deg; --cf-dur:33s; --cf-delay:-11s; }
+.deco__c--hero2  .deco__card{ opacity:.5;  filter:blur(1.8px) drop-shadow(0 calc(20*var(--u)) calc(34*var(--u)) rgba(0,0,0,.5)); }
+.deco__c--micro  { right:calc(-58*var(--u)); top:calc(1900*var(--u)); width:calc(140*var(--u)); --tilt:15deg;  --cf-dur:37s; --cf-delay:-6s;  }
+.deco__c--micro  .deco__card{ opacity:.5;  filter:blur(1.7px) drop-shadow(0 calc(18*var(--u)) calc(30*var(--u)) rgba(0,0,0,.45)); }
+.deco__c--show   { right:calc(-64*var(--u)); top:calc(2850*var(--u)); width:calc(126*var(--u)); --tilt:-16deg; --cf-dur:41s; --cf-delay:-18s; }
+.deco__c--show   .deco__card{ opacity:.42; filter:blur(2px)   drop-shadow(0 calc(16*var(--u)) calc(28*var(--u)) rgba(0,0,0,.42)); }
+.deco__c--levit  { left:calc(-68*var(--u));  top:calc(3780*var(--u)); width:calc(150*var(--u)); --tilt:-9deg;  --cf-dur:28s; --cf-delay:-14s; }
+.deco__c--levit  .deco__card{ opacity:.5;  filter:blur(1.6px) drop-shadow(0 calc(18*var(--u)) calc(30*var(--u)) rgba(0,0,0,.45)); }
+.deco__c--price  { left:calc(-92*var(--u));  top:calc(4500*var(--u)); width:calc(190*var(--u)); --tilt:-8deg;  --cf-dur:27s; --cf-delay:-9s;  }
+.deco__c--price  .deco__card{ opacity:.82; filter:blur(.4px)  drop-shadow(0 calc(22*var(--u)) calc(38*var(--u)) rgba(0,0,0,.55)); }
+.deco__c--contact{ right:calc(-60*var(--u)); top:calc(5320*var(--u)); width:calc(132*var(--u)); --tilt:14deg;  --cf-dur:34s; --cf-delay:-2s;  }
+.deco__c--contact .deco__card{ opacity:.4;  filter:blur(2px)   drop-shadow(0 calc(16*var(--u)) calc(26*var(--u)) rgba(0,0,0,.4)); }
+
+@media (max-width: 420px){
+  .deco__c--micro, .deco__c--show{ display:none; }
+  .smoke__p--3{ display:none; }
+}
+
+/* ============================================================
+   Reduced motion / без JS — всё в финальном читаемом виде
+   ============================================================ */
+@media (prefers-reduced-motion: reduce){
+  .smoke__p, .deco__card{ animation:none !important; }
+  .deco__card{ transform:rotate(var(--tilt,0deg)); }
+  *{ scroll-behavior:auto !important; }
+}
+</style>
+</head>
+<body>
+
+<header class="nav" id="nav">
+  <a href="#top" class="nav__brand">Эдуард Грамм</a>
+  <button class="nav__toggle" id="navToggle" aria-label="Меню" aria-expanded="false" aria-controls="navMenu">
+    <span></span>
+  </button>
+  <nav class="nav__menu" id="navMenu">
+    <a href="#micro">Микромагия</a>
+    <a href="#show">Шоу</a>
+    <a href="#levit">Левитация</a>
+    <a href="#price">Прайс</a>
+    <a href="#contact">Контакты</a>
+  </nav>
+</header>
+
+<div class="phone" id="top">
+
+  <div class="smoke" aria-hidden="true">
+    <span class="smoke__p smoke__p--1"></span>
+    <span class="smoke__p smoke__p--2"></span>
+    <span class="smoke__p smoke__p--3"></span>
+  </div>
+
+  <div class="deco" aria-hidden="true">
+    <div class="deco__c deco__c--hero1"><span class="deco__card"></span></div>
+    <div class="deco__c deco__c--hero2"><span class="deco__card"></span></div>
+    <div class="deco__c deco__c--micro"><span class="deco__card"></span></div>
+    <div class="deco__c deco__c--show"><span class="deco__card"></span></div>
+    <div class="deco__c deco__c--levit"><span class="deco__card"></span></div>
+    <div class="deco__c deco__c--price"><span class="deco__card"></span></div>
+    <div class="deco__c deco__c--contact"><span class="deco__card"></span></div>
+  </div>
+
+  <!-- ===================== HERO ===================== -->
+  <section class="s s--hero" id="hero">
+    <img class="hero__photo" src="media/site/hero.jpg"
+         alt="Эдуард Грамм в чёрном костюме держит веер игральных карт" fetchpriority="high"
+         width="880" height="2042">
+
+    <h1 class="hero__name" data-split>Эдуард<br>Грамм</h1>
+    <span class="hero__role" data-hero><span class="pill">Иллюзионист</span></span>
+
+    <p class="hero__tag" data-hero>
+      <b>Современное</b><br>
+      <span class="pill">иллюзионное шоу</span><br>
+      <b>для частных мероприятий</b>
+    </p>
+
+    <ul class="hero__points" data-hero>
+      <li>множество форматов</li>
+      <li>интерактив и юмор</li>
+      <li>доброе настроение</li>
+      <li>15 лет опыта</li>
+      <li>актуальность для зрителей из 21-ого века</li>
+    </ul>
+
+    <p class="hero__more" data-hero>
+      <span class="muted">а главное</span><br>
+      <span class="accent">концентрированные эмоции</span><br>
+      <b>в удивительной</b><br>
+      <b>и развлекательной форме</b>
+    </p>
+
+    <a href="#contact" class="btn hero__cta" data-hero>забронировать</a>
+  </section>
+
+  <!-- ===================== МИКРОМАГИЯ ===================== -->
+  <section class="s act" id="micro">
+    <span class="seam" aria-hidden="true"></span>
+    <img class="act__photo" src="media/site/micro-bg.jpg" alt="" loading="lazy"
+         width="880" height="1464" style="object-position:center 22%">
+    <div class="act__wash" aria-hidden="true" style="top:clamp(260px,74cqw,420px)"></div>
+
+    <div class="wrap">
+      <div class="act__head">
+        <span class="act__num" aria-hidden="true">1</span>
+        <h2 class="act__title" data-split>Микро<br>магия</h2>
+      </div>
+      <div class="act__body" data-reveal>
+        <p class="lead">Фокусы в формате личного общения</p>
+        <p class="sub">для небольших групп гостей</p>
+        <p class="sub">для Welcome зоны или в перерывах банкета</p>
+      </div>
+      <figure class="video" data-video>
+        <img class="video__poster" src="media/site/poster-micro.jpg" alt="" loading="lazy">
+        <button class="video__play" type="button" aria-label="Смотреть промо микромагии"></button>
+        <video preload="none" playsinline
+               src="media/%D0%9C%D0%B8%D0%BA%D1%80%D0%BE%D0%BC%D0%B0%D0%B3%D0%B8%D1%8F%20%D0%BF%D1%80%D0%BE%D0%BC%D0%BE.mp4"></video>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ===================== ШОУ ===================== -->
+  <section class="s act" id="show">
+    <span class="seam" aria-hidden="true"></span>
+    <img class="act__photo" src="media/site/show-bg.jpg" alt="" loading="lazy"
+         width="880" height="1480" style="object-position:center 26%">
+    <div class="act__wash" aria-hidden="true" style="top:clamp(300px,84cqw,460px)"></div>
+
+    <div class="wrap">
+      <div class="act__head">
+        <span class="act__num act__num--geo" aria-hidden="true" style="left:clamp(-58px,-15cqw,-40px)">2</span>
+        <h2 class="act__title" data-split>Шоу</h2>
+      </div>
+      <div class="act__body" data-reveal>
+        <p class="lead">Визитная карточка иллюзиониста</p>
+        <p class="sub">Выступление для всех зрителей одновременно во время банкета в качестве шоу-программы мероприятия</p>
+        <p class="lead">Интерактив, юмор, вау эффект.</p>
+      </div>
+      <figure class="video video--wide" data-video>
+        <img class="video__poster" src="media/site/poster-show.jpg" alt="" loading="lazy">
+        <button class="video__play" type="button" aria-label="Смотреть промо шоу"></button>
+        <video preload="none" playsinline
+               src="media/%D1%88%D0%BE%D1%83%20%D0%9F%D1%80%D0%BE%D0%BC%D0%BE.mp4"></video>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ===================== ЛЕВИТАЦИЯ ===================== -->
+  <section class="s act" id="levit">
+    <span class="seam" aria-hidden="true"></span>
+    <img class="act__photo" src="media/site/levit-bg.jpg" alt="" loading="lazy"
+         width="880" height="1320" style="object-position:center 20%">
+    <div class="act__wash" aria-hidden="true" style="top:clamp(280px,80cqw,440px)"></div>
+
+    <div class="wrap">
+      <div class="act__head">
+        <span class="act__num act__num--geo" aria-hidden="true" style="left:clamp(-58px,-15cqw,-40px)">3</span>
+        <h2 class="act__title" data-split>Леви<br>тация</h2>
+      </div>
+      <div class="act__body" data-reveal>
+        <p class="lead">Специальный номер</p>
+        <p class="sub">с левитацией вашего гостя на празднике</p>
+      </div>
+      <figure class="video video--wide" data-video>
+        <img class="video__poster" src="media/site/poster-levit.png" alt="" loading="lazy">
+        <button class="video__play" type="button" aria-label="Смотреть промо левитации"></button>
+        <video preload="none" playsinline
+               src="media/%D0%9B%D0%B5%D0%B2%D0%B8%D1%82%D0%B0%D1%86%D0%B8%D1%8F%20%D0%BF%D1%80%D0%BE%D0%BC%D0%BE.mp4"></video>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ===================== ПРАЙС ===================== -->
+  <section class="s price wrap" id="price">
+    <span class="seam" aria-hidden="true"></span>
+    <h2 class="price__title" data-split>Прайс</h2>
+
+    <div class="price__list" data-reveal>
+      <div class="price__row">
+        <span class="price__n" aria-hidden="true">1</span>
+        <p class="price__name">Микромагия</p>
+        <span class="price__dur">// 30 – 45 минут</span>
+        <span class="price__sum">25 000 руб.</span>
+      </div>
+      <div class="price__row">
+        <span class="price__n price__n--geo" aria-hidden="true">2</span>
+        <p class="price__name">Шоу</p>
+        <span class="price__dur">// 20 – 25 минут</span>
+        <span class="price__sum">25 000 руб.</span>
+      </div>
+      <div class="price__row">
+        <span class="price__n price__n--geo" aria-hidden="true">3</span>
+        <p class="price__name">Микромагия + шоу</p>
+        <span class="price__dur">// сбор гостей и шоу-программа</span>
+        <span class="price__sum">45 000 руб.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== КОНТАКТЫ ===================== -->
+  <section class="s contact wrap" id="contact">
+    <span class="seam" aria-hidden="true"></span>
+    <h2 class="contact__title" data-split>Контакты</h2>
+
+    <div class="contact__btns" data-reveal>
+      <a class="btn" href="https://t.me/ElGrammino" target="_blank" rel="noopener">написать в телеграм</a>
+      <a class="btn" href="https://max.ru/u/f9LHodD0cOIS-M3oo-QU2NM4VEI-LdABy_c8qnJuOqHQGXpA3Pcg3II67-o" target="_blank" rel="noopener">написать в MAX</a>
+      <a class="btn" href="tel:+79185418004">позвонить</a>
+    </div>
+
+    <div class="contact__media">
+      <img class="contact__photo" src="media/site/contact-bg.jpg"
+           alt="Эдуард Грамм с веером карт" loading="lazy" width="880" height="1608">
+    </div>
+
+    <footer class="contact__foot">
+      <span>Эдуард Грамм — иллюзионист</span>
+      <span>+7 918 541-80-04</span>
+    </footer>
+  </section>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/SplitText.min.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- Навигация ---------- */
+  var nav = document.getElementById('nav');
+  var navToggle = document.getElementById('navToggle');
+  var navMenu = document.getElementById('navMenu');
+
+  var onNavScroll = function () { nav.classList.toggle('is-scrolled', window.scrollY > 8); };
+  onNavScroll();
+  window.addEventListener('scroll', onNavScroll, { passive: true });
+
+  navToggle.addEventListener('click', function () {
+    var open = nav.classList.toggle('is-open');
+    navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  navMenu.addEventListener('click', function (e) {
+    if (e.target.closest('a')) {
+      nav.classList.remove('is-open');
+      navToggle.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  /* ---------- Видео: только по клику ---------- */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-video]'), function (wrap) {
+    var btn = wrap.querySelector('.video__play');
+    var video = wrap.querySelector('video');
+    if (!btn || !video) return;
+    btn.addEventListener('click', function () {
+      video.setAttribute('controls', '');
+      wrap.classList.add('is-playing');
+      var p = video.play();
+      if (p && p.catch) p.catch(function () {});
+      video.focus();
+    });
+  });
+
+  /* ---------- Премиальная хореография появления (GSAP) ---------- */
+  var gsapStarted = false;
+  function initGsap() {
+    if (gsapStarted) return;
+    if (!window.gsap || !window.ScrollTrigger) return;
+    gsapStarted = true;
+    gsap.registerPlugin(ScrollTrigger);
+    var hasSplit = !!window.SplitText;
+    if (hasSplit) gsap.registerPlugin(SplitText);
+
+    var mm = gsap.matchMedia();
+
+    mm.add('(prefers-reduced-motion: no-preference)', function () {
+
+      /* Появления НЕ одноразовые: элемент «улетает» при уходе из вида
+         и «возвращается» при повторном показе — toggleActions в обе
+         стороны, без once/unobserve (см. DESIGN.md). */
+      var REPLAY = 'play reverse play reverse';
+
+      /* — заголовки: посимвольная сборка — */
+      document.querySelectorAll('[data-split]').forEach(function (el) {
+        var chars;
+        if (hasSplit) {
+          var split = new SplitText(el, { type: 'chars,words', wordsClass: 'sp-word' });
+          chars = split.chars;
+        }
+        if (!chars || !chars.length) {
+          gsap.from(el, {
+            opacity: 0, y: 26, duration: 0.7, ease: 'expo.out',
+            scrollTrigger: { trigger: el, start: 'top 88%', end: 'bottom 12%', toggleActions: REPLAY }
+          });
+          return;
+        }
+        gsap.set(el, { perspective: 500 });
+        gsap.from(chars, {
+          opacity: 0, yPercent: 120, rotateX: -55, transformOrigin: '50% 100% -20px',
+          duration: 0.62, ease: 'expo.out', stagger: 0.02,
+          scrollTrigger: { trigger: el, start: 'top 86%', end: 'bottom 12%', toggleActions: REPLAY }
+        });
+      });
+
+      /* — группы текста: stagger fade-up — */
+      document.querySelectorAll('[data-reveal]').forEach(function (group) {
+        var kids = group.children.length ? group.children : [group];
+        gsap.from(kids, {
+          opacity: 0, y: 26, duration: 0.55, ease: 'power2.out', stagger: 0.07,
+          scrollTrigger: { trigger: group, start: 'top 85%', end: 'bottom 10%', toggleActions: REPLAY }
+        });
+      });
+
+      /* — hero: собирается на загрузке и переигрывается при возврате к началу — */
+      var heroBits = document.querySelectorAll('[data-hero]');
+      if (heroBits.length) {
+        gsap.from(heroBits, {
+          opacity: 0, y: 22, duration: 0.7, ease: 'power2.out', stagger: 0.09, delay: 0.2,
+          scrollTrigger: { trigger: '#hero', start: 'top 55%', end: 'bottom 45%', toggleActions: REPLAY }
+        });
+      }
+
+      /* — видео: вылет с масштабом — */
+      document.querySelectorAll('[data-video]').forEach(function (v) {
+        gsap.from(v, {
+          opacity: 0, scale: 0.93, y: 34, duration: 0.75, ease: 'power3.out',
+          scrollTrigger: { trigger: v, start: 'top 82%', end: 'bottom 18%', toggleActions: REPLAY }
+        });
+      });
+
+      /* — крупные номера: дрейф + проявление — */
+      document.querySelectorAll('.act__num, .price__n').forEach(function (n) {
+        gsap.fromTo(n, { opacity: 0, yPercent: 22 }, {
+          opacity: 1, yPercent: 0, duration: 1.1, ease: 'power2.out',
+          scrollTrigger: { trigger: n, start: 'top 94%', end: 'bottom 6%', toggleActions: REPLAY }
+        });
+      });
+
+      /* — параллакс парящих карт от скролла (замирает, когда скролл стоит).
+         Ближе (i%3==2) — сильнее сдвиг и живее scrub; дальше — слабее. — */
+      gsap.utils.toArray('.deco__c').forEach(function (c, i) {
+        var amp = 8 + (i % 3) * 4;
+        gsap.fromTo(c, { yPercent: -amp }, {
+          yPercent: amp, ease: 'none',
+          scrollTrigger: { trigger: c, start: 'top bottom', end: 'bottom top', scrub: 0.5 + (i % 3) * 0.3 }
+        });
+      });
+      gsap.utils.toArray('.seam, .act__wash').forEach(function (g) {
+        var sec = g.closest('section') || g;
+        gsap.fromTo(g, { yPercent: -8 }, {
+          yPercent: 10, ease: 'none',
+          scrollTrigger: { trigger: sec, start: 'top bottom', end: 'bottom top', scrub: 0.8 }
+        });
+      });
+
+      return function () { /* cleanup handled by matchMedia revert */ };
+    });
+
+    /* reduced-motion: моментальный финальный вид */
+    mm.add('(prefers-reduced-motion: reduce)', function () {
+      gsap.set('[data-split], [data-reveal] > *, [data-hero], [data-video], .act__num, .price__n', { clearProps: 'all', opacity: 1, y: 0 });
+    });
+  }
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(initGsap);
+    setTimeout(initGsap, 2500); /* страховка, если fonts.ready подвиснет */
+  } else {
+    initGsap();
+  }
+})();
+</script>
+</body>
+</html>
