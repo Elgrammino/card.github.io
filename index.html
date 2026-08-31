@@ -199,23 +199,24 @@ a,button,.btn{ touch-action:manipulation; }
 .nav__menu a:last-child{ border-bottom:0; }
 
 /* ============================================================
-   Живой фон: плывущие лучи (canvas, чистый JS — без библиотек).
-   Мягкие вертикальные пятна-лучи в палитре акцента медленно
-   плывут вверх с пульсацией. В покое — дрейфуют сами по себе;
-   при скролле ускоряются пропорционально скорости прокрутки и
-   затухают обратно до фонового дрейфа при остановке. Одинаково
-   на всех секциях, не привязано к позиции скролла. Заменяет
-   CSS-дымку .smoke.
+   Живой фон: диагональные лучи (canvas, чистый JS — без библиотек,
+   идея из beams-background, но без React/Motion). Наклонные лучи
+   в палитре акцента (тёплый красный/терракота, не синий) плывут
+   вдоль своей оси с пульсацией прозрачности; уходя за край —
+   переставляются по колонкам. В покое дрейфуют сами; при скролле
+   ускоряются пропорционально скорости прокрутки и плавно затухают
+   до фонового дрейфа при остановке. Самый нижний слой — за фото,
+   картами и текстом.
    ============================================================ */
 .rays{
   position:fixed; top:0; bottom:0; left:50%; transform:translateX(-50%);
-  width:100%; max-width:var(--maxw); z-index:1;
+  width:100%; max-width:var(--maxw); z-index:0;
   pointer-events:none; overflow:hidden; contain:layout paint;
 }
 .rays__cv{
   position:absolute; inset:0; display:block; width:100%; height:100%;
-  filter:blur(26px) saturate(118%);
-  opacity:.92;
+  filter:blur(24px) saturate(115%);
+  opacity:.8;
 }
 
 /* ============================================================
@@ -240,7 +241,7 @@ a,button,.btn{ touch-action:manipulation; }
 .hero__photo{
   position:absolute; left:0; top:calc(-1*var(--u));
   width:100%; height:calc(1022*var(--u));
-  object-fit:cover; object-position:center top; z-index:0;
+  object-fit:cover; object-position:center top; z-index:2;
   -webkit-mask-image:linear-gradient(#000 86%, transparent);
   mask-image:linear-gradient(#000 86%, transparent);
 }
@@ -295,13 +296,14 @@ a,button,.btn{ touch-action:manipulation; }
 .act__photo{
   position:absolute; left:0; top:0; width:100%;
   height:clamp(360px, 104cqw, 500px);
-  object-fit:cover; z-index:0;
+  object-fit:cover; z-index:2;
   -webkit-mask-image:linear-gradient(#000 54%, transparent);
   mask-image:linear-gradient(#000 54%, transparent);
 }
-/* «Шоу» — фото крупнее на 10% и сдвинуто выше; «Левитация» — тоже выше */
-#show  .act__photo{ height:clamp(396px, 114cqw, 550px); top:clamp(-46px, -11cqw, -24px); }
-#levit .act__photo{ top:clamp(-40px, -9cqw, -22px); }
+/* «Шоу» — фото крупнее на 10% и сдвинуто выше; «Левитация» — тоже выше.
+   Ещё на 10px выше по просьбе — через вычитание из clamp. */
+#show  .act__photo{ height:clamp(396px, 114cqw, 550px); top:calc(clamp(-46px, -11cqw, -24px) - 10px); }
+#levit .act__photo{ top:calc(clamp(-40px, -9cqw, -22px) - 10px); }
 .act__wash{
   position:absolute; z-index:1; pointer-events:none; border-radius:50%;
   width:150%; height:clamp(420px, 120cqw, 640px);
@@ -318,30 +320,16 @@ a,button,.btn{ touch-action:manipulation; }
   position:absolute; bottom:clamp(6px, 2.5cqw, 18px); left:clamp(-34px, -9cqw, -18px); z-index:0;
   font-family:var(--font-druk); font-weight:900;
   font-size:clamp(156px, 58cqw, 250px); line-height:.72;
-  color:transparent; user-select:none; pointer-events:none;
-}
-.act__num--geo{ font-family:var(--font-geo); font-weight:700; }
-
-/* ── ТЕСТ: три варианта контура цифр разделов (см. правку 4) ──
-   vA — контур СНАРУЖИ: заливка цветом фона (paint-order) съедает
-        внутреннюю половину центрального штриха, видна только внешняя.
-   vB — контур ПО ЦЕНТРУ: классический -webkit-text-stroke, нутро полое.
-   vC — контур ИЗНУТРИ: сплошной светлый силуэт, фоновый дубль-клон
-        вырезает сердцевину — светлая полоса остаётся вдоль контура внутри. */
-.act__num--vA{
-  color:var(--bg);
-  -webkit-text-stroke:calc(3*var(--u)) rgba(243,237,228,.92);
-  paint-order:stroke fill;
-}
-.act__num--vB{
+  user-select:none; pointer-events:none;
+  /* только контур, без заливки — как в Figma (fill: none, один stroke):
+     полая цифра, сквозь неё виден фон, никакого второго контура */
   color:transparent;
-  -webkit-text-stroke:calc(2.4*var(--u)) rgba(243,237,228,.92);
+  -webkit-text-stroke:calc(2.7*var(--u)) rgba(243,237,228,.94);
+  paint-order:stroke;
 }
-.act__num--vC{ color:rgba(243,237,228,.92); }
-.act__num--vC::before{
-  content:attr(data-n); position:absolute; left:0; top:0;
-  color:var(--bg); -webkit-text-stroke:calc(1*var(--u)) var(--bg);
-  transform:scale(.82); transform-origin:50% 56%;
+.act__num--geo{
+  font-family:var(--font-geo); font-weight:700;
+  -webkit-text-stroke-width:calc(2.3*var(--u));
 }
 .act__title{
   position:relative; z-index:2; margin:0;
@@ -426,16 +414,15 @@ a,button,.btn{ touch-action:manipulation; }
   z-index:-1;
   font-family:var(--font-druk); font-weight:900;
   font-size:clamp(92px, 28cqw, 124px); line-height:.7;
-  color:transparent; -webkit-text-stroke:calc(3*var(--u)) rgba(243,237,228,.5);
   user-select:none; pointer-events:none;
-}
-.price__n::before{
-  content:attr(data-n); position:absolute; left:0; top:0;
-  color:transparent; -webkit-text-stroke:calc(1.7*var(--u)) var(--bg);
+  /* только контур, без заливки — как у .act__num (fill: none, один stroke) */
+  color:transparent;
+  -webkit-text-stroke:calc(2*var(--u)) rgba(243,237,228,.62);
+  paint-order:stroke;
 }
 /* узкая «1» — тянем чуть обратно, чтобы за край уходила так же частично, как «2»/«3» */
 .price__row:nth-child(1) .price__n{ right:clamp(-40px, -9cqw, -22px); }
-.price__n--geo{ font-family:var(--font-geo); font-weight:700; }
+.price__n--geo{ font-family:var(--font-geo); font-weight:700; -webkit-text-stroke-width:calc(1.7*var(--u)); }
 
 /* ---------- КОНТАКТЫ ---------- */
 .contact{ position:relative; padding-block:var(--sp-5) 0; overflow:hidden; }
@@ -472,28 +459,32 @@ a,button,.btn{ touch-action:manipulation; }
 
 /* ============================================================
    Парящие карты на фоне (страничные координаты).
-   Несколько карт на разной «глубине»: ближе — крупнее, резче,
-   быстрее парят и сильнее реагируют на скролл; дальше — мельче,
-   мягче, медленнее. wrapper .deco__c держит позицию и параллакс
-   от скролла (GSAP пишет ему transform), внутренний .deco__card —
-   непрерывное CSS-парение (два transform-слоя не конфликтуют).
+   Летают ПОЗАДИ фото и текста (deco z-index:1 < фото z-index:2 <
+   текст z-index:3), не только по краям — часть колоды идёт по
+   центру полосы. Разные «глубины»: ближе — крупнее/резче/быстрее,
+   дальше — мельче/мягче/медленнее. Контейнер .deco получает общий
+   плавный параллакс + «ветер» от скорости скролла ОДНИМ transform
+   из rAF-цикла (без GSAP-scrub — тот давал рывки), внутренний
+   .deco__card — непрерывное CSS-парение (слои не конфликтуют).
    ============================================================ */
-.deco{ position:absolute; inset:0; z-index:2; pointer-events:none; overflow:hidden; }
+.deco{ position:absolute; inset:0; z-index:1; pointer-events:none; overflow:hidden; will-change:transform; }
 .deco__c{ position:absolute; width:calc(168*var(--u)); }
 .deco__card{
   display:block; width:100%; aspect-ratio:620/1107;
   background:center/contain no-repeat url("media/site/cards.png");
   opacity:.9; filter:drop-shadow(0 calc(24*var(--u)) calc(40*var(--u)) rgba(0,0,0,.55));
-  transform:rotate(var(--tilt,0deg));
+  transform:translate3d(0,0,0) rotate(var(--tilt,0deg));
   animation:cardFloat var(--cf-dur,26s) ease-in-out var(--cf-delay,0s) infinite alternate;
-  will-change:transform;
+  will-change:transform; backface-visibility:hidden;
 }
 /* три разные карты в колоде — разные «глубины»/масти на фоне */
 .deco__card--b{ background-image:url("media/site/cards%202.png"); }
 .deco__card--c{ background-image:url("media/site/cards%203.png"); }
+/* плавное парение: только translate по Y + мягкий наклон, через translate3d
+   (GPU-слой, без пере-растеризации) — раньше рывки давал внешний scrub */
 @keyframes cardFloat{
-  from{ transform:translateY(calc(-12*var(--u))) rotate(calc(var(--tilt,0deg) - 2deg)); }
-  to  { transform:translateY(calc(24*var(--u)))  rotate(calc(var(--tilt,0deg) + 2deg)); }
+  from{ transform:translate3d(0, calc(-10*var(--u)), 0) rotate(calc(var(--tilt,0deg) - 1.2deg)); }
+  to  { transform:translate3d(0, calc(20*var(--u)),  0) rotate(calc(var(--tilt,0deg) + 1.2deg)); }
 }
 /* Опорные карты по макету: у героя внизу-справа и слева у «Прайса» —
    крупные, почти без размытия. Остальные — тише, глубже, для живости
@@ -529,9 +520,19 @@ a,button,.btn{ touch-action:manipulation; }
 }
 .deco__c--x5 .deco__card{ opacity:.5; filter:blur(1.3px) drop-shadow(0 calc(16*var(--u)) calc(26*var(--u)) rgba(0,0,0,.4)); }
 
-@media (max-width: 420px){
-  .deco__c--x6, .deco__c--x7{ display:none; }
+/* карты ПО ЦЕНТРУ полосы — летают позади фото и текста, глубокий
+   тихий слой, дают объём в середине, а не только по краям */
+.deco__c--m1{ left:33%; top:calc(950*var(--u));  width:calc(152*var(--u)); --tilt:8deg;   --cf-dur:31s; --cf-delay:-7s;  }
+.deco__c--m2{ left:50%; top:calc(2150*var(--u)); width:calc(128*var(--u)); --tilt:-11deg; --cf-dur:38s; --cf-delay:-15s; }
+.deco__c--m3{ left:28%; top:calc(3450*var(--u)); width:calc(162*var(--u)); --tilt:-6deg;  --cf-dur:29s; --cf-delay:-3s;  }
+.deco__c--m4{ left:46%; top:calc(4700*var(--u)); width:calc(140*var(--u)); --tilt:12deg;  --cf-dur:35s; --cf-delay:-19s; }
+.deco__c--m5{ left:38%; top:calc(5720*var(--u)); width:calc(134*var(--u)); --tilt:-9deg;  --cf-dur:33s; --cf-delay:-11s; }
+.deco__c--m1 .deco__card, .deco__c--m2 .deco__card, .deco__c--m3 .deco__card,
+.deco__c--m4 .deco__card, .deco__c--m5 .deco__card{
+  opacity:.15; filter:blur(3px);
 }
+
+/* мобильная версия — показываем ВСЕ карты (ничего не прячем) */
 
 /* ============================================================
    Reduced motion / без JS — всё в финальном читаемом виде
@@ -569,16 +570,21 @@ a,button,.btn{ touch-action:manipulation; }
     <div class="deco__c deco__c--x1"><span class="deco__card deco__card--b"></span></div>
     <div class="deco__c deco__c--hero1"><span class="deco__card"></span></div>
     <div class="deco__c deco__c--hero2"><span class="deco__card deco__card--b"></span></div>
+    <div class="deco__c deco__c--m1"><span class="deco__card deco__card--c"></span></div>
     <div class="deco__c deco__c--x2"><span class="deco__card deco__card--c"></span></div>
     <div class="deco__c deco__c--micro"><span class="deco__card deco__card--c"></span></div>
     <div class="deco__c deco__c--x3"><span class="deco__card"></span></div>
+    <div class="deco__c deco__c--m2"><span class="deco__card deco__card--b"></span></div>
     <div class="deco__c deco__c--show"><span class="deco__card"></span></div>
     <div class="deco__c deco__c--x4"><span class="deco__card deco__card--b"></span></div>
+    <div class="deco__c deco__c--m3"><span class="deco__card"></span></div>
     <div class="deco__c deco__c--levit"><span class="deco__card deco__card--b"></span></div>
     <div class="deco__c deco__c--x5"><span class="deco__card deco__card--c"></span></div>
+    <div class="deco__c deco__c--m4"><span class="deco__card deco__card--c"></span></div>
     <div class="deco__c deco__c--price"><span class="deco__card"></span></div>
     <div class="deco__c deco__c--x6"><span class="deco__card deco__card--c"></span></div>
     <div class="deco__c deco__c--contact"><span class="deco__card deco__card--c"></span></div>
+    <div class="deco__c deco__c--m5"><span class="deco__card deco__card--b"></span></div>
     <div class="deco__c deco__c--x7"><span class="deco__card deco__card--b"></span></div>
   </div>
 
@@ -626,7 +632,7 @@ a,button,.btn{ touch-action:manipulation; }
 
     <div class="wrap">
       <div class="act__head">
-        <span class="act__num act__num--vA" data-n="1" aria-hidden="true">1</span>
+        <span class="act__num" data-n="1" aria-hidden="true">1</span>
         <h2 class="act__title" data-split>Микро<br>магия</h2>
       </div>
       <div class="act__body" data-reveal>
@@ -652,7 +658,7 @@ a,button,.btn{ touch-action:manipulation; }
 
     <div class="wrap">
       <div class="act__head">
-        <span class="act__num act__num--geo act__num--vB" data-n="2" aria-hidden="true" style="left:clamp(-92px,-24cqw,-62px)">2</span>
+        <span class="act__num act__num--geo" data-n="2" aria-hidden="true" style="left:clamp(-92px,-24cqw,-62px)">2</span>
         <h2 class="act__title" data-split>Шоу</h2>
       </div>
       <div class="act__body" data-reveal>
@@ -678,7 +684,7 @@ a,button,.btn{ touch-action:manipulation; }
 
     <div class="wrap">
       <div class="act__head">
-        <span class="act__num act__num--geo act__num--vC" data-n="3" aria-hidden="true" style="left:clamp(-92px,-24cqw,-62px)">3</span>
+        <span class="act__num act__num--geo" data-n="3" aria-hidden="true" style="left:clamp(-92px,-24cqw,-62px)">3</span>
         <h2 class="act__title" data-split>Леви<br>тация</h2>
       </div>
       <div class="act__body" data-reveal>
@@ -786,124 +792,139 @@ a,button,.btn{ touch-action:manipulation; }
     });
   });
 
-  /* ---------- Живой фон: плывущие лучи (canvas, без библиотек) ----------
-     Мягкие пятна-лучи в палитре акцента плывут вверх с пульсацией.
-     scrollVel — накопленная скорость скролла, затухает каждый кадр;
-     чем быстрее листает гость, тем сильнее ускоряются лучи и «ветер»
-     сносит парящие карты, при остановке всё возвращается к дрейфу. */
-  var scrollVel = 0;
-  (function rays () {
+  /* ---------- Живой фон: диагональные лучи (canvas, без библиотек) ----------
+     Идея из beams-background, но чистый JS/canvas — без React/Motion.
+     Наклонные лучи в ТЁПЛОЙ палитре акцента (красный/терракота, не синий)
+     плывут вдоль своей оси с пульсацией прозрачности; уходя за верх —
+     возвращаются снизу по колонкам. Тот же rAF-цикл ведёт «ветер»
+     контейнера карт .deco ОДНИМ сглаженным transform:
+       velRaw — мгновенная скорость скролла (копится в обработчике);
+       vel    — сглаженно догоняет velRaw и затухает к покою.
+     В покое — тихий дрейф; при скролле лучи ускоряются и карты слегка
+     сносит пропорционально скорости; при остановке всё плавно замирает.
+     Одна точка правды => нет конкурирующих scrub-слоёв и рывков. */
+  (function livingBg () {
     var cv = document.getElementById('raysCv');
-    if (!cv || !cv.getContext) return;
-    var ctx = cv.getContext('2d');
-    if (!ctx) return;
-
-    var mq = window.matchMedia('(prefers-reduced-motion: reduce)');
     var deco = document.querySelector('.deco');
-    var DPR = Math.min(window.devicePixelRatio || 1, 2);
-    var W = 1, H = 1, beams = [], raf = 0, last = 0;
-    var PAL = [[212, 60, 38], [233, 79, 48], [124, 35, 24]]; /* --accent / --accent-hi / --accent-deep */
-    var N = (window.innerWidth < 480) ? 5 : 7;
+    var mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    var ctx = cv && cv.getContext ? cv.getContext('2d') : null;
 
+    var DPR = Math.min(window.devicePixelRatio || 1, 2);
+    var W = 1, H = 1, beams = [], raf = 0, lastT = 0, N = 22;
+    var HUE_MIN = 6, HUE_SPAN = 22;   /* тёплый диапазон: акцент → терракота → бордо */
+
+    var velRaw = 0, vel = 0, lastScroll = window.scrollY || 0;
+
+    function mkBeam (i) {
+      return {
+        col: (i % 3) / 3,
+        xFrac: (i + 0.5) / N + (Math.random() - 0.5) * 0.8 / N,
+        y: Math.random() * 1.6 - 0.3,
+        width: 46 + Math.random() * 92,
+        len: 1.5 + Math.random() * 0.8,
+        angle: (-34 + Math.random() * 8) * Math.PI / 180,
+        speed: 0.00035 + Math.random() * 0.00060,
+        opacity: 0.05 + Math.random() * 0.06,
+        pulse: Math.random() * 6.2832,
+        pulseSpeed: 0.010 + Math.random() * 0.016
+      };
+    }
+    function seed () {
+      N = (window.innerWidth < 560) ? 11 : 16;
+      beams = [];
+      for (var i = 0; i < N; i++) beams.push(mkBeam(i));
+    }
     function size () {
+      if (!cv || !ctx) return;
       var r = cv.getBoundingClientRect();
       W = Math.max(1, r.width); H = Math.max(1, r.height);
       cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     }
-    function seed () {
-      beams = [];
-      for (var i = 0; i < N; i++) {
-        beams.push({
-          x: (i + 0.5) / N + (Math.random() - 0.5) * 0.14,
-          y: Math.random() * 1.4 - 0.2,
-          w: 0.30 + Math.random() * 0.34,
-          h: 0.55 + Math.random() * 0.6,
-          sp: 0.00045 + Math.random() * 0.00090,
-          dr: (Math.random() - 0.5) * 0.00075,
-          col: PAL[i % PAL.length],
-          ph: Math.random() * 6.2832,
-          pu: 0.010 + Math.random() * 0.016,
-          a: 0.065 + Math.random() * 0.055
-        });
-      }
+    function drawBeam (b, pulseK) {
+      var hue = HUE_MIN + b.col * HUE_SPAN;
+      var a = b.opacity * (0.72 + 0.28 * Math.sin(b.pulse)) * pulseK;
+      if (a < 0.004) return;
+      var L = b.len * H;
+      ctx.save();
+      ctx.translate(b.xFrac * W, b.y * H);
+      ctx.rotate(b.angle);
+      var g = ctx.createLinearGradient(0, -L / 2, 0, L / 2);
+      g.addColorStop(0,    'hsla(' + hue + ',72%,52%,0)');
+      g.addColorStop(0.18, 'hsla(' + hue + ',72%,52%,' + (a * 0.5).toFixed(3) + ')');
+      g.addColorStop(0.5,  'hsla(' + hue + ',72%,52%,' + a.toFixed(3) + ')');
+      g.addColorStop(0.82, 'hsla(' + hue + ',72%,52%,' + (a * 0.5).toFixed(3) + ')');
+      g.addColorStop(1,    'hsla(' + hue + ',72%,52%,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(-b.width / 2, -L / 2, b.width, L);
+      ctx.restore();
     }
-    function paint (step) {
-      scrollVel *= 0.90;
-      var boost = 1 + Math.min(scrollVel * 0.10, 8);
-      var pulseK = 1 + Math.min(scrollVel * 0.012, 2.2);
+    function frame (t) {
+      var dt = lastT ? Math.min(2.5, (t - lastT) / 16.667) : 1;
+      lastT = t;
 
-      ctx.clearRect(0, 0, W, H);
-      ctx.globalCompositeOperation = 'lighter';
-      for (var i = 0; i < beams.length; i++) {
-        var b = beams[i];
-        b.y -= b.sp * boost * step;
-        b.x += b.dr * step * (0.4 + boost * 0.15);
-        b.ph += b.pu * step;
-        if (b.y < -0.5) { b.y = 1.35; b.x = Math.random(); }
-        if (b.x < -0.35) b.x = 1.25; else if (b.x > 1.35) b.x = -0.25;
-
-        var cx = b.x * W, cy = b.y * H;
-        var rr = Math.max(b.w * W, b.h * H) * 0.5;
-        if (rr <= 0) continue;
-        var al = b.a * (0.62 + 0.38 * Math.sin(b.ph)) * pulseK;
-        if (al < 0.003) continue;
-        var c = b.col;
-        var g = ctx.createRadialGradient(cx, cy, 0, cx, cy, rr);
-        g.addColorStop(0, 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + Math.min(al, 0.6).toFixed(3) + ')');
-        g.addColorStop(1, 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',0)');
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.scale((b.w * W) / (2 * rr), (b.h * H) / (2 * rr));
-        ctx.beginPath();
-        ctx.arc(0, 0, rr, 0, 6.2832);
-        ctx.fillStyle = g;
-        ctx.fill();
-        ctx.restore();
-      }
-      ctx.globalCompositeOperation = 'source-over';
+      vel += (velRaw - vel) * Math.min(1, 0.15 * dt);
+      velRaw *= Math.pow(0.86, dt);
 
       if (deco) {
-        var wind = -Math.min(scrollVel * 0.35, 34);
-        deco.style.transform = 'translate3d(0,' + wind.toFixed(1) + 'px,0)';
+        var wind = -Math.min(vel * 0.25, 26);
+        deco.style.transform = 'translate3d(0,' + wind.toFixed(2) + 'px,0)';
       }
+      if (ctx) {
+        var boost = 1 + Math.min(vel * 0.08, 7);
+        var pulseK = 1 + Math.min(vel * 0.010, 1.8);
+        ctx.clearRect(0, 0, W, H);
+        ctx.globalCompositeOperation = 'lighter';
+        for (var i = 0; i < beams.length; i++) {
+          var b = beams[i];
+          b.y -= b.speed * boost * dt;
+          b.pulse += b.pulseSpeed * dt;
+          if (b.y + b.len * 0.5 < -0.4) {
+            b.y = 1.4 + Math.random() * 0.3;
+            b.xFrac = (i + 0.5) / N + (Math.random() - 0.5) * 0.9 / N;
+            b.width = 46 + Math.random() * 92;
+            b.opacity = 0.05 + Math.random() * 0.06;
+          }
+          drawBeam(b, pulseK);
+        }
+        ctx.globalCompositeOperation = 'source-over';
+      }
+      raf = requestAnimationFrame(frame);
     }
-    function loop (now) {
-      var dt = last ? Math.min(0.05, (now - last) / 1000) : 0.0167;
-      last = now;
-      paint(dt * 60); /* переводим в «кадры ~60 к/с» — коэффициенты читаемы */
-      raf = requestAnimationFrame(loop);
+    function stop () { if (raf) cancelAnimationFrame(raf); raf = 0; lastT = 0; }
+    function staticFrame () {
+      if (!ctx) return;
+      ctx.clearRect(0, 0, W, H);
+      ctx.globalCompositeOperation = 'lighter';
+      for (var i = 0; i < beams.length; i++) drawBeam(beams[i], 1);
+      ctx.globalCompositeOperation = 'source-over';
     }
-    function stop () { if (raf) cancelAnimationFrame(raf); raf = 0; last = 0; }
-    function go () {
-      stop(); size(); seed();
-      if (mq.matches) { paint(0); return; } /* один статичный кадр */
-      raf = requestAnimationFrame(loop);
+    function start () {
+      stop();
+      DPR = Math.min(window.devicePixelRatio || 1, 2);
+      size(); seed();
+      if (mq.matches) { staticFrame(); if (deco) deco.style.transform = 'none'; return; }
+      raf = requestAnimationFrame(frame);
     }
 
+    window.addEventListener('scroll', function () {
+      var y = window.scrollY || 0;
+      velRaw = Math.min(velRaw + Math.abs(y - lastScroll), 240);
+      lastScroll = y;
+    }, { passive: true });
     window.addEventListener('resize', function () {
       DPR = Math.min(window.devicePixelRatio || 1, 2);
       size();
-      if (mq.matches) paint(0);
+      if (mq.matches) staticFrame();
     }, { passive: true });
     document.addEventListener('visibilitychange', function () {
       if (document.hidden) stop();
-      else if (!mq.matches && !raf) raf = requestAnimationFrame(loop);
+      else if (!mq.matches && !raf) { lastT = 0; raf = requestAnimationFrame(frame); }
     });
-    if (mq.addEventListener) mq.addEventListener('change', go);
-    else if (mq.addListener) mq.addListener(go);
+    if (mq.addEventListener) mq.addEventListener('change', start);
+    else if (mq.addListener) mq.addListener(start);
 
-    go();
-  })();
-
-  (function scrollVelTracker () {
-    var ly = window.scrollY || window.pageYOffset || 0;
-    window.addEventListener('scroll', function () {
-      var y = window.scrollY || window.pageYOffset || 0;
-      scrollVel += Math.abs(y - ly);
-      if (scrollVel > 260) scrollVel = 260;
-      ly = y;
-    }, { passive: true });
+    start();
   })();
 
   /* ---------- Премиальная хореография появления (GSAP) ---------- */
@@ -947,14 +968,16 @@ a,button,.btn{ touch-action:manipulation; }
         });
       });
 
-      /* — фото: премиальное появление из сильного размытия
-         (герой — заметно сильнее и дольше) — */
+      /* — фото: премиальное появление БЕЗ анимации filter:blur (она
+         дорогая и лагала на больших изображениях). Только GPU-свойства —
+         opacity + transform (scale), поэтому идёт плавно. — */
       document.querySelectorAll('[data-photo]').forEach(function (img) {
         var big = img.classList.contains('hero__photo');
+        gsap.set(img, { willChange: 'transform, opacity', force3D: true });
         gsap.fromTo(img,
-          { filter: 'blur(' + (big ? 48 : 24) + 'px) brightness(0.8)', opacity: big ? 0.3 : 0 },
-          { filter: 'blur(0px) brightness(1)', opacity: 1,
-            duration: big ? 1.7 : 1.15, ease: 'power2.out',
+          { opacity: 0, scale: big ? 1.14 : 1.07 },
+          { opacity: 1, scale: 1,
+            duration: big ? 1.5 : 1.05, ease: 'power3.out',
             scrollTrigger: { trigger: img, start: 'top 94%', end: 'bottom 12%', toggleActions: REPLAY } });
       });
 
@@ -992,15 +1015,10 @@ a,button,.btn{ touch-action:manipulation; }
         });
       });
 
-      /* — параллакс парящих карт от скролла (замирает, когда скролл стоит).
-         Ближе (i%3==2) — сильнее сдвиг и живее scrub; дальше — слабее. — */
-      gsap.utils.toArray('.deco__c').forEach(function (c, i) {
-        var amp = 8 + (i % 3) * 4;
-        gsap.fromTo(c, { yPercent: -amp }, {
-          yPercent: amp, ease: 'none',
-          scrollTrigger: { trigger: c, start: 'top bottom', end: 'bottom top', scrub: 0.5 + (i % 3) * 0.3 }
-        });
-      });
+      /* Параллакс карт от скролла убран из GSAP: он давал рывки, наслаиваясь
+         на CSS-парение и на transform контейнера. Теперь карты ведёт только
+         непрерывное CSS-парение (.deco__card) + сглаженный «ветер» .deco
+         из rAF-цикла живого фона — движение плавное. */
       gsap.utils.toArray('.seam, .act__wash').forEach(function (g) {
         var sec = g.closest('section') || g;
         gsap.fromTo(g, { yPercent: -8 }, {
@@ -1015,7 +1033,7 @@ a,button,.btn{ touch-action:manipulation; }
     /* reduced-motion: моментальный финальный вид */
     mm.add('(prefers-reduced-motion: reduce)', function () {
       gsap.set('[data-split], [data-reveal] > *, [data-hero], [data-video], [data-photo], .act__num, .price__n', { clearProps: 'all', opacity: 1, y: 0 });
-      gsap.set('[data-photo]', { clearProps: 'filter' });
+      gsap.set('[data-photo]', { clearProps: 'transform,filter,willChange', scale: 1, opacity: 1 });
     });
   }
   if (document.fonts && document.fonts.ready) {
