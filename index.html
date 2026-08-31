@@ -245,38 +245,40 @@ a,button,.btn{ touch-action:manipulation; }
   -webkit-mask-image:linear-gradient(#000 86%, transparent);
   mask-image:linear-gradient(#000 86%, transparent);
 }
+.hero__copy{
+  position:absolute; left:calc(39*var(--u)); right:calc(28*var(--u)); top:calc(560*var(--u)); z-index:3;
+}
 .hero__name{
-  position:absolute; left:calc(73*var(--u)); top:calc(584*var(--u)); z-index:3;
   margin:0; font-weight:800; font-size:calc(57*var(--u)); line-height:calc(54*var(--u));
   letter-spacing:calc(-2*var(--u)); text-transform:uppercase;
   text-shadow:0 calc(2*var(--u)) calc(34*var(--u)) rgba(0,0,0,.55);
 }
 .hero__role{
-  position:absolute; left:calc(71*var(--u)); top:calc(716*var(--u)); z-index:3;
+  display:block; margin-top:var(--sp-3);
   font-weight:500; font-size:calc(16*var(--u)); letter-spacing:calc(4.5*var(--u)); text-transform:uppercase;
 }
 .hero__tag{
-  position:absolute; left:calc(39*var(--u)); top:calc(838*var(--u)); z-index:3;
-  margin:0; font-weight:800; font-size:clamp(17px, 4.6cqw, 20px); line-height:1.28;
+  margin:0; margin-top:var(--sp-5);
+  font-weight:800; font-size:clamp(17px, 4.6cqw, 20px); line-height:1.34;
 }
 .hero__tag .pill{ font-weight:200; text-transform:lowercase; letter-spacing:calc(1*var(--u)); padding:.1em .5em .2em; }
 .hero__points{
-  position:absolute; left:calc(102*var(--u)); top:calc(1010*var(--u)); z-index:3;
-  width:calc(340*var(--u)); list-style:none; margin:0; padding:0;
-  font-weight:200; font-size:clamp(17px, 4.6cqw, 20px); line-height:1.4; letter-spacing:.012em;
+  margin:0; margin-top:var(--sp-5);
+  list-style:none; padding:0;
+  font-weight:200; font-size:clamp(17px, 4.6cqw, 20px); line-height:1.5; letter-spacing:.012em;
 }
-.hero__points li{ position:relative; padding-left:calc(20*var(--u)); margin-bottom:calc(3*var(--u)); }
+.hero__points li{ position:relative; padding-left:calc(20*var(--u)); margin-bottom:var(--sp-1); }
 .hero__points li::before{
-  content:""; position:absolute; left:0; top:calc(8*var(--u));
+  content:""; position:absolute; left:0; top:.55em;
   width:calc(6*var(--u)); height:calc(6*var(--u)); border-radius:50%; background:var(--ink);
 }
 .hero__more{
-  position:absolute; left:calc(88*var(--u)); top:calc(1236*var(--u)); z-index:3;
-  margin:0; font-weight:600; font-size:clamp(17px, 4.6cqw, 20px); line-height:1.4;
+  margin:0; margin-top:var(--sp-5);
+  font-weight:600; font-size:clamp(17px, 4.6cqw, 20px); line-height:1.5;
 }
 .hero__more .accent{ font-weight:600; }
 .hero__cta{
-  position:absolute; left:calc(102*var(--u)); top:calc(1392*var(--u)); z-index:3;
+  margin-top:var(--sp-6);
   width:calc(234*var(--u)); min-height:calc(40*var(--u)); padding:calc(9*var(--u)) 0;
   font-size:calc(19*var(--u)); text-transform:lowercase; letter-spacing:calc(2*var(--u));
 }
@@ -302,7 +304,7 @@ a,button,.btn{ touch-action:manipulation; }
 }
 /* «Шоу» — фото крупнее (+10% ранее, ещё +20% сверху = ~1.32 общее) и сдвинуто выше;
    «Левитация» — сдвинута левее и немного увеличена. */
-#show  .act__photo{ height:clamp(475px, 137cqw, 660px); top:calc(clamp(-46px, -11cqw, -24px) - 10px); left:calc(-6cqw); width:calc(100% + 6cqw); }
+#show  .act__photo{ height:clamp(475px, 137cqw, 660px); top:calc(clamp(-46px, -11cqw, -24px) - 10px); left:0; width:100%; }
 #levit .act__photo{ height:clamp(378px, 109cqw, 525px); top:calc(clamp(-40px, -9cqw, -22px) - 10px); left:calc(-8cqw); width:calc(100% + 8cqw); }
 .act__wash{
   position:absolute; z-index:1; pointer-events:none; border-radius:50%;
@@ -321,16 +323,13 @@ a,button,.btn{ touch-action:manipulation; }
   font-family:var(--font-druk); font-weight:900;
   font-size:clamp(156px, 58cqw, 250px); line-height:.72;
   user-select:none; pointer-events:none;
-  /* контур СНАРУЖИ (вариант 3): заливка цветом фона + paint-order:stroke fill —
-     заливка перекрывает внутреннюю половину штриха, видна только внешняя.
-     Заливка сделана существенно прозрачнее (~80%), чтобы не читаться сплошным пятном. */
-  color:color-mix(in srgb, var(--bg) 20%, transparent);
-  -webkit-text-stroke:calc(5.2*var(--u)) rgba(243,237,228,.94);
-  paint-order:stroke fill;
+  /* внешняя обводка через SVG-фильтр (см. <defs> в начале body) —
+     единый чистый контур без самопересечений на углах глифа */
+  color:var(--ink);
+  filter:url(#ringBig);
 }
 .act__num--geo{
   font-family:var(--font-geo); font-weight:700;
-  -webkit-text-stroke-width:calc(4.6*var(--u));
 }
 .act__title{
   position:relative; z-index:2; margin:0;
@@ -425,14 +424,13 @@ a,button,.btn{ touch-action:manipulation; }
   font-family:var(--font-druk); font-weight:900;
   font-size:clamp(92px, 28cqw, 124px); line-height:.7;
   user-select:none; pointer-events:none;
-  /* контур СНАРУЖИ, заливка прозрачнее (~80%) — как у .act__num, тише */
-  color:color-mix(in srgb, var(--bg) 20%, transparent);
-  -webkit-text-stroke:calc(3.6*var(--u)) rgba(243,237,228,.72);
-  paint-order:stroke fill;
+  /* внешняя обводка через SVG-фильтр — см. .act__num */
+  color:var(--ink);
+  filter:url(#ringSmall);
 }
 /* узкая «1» — тянем чуть обратно, чтобы за край уходила так же частично, как «2»/«3» */
 .price__row:nth-child(1) .price__n{ right:clamp(-40px, -9cqw, -22px); }
-.price__n--geo{ font-family:var(--font-geo); font-weight:700; -webkit-text-stroke-width:calc(3.2*var(--u)); }
+.price__n--geo{ font-family:var(--font-geo); font-weight:700; }
 
 /* ---------- КОНТАКТЫ ---------- */
 .contact{ position:relative; padding-block:var(--sp-5) 0; overflow:hidden; }
@@ -497,7 +495,7 @@ a,button,.btn{ touch-action:manipulation; }
 .deco__c--h1 { left:24%; top:calc(560*var(--u));  width:calc(150*var(--u)); --tilt:7deg;   --cf-dur:34s; --cf-delay:-7s;  }
 .deco__c--h1 .deco__card{ opacity:.14; filter:blur(3.4px); }
 
-.deco__c--f1 { left:calc(-18*var(--u)); top:calc(940*var(--u));  width:calc(128*var(--u)); --tilt:-13deg; --cf-dur:37s; --cf-delay:-4s;  }
+.deco__c--f1 { right:calc(-18*var(--u)); top:calc(940*var(--u));  width:calc(128*var(--u)); --tilt:-13deg; --cf-dur:37s; --cf-delay:-4s;  }
 .deco__c--f1 .deco__card{ opacity:.34; filter:blur(1.7px); }
 
 .deco__c--f2 { left:calc(-22*var(--u)); top:calc(1545*var(--u)); width:calc(92*var(--u)); --tilt:11deg; --cf-dur:45s; --cf-delay:-16s; }
@@ -505,12 +503,12 @@ a,button,.btn{ touch-action:manipulation; }
 
 .deco__c--mi1{ left:calc(-14*var(--u)); top:calc(2250*var(--u)); width:calc(120*var(--u)); --tilt:-12deg; --cf-dur:36s; --cf-delay:-9s;  }
 .deco__c--mi1 .deco__card{ opacity:.28; filter:blur(2.4px); }
-.deco__c--mi2{ left:calc(-16*var(--u)); top:calc(2500*var(--u)); width:calc(110*var(--u)); --tilt:9deg;   --cf-dur:41s; --cf-delay:-19s; }
+.deco__c--mi2{ right:calc(-16*var(--u)); top:calc(2500*var(--u)); width:calc(110*var(--u)); --tilt:9deg;   --cf-dur:41s; --cf-delay:-19s; }
 .deco__c--mi2 .deco__card{ opacity:.22; filter:blur(2.8px); }
 
 .deco__c--sh1{ left:calc(-12*var(--u)); top:calc(3270*var(--u)); width:calc(124*var(--u)); --tilt:-14deg; --cf-dur:33s; --cf-delay:-6s;  }
 .deco__c--sh1 .deco__card{ opacity:.3;  filter:blur(2px); }
-.deco__c--sh2{ left:calc(-16*var(--u)); top:calc(3470*var(--u)); width:calc(106*var(--u)); --tilt:12deg;  --cf-dur:43s; --cf-delay:-21s; }
+.deco__c--sh2{ right:calc(-16*var(--u)); top:calc(3470*var(--u)); width:calc(106*var(--u)); --tilt:12deg;  --cf-dur:43s; --cf-delay:-21s; }
 .deco__c--sh2 .deco__card{ opacity:.22; filter:blur(2.8px); }
 
 .deco__c--le1{ right:calc(-14*var(--u)); top:calc(3640*var(--u)); width:calc(126*var(--u)); --tilt:16deg;  --cf-dur:35s; --cf-delay:-3s;  }
@@ -518,12 +516,12 @@ a,button,.btn{ touch-action:manipulation; }
 .deco__c--le2{ left:calc(-10*var(--u));  top:calc(4080*var(--u)); width:calc(150*var(--u)); --tilt:-8deg;  --cf-dur:29s; --cf-delay:-14s; }
 .deco__c--le2 .deco__card{ opacity:.44; filter:blur(1.3px) drop-shadow(0 calc(18*var(--u)) calc(30*var(--u)) rgba(0,0,0,.45)); }
 
-.deco__c--pr1{ left:calc(-16*var(--u)); top:calc(4560*var(--u)); width:calc(182*var(--u)); --tilt:-8deg;  --cf-dur:28s; --cf-delay:-9s;  }
+.deco__c--pr1{ right:calc(-16*var(--u)); top:calc(4560*var(--u)); width:calc(182*var(--u)); --tilt:-8deg;  --cf-dur:28s; --cf-delay:-9s;  }
 .deco__c--pr1 .deco__card{ opacity:.5;  filter:blur(.5px) drop-shadow(0 calc(20*var(--u)) calc(34*var(--u)) rgba(0,0,0,.5)); }
 
 .deco__c--co1{ left:calc(-10*var(--u)); top:calc(5320*var(--u)); width:calc(132*var(--u)); --tilt:13deg;  --cf-dur:34s; --cf-delay:-2s;  }
 .deco__c--co1 .deco__card{ opacity:.32; filter:blur(1.8px); }
-.deco__c--co2{ left:calc(-14*var(--u)); top:calc(5620*var(--u)); width:calc(108*var(--u)); --tilt:-10deg; --cf-dur:40s; --cf-delay:-17s; }
+.deco__c--co2{ right:calc(-14*var(--u)); top:calc(5620*var(--u)); width:calc(108*var(--u)); --tilt:-10deg; --cf-dur:40s; --cf-delay:-17s; }
 .deco__c--co2 .deco__card{ opacity:.2;  filter:blur(2.6px); }
 
 /* ============================================================
@@ -552,6 +550,31 @@ a,button,.btn{ touch-action:manipulation; }
   </nav>
 </header>
 
+<!-- Фильтры для цифр разделов и прайса: настоящая ВНЕШНЯЯ обводка без
+     самопересечений на углах глифа. -webkit-text-stroke обводит сам
+     векторный контур буквы и на вогнутых/острых углах (как нижняя
+     перекладина "2") даёт двойную линию — это артефакт векторного
+     офсета, не лечится настройками толщины. Вместо этого: растровый
+     feMorphology dilate "раздувает" силуэт буквы, затем вычитанием
+     исходного силуэта остаётся только внешнее кольцо — геометрически
+     чистое при любой форме глифа. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="ringBig" x="-40%" y="-40%" width="180%" height="180%">
+      <feMorphology in="SourceAlpha" operator="dilate" radius="4.5" result="dilated"/>
+      <feFlood flood-color="#f3ede4" result="ringColor"/>
+      <feComposite in="ringColor" in2="dilated" operator="in" result="ringShape"/>
+      <feComposite in="ringShape" in2="SourceAlpha" operator="out"/>
+    </filter>
+    <filter id="ringSmall" x="-40%" y="-40%" width="180%" height="180%">
+      <feMorphology in="SourceAlpha" operator="dilate" radius="2.8" result="dilated"/>
+      <feFlood flood-color="#f3ede4" result="ringColor"/>
+      <feComposite in="ringColor" in2="dilated" operator="in" result="ringShape"/>
+      <feComposite in="ringShape" in2="SourceAlpha" operator="out"/>
+    </filter>
+  </defs>
+</svg>
+
 <div class="phone" id="top">
 
   <div class="rays" aria-hidden="true">
@@ -579,31 +602,33 @@ a,button,.btn{ touch-action:manipulation; }
          alt="Эдуард Грамм в чёрном костюме держит веер игральных карт" fetchpriority="high"
          width="880" height="2042">
 
-    <h1 class="hero__name" data-split>Эдуард<br>Грамм</h1>
-    <span class="hero__role" data-hero><span class="pill">Иллюзионист</span></span>
+    <div class="hero__copy">
+      <h1 class="hero__name" data-split>Эдуард<br>Грамм</h1>
+      <span class="hero__role" data-hero><span class="pill">Иллюзионист</span></span>
 
-    <p class="hero__tag" data-hero>
-      <b>Современное</b><br>
-      <span class="pill">иллюзионное шоу</span><br>
-      <b>для частных мероприятий</b>
-    </p>
+      <p class="hero__tag" data-hero>
+        <b>Современное</b><br>
+        <span class="pill">иллюзионное шоу</span><br>
+        <b>для частных мероприятий</b>
+      </p>
 
-    <ul class="hero__points" data-hero>
-      <li>множество форматов</li>
-      <li>интерактив и юмор</li>
-      <li>доброе настроение</li>
-      <li>15 лет опыта</li>
-      <li>актуальность для зрителей из 21-ого века</li>
-    </ul>
+      <ul class="hero__points" data-hero>
+        <li>множество форматов</li>
+        <li>интерактив и юмор</li>
+        <li>доброе настроение</li>
+        <li>15 лет опыта</li>
+        <li>актуальность для зрителей из 21-ого века</li>
+      </ul>
 
-    <p class="hero__more" data-hero>
-      <span class="muted">а главное</span><br>
-      <span class="accent">концентрированные эмоции</span><br>
-      <b>в удивительной</b><br>
-      <b>и развлекательной форме</b>
-    </p>
+      <p class="hero__more" data-hero>
+        <span class="muted">а главное</span><br>
+        <span class="accent">концентрированные эмоции</span><br>
+        <b>в удивительной</b><br>
+        <b>и развлекательной форме</b>
+      </p>
 
-    <a href="#contact" class="btn hero__cta" data-hero>забронировать</a>
+      <a href="#contact" class="btn hero__cta" data-hero>забронировать</a>
+    </div>
   </section>
 
   <p class="formats-label" data-split><span class="accent">Форматы</span> выступлений</p>
@@ -650,7 +675,7 @@ a,button,.btn{ touch-action:manipulation; }
         <p class="sub">Выступление для всех зрителей одновременно во время банкета в качестве шоу-программы мероприятия</p>
         <p class="lead">Интерактив, юмор, вау эффект.</p>
       </div>
-      <figure class="video video--wide" data-video data-vk="wall-230277884_4" data-vk-kind="wall">
+      <figure class="video video--wide" data-video data-vk="video-230277884_456239023" data-vk-kind="video">
         <img class="video__poster" src="media/site/poster-show.jpg" alt="" loading="lazy">
         <button class="video__play" type="button" aria-label="Смотреть промо шоу"></button>
         <iframe class="video__frame" allow="autoplay; encrypted-media; fullscreen" allowfullscreen loading="lazy"></iframe>
