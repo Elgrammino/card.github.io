@@ -237,16 +237,17 @@ a,button,.btn{ touch-action:manipulation; }
 .s[id]{ scroll-margin-top:64px; }
 
 /* ---------- HERO (постерная композиция, координаты из макета) ---------- */
-.s--hero{ height:calc(1500*var(--u)); overflow:hidden; }
+.s--hero{ height:100dvh; min-height:560px; overflow:hidden; }
 .hero__photo{
-  position:absolute; left:0; top:calc(-1*var(--u));
-  width:100%; height:calc(1022*var(--u));
+  position:absolute; inset:0;
+  width:100%; height:100%;
   object-fit:cover; object-position:center top; z-index:2;
-  -webkit-mask-image:linear-gradient(#000 86%, transparent);
-  mask-image:linear-gradient(#000 86%, transparent);
+  -webkit-mask-image:linear-gradient(#000 78%, transparent);
+  mask-image:linear-gradient(#000 78%, transparent);
 }
 .hero__copy{
-  position:absolute; left:calc(39*var(--u)); right:calc(28*var(--u)); top:calc(560*var(--u)); z-index:3;
+  position:absolute; left:var(--pad-x); right:var(--pad-x);
+  bottom:clamp(112px, 24dvh, 190px); z-index:3;
 }
 .hero__name{
   margin:0; font-weight:800; font-size:calc(57*var(--u)); line-height:calc(54*var(--u));
@@ -257,9 +258,17 @@ a,button,.btn{ touch-action:manipulation; }
   display:block; margin-top:var(--sp-3);
   font-weight:500; font-size:calc(16*var(--u)); letter-spacing:calc(4.5*var(--u)); text-transform:uppercase;
 }
+.hero__cta{
+  display:inline-flex; margin-top:var(--sp-6);
+  width:calc(234*var(--u)); min-height:calc(40*var(--u)); padding:calc(9*var(--u)) 0;
+  font-size:calc(19*var(--u)); text-transform:lowercase; letter-spacing:calc(2*var(--u));
+}
+
+/* текст ниже первого экрана — форматы/пункты/фраза + кнопка, обычный поток документа */
+.hero-info{ position:relative; z-index:3; padding-top:var(--sp-6); padding-bottom:var(--sp-5); }
+.hero-info .hero__cta{ display:flex; margin-inline:auto; }
 .hero__tag{
-  margin:0; margin-top:var(--sp-5);
-  font-weight:800; font-size:clamp(17px, 4.6cqw, 20px); line-height:1.34;
+  margin:0; font-weight:800; font-size:clamp(17px, 4.6cqw, 20px); line-height:1.34;
 }
 .hero__tag .pill{ font-weight:200; text-transform:lowercase; letter-spacing:calc(1*var(--u)); padding:.1em .5em .2em; }
 .hero__points{
@@ -277,11 +286,6 @@ a,button,.btn{ touch-action:manipulation; }
   font-weight:600; font-size:clamp(17px, 4.6cqw, 20px); line-height:1.5;
 }
 .hero__more .accent{ font-weight:600; }
-.hero__cta{
-  margin-top:var(--sp-6);
-  width:calc(234*var(--u)); min-height:calc(40*var(--u)); padding:calc(9*var(--u)) 0;
-  font-size:calc(19*var(--u)); text-transform:lowercase; letter-spacing:calc(2*var(--u));
-}
 
 /* Надзаголовок между hero и блоком форматов (стиль label-caps из DESIGN.md) */
 .formats-label{
@@ -596,7 +600,7 @@ a,button,.btn{ touch-action:manipulation; }
     <div class="deco__c deco__c--co2"><span class="deco__card deco__card--c"></span></div>
   </div>
 
-  <!-- ===================== HERO ===================== -->
+  <!-- ===================== HERO (первый экран: фото + имя) ===================== -->
   <section class="s s--hero" id="hero">
     <img class="hero__photo" src="media/site/hero.png" data-photo
          alt="Эдуард Грамм в чёрном костюме держит веер игральных карт" fetchpriority="high"
@@ -605,30 +609,33 @@ a,button,.btn{ touch-action:manipulation; }
     <div class="hero__copy">
       <h1 class="hero__name" data-split>Эдуард<br>Грамм</h1>
       <span class="hero__role" data-hero><span class="pill">Иллюзионист</span></span>
-
-      <p class="hero__tag" data-hero>
-        <b>Современное</b><br>
-        <span class="pill">иллюзионное шоу</span><br>
-        <b>для частных мероприятий</b>
-      </p>
-
-      <ul class="hero__points" data-hero>
-        <li>множество форматов</li>
-        <li>интерактив и юмор</li>
-        <li>доброе настроение</li>
-        <li>15 лет опыта</li>
-        <li>актуальность для зрителей из 21-ого века</li>
-      </ul>
-
-      <p class="hero__more" data-hero>
-        <span class="muted">а главное</span><br>
-        <span class="accent">концентрированные эмоции</span><br>
-        <b>в удивительной</b><br>
-        <b>и развлекательной форме</b>
-      </p>
-
-      <a href="#contact" class="btn hero__cta" data-hero>забронировать</a>
     </div>
+  </section>
+
+  <!-- ===================== Текст ниже первого экрана ===================== -->
+  <section class="hero-info wrap" data-reveal>
+    <p class="hero__tag">
+      <b>Современное</b><br>
+      <span class="pill">иллюзионное шоу</span><br>
+      <b>для частных мероприятий</b>
+    </p>
+
+    <ul class="hero__points">
+      <li>множество форматов</li>
+      <li>интерактив и юмор</li>
+      <li>доброе настроение</li>
+      <li>15 лет опыта</li>
+      <li>актуальность для зрителей из 21-ого века</li>
+    </ul>
+
+    <p class="hero__more">
+      <span class="muted">а главное</span><br>
+      <span class="accent">концентрированные эмоции</span><br>
+      <b>в удивительной</b><br>
+      <b>и развлекательной форме</b>
+    </p>
+
+    <a href="#contact" class="btn hero__cta">забронировать</a>
   </section>
 
   <p class="formats-label" data-split><span class="accent">Форматы</span> выступлений</p>
