@@ -239,11 +239,12 @@ a,button,.btn{ touch-action:manipulation; }
 .s[id]{ scroll-margin-top:64px; }
 
 /* ---------- HERO (постерная композиция, координаты из макета) ---------- */
-.s--hero{ height:100dvh; min-height:560px; overflow:hidden; }
+/* высота секции задаётся самим фото — оно показывается целиком, без обрезки;
+   низ уводит в фон сам прозрачный PNG. Имя/подпись лежат абсолютом поверх. */
+.s--hero{ min-height:560px; overflow:hidden; }
 .hero__photo{
-  position:absolute; inset:0;
-  width:100%; height:100%;
-  object-fit:cover; object-position:center top; z-index:2;
+  position:relative; display:block;
+  width:100%; height:auto; z-index:2;
 }
 /* затухание низа hero убрано из CSS — оно запечено в самом фото (hero.png) */
 .hero__copy{
@@ -302,14 +303,14 @@ a,button,.btn{ touch-action:manipulation; }
 .act{ position:relative; padding-block:0 var(--sp-5); overflow:hidden; }
 .act__photo{
   position:absolute; left:0; top:0; width:100%;
-  height:clamp(360px, 104cqw, 500px);
-  object-fit:cover; z-index:2;
-  /* масок нет — затухание краёв запечено в самих PNG (прозрачный фон) */
+  height:auto; z-index:2;
+  /* фото целиком, в своём соотношении — обрезки/масок нет,
+     низ уводит в фон сам прозрачный PNG */
 }
-/* «Шоу» — фото крупнее (+10% ранее, ещё +20% сверху = ~1.32 общее) и сдвинуто выше;
-   «Левитация» — сдвинута левее и немного увеличена. */
-#show  .act__photo{ height:clamp(475px, 137cqw, 660px); top:calc(clamp(-46px, -11cqw, -24px) - 64px); left:0; width:100%; }
-#levit .act__photo{ height:clamp(378px, 109cqw, 525px); top:calc(clamp(-40px, -9cqw, -22px) - 10px); left:calc(-8cqw); width:calc(100% + 8cqw); }
+/* «Шоу» сдвинуто выше (контраст под слово «Шоу»);
+   «Левитация» — сдвинута левее. Высоту не фиксируем — фото целиком. */
+#show  .act__photo{ top:calc(clamp(-46px, -11cqw, -24px) - 64px); left:0; width:100%; }
+#levit .act__photo{ top:calc(clamp(-40px, -9cqw, -22px) - 10px); left:calc(-8cqw); width:calc(100% + 8cqw); }
 .act__wash{
   position:absolute; z-index:1; pointer-events:none; border-radius:50%;
   width:150%; height:clamp(420px, 120cqw, 640px);
@@ -966,6 +967,9 @@ a,button,.btn{ touch-action:manipulation; }
     if (!window.gsap || !window.ScrollTrigger) return;
     gsapStarted = true;
     gsap.registerPlugin(ScrollTrigger);
+    /* не пересчитывать триггеры на показ/скрытие адресной строки на телефоне —
+       это давало скачок всего, что привязано к скроллу */
+    ScrollTrigger.config({ ignoreMobileResize: true });
     var hasSplit = !!window.SplitText;
     if (hasSplit) gsap.registerPlugin(SplitText);
 
@@ -973,10 +977,11 @@ a,button,.btn{ touch-action:manipulation; }
 
     mm.add('(prefers-reduced-motion: no-preference)', function () {
 
-      /* Появления НЕ одноразовые: элемент «улетает» при уходе из вида
-         и «возвращается» при повторном показе — toggleActions в обе
-         стороны, без once/unobserve (см. DESIGN.md). */
-      var REPLAY = 'play reverse play reverse';
+      /* Появления одноразовые: проиграть один раз при входе в вид и
+         оставить. Прежний реверс (play reverse play reverse) переигрывал
+         анимацию при каждом микро-движении скролла у порога триггера —
+         отсюда «подёргивание». */
+      var REPLAY = 'play none none none';
 
       /* — заголовки: посимвольная сборка — */
       document.querySelectorAll('[data-split]').forEach(function (el) {
@@ -1000,17 +1005,15 @@ a,button,.btn{ touch-action:manipulation; }
         });
       });
 
-      /* — фото: премиальное появление БЕЗ анимации filter:blur (она
-         дорогая и лагала на больших изображениях). Только GPU-свойства —
-         opacity + transform (scale), поэтому идёт плавно. — */
+      /* — фото: только opacity, без scale и без willChange. Масштаб большого
+         PNG на каждый тик анимации = ресемпл/перерисовка, это и дёргалось.
+         Проигрываем один раз (once) — никакой смены состояния при скролле. — */
       document.querySelectorAll('[data-photo]').forEach(function (img) {
         var big = img.classList.contains('hero__photo');
-        gsap.set(img, { willChange: 'transform, opacity', force3D: true });
         gsap.fromTo(img,
-          { opacity: 0, scale: big ? 1.14 : 1.07 },
-          { opacity: 1, scale: 1,
-            duration: big ? 1.5 : 1.05, ease: 'power3.out',
-            scrollTrigger: { trigger: img, start: 'top 94%', end: 'bottom 12%', toggleActions: REPLAY } });
+          { opacity: 0 },
+          { opacity: 1, duration: big ? 1.2 : 0.85, ease: 'power2.out',
+            scrollTrigger: { trigger: img, start: 'top 92%', once: true } });
       });
 
       /* — группы текста: stagger fade-up — */
@@ -1047,17 +1050,9 @@ a,button,.btn{ touch-action:manipulation; }
         });
       });
 
-      /* Параллакс карт от скролла убран из GSAP: он давал рывки, наслаиваясь
-         на CSS-парение и на transform контейнера. Теперь карты ведёт только
-         непрерывное CSS-парение (.deco__card) + сглаженный «ветер» .deco
-         из rAF-цикла живого фона — движение плавное. */
-      gsap.utils.toArray('.seam, .act__wash').forEach(function (g) {
-        var sec = g.closest('section') || g;
-        gsap.fromTo(g, { yPercent: -8 }, {
-          yPercent: 10, ease: 'none',
-          scrollTrigger: { trigger: sec, start: 'top bottom', end: 'bottom top', scrub: 0.8 }
-        });
-      });
+      /* Scrub-параллакс .seam/.act__wash убран: непрерывный transform на
+         размытых пятнах на каждый кадр скролла давал микро-дрожь. Пятна
+         теперь статичные — как чистое свечение, разницы почти нет. */
 
       return function () { /* cleanup handled by matchMedia revert */ };
     });
