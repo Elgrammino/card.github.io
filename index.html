@@ -222,17 +222,6 @@ a,button,.btn{ touch-action:manipulation; }
 }
 
 /* ============================================================
-   Сшивка стыков секций (акцентный блюр, параллакс от скролла)
-   ============================================================ */
-.seam{
-  position:absolute; left:50%; top:0; z-index:1;
-  width:150%; height:clamp(240px, 66cqw, 440px);
-  transform:translate(-50%,-50%); pointer-events:none;
-  background:radial-gradient(50% 50% at 50% 50%, color-mix(in srgb, var(--accent) 24%, transparent), transparent 72%);
-  filter:blur(clamp(28px, 10cqw, 58px)); opacity:.5;
-}
-
-/* ============================================================
    Секции — поток, единая ритмика
    ============================================================ */
 .s{ position:relative; }
@@ -652,7 +641,6 @@ a,button,.btn{ touch-action:manipulation; }
 
   <!-- ===================== МИКРОМАГИЯ ===================== -->
   <section class="s act" id="micro">
-    <span class="seam" aria-hidden="true"></span>
     <img class="act__photo" src="media/site/micro-bg.png" alt="" loading="lazy" data-photo
          width="880" height="1464" style="object-position:center 22%">
     <div class="act__wash" aria-hidden="true" style="top:clamp(260px,74cqw,420px)"></div>
@@ -677,7 +665,6 @@ a,button,.btn{ touch-action:manipulation; }
 
   <!-- ===================== ШОУ ===================== -->
   <section class="s act" id="show">
-    <span class="seam" aria-hidden="true"></span>
     <img class="act__photo" src="media/site/show-bg.png" alt="" loading="lazy" data-photo
          width="880" height="1480" style="object-position:center 26%">
     <div class="act__wash" aria-hidden="true" style="top:clamp(300px,84cqw,460px)"></div>
@@ -702,7 +689,6 @@ a,button,.btn{ touch-action:manipulation; }
 
   <!-- ===================== ЛЕВИТАЦИЯ ===================== -->
   <section class="s act" id="levit">
-    <span class="seam" aria-hidden="true"></span>
     <img class="act__photo" src="media/site/levit-bg.png" alt="" loading="lazy" data-photo
          width="880" height="1320" style="object-position:center 20%">
     <div class="act__wash" aria-hidden="true" style="top:clamp(280px,80cqw,440px)"></div>
@@ -726,7 +712,6 @@ a,button,.btn{ touch-action:manipulation; }
 
   <!-- ===================== ПРАЙС ===================== -->
   <section class="s price wrap" id="price">
-    <span class="seam" aria-hidden="true"></span>
     <h2 class="price__title" data-split>Прайс</h2>
 
     <div class="price__list" data-reveal>
@@ -753,7 +738,6 @@ a,button,.btn{ touch-action:manipulation; }
 
   <!-- ===================== КОНТАКТЫ ===================== -->
   <section class="s contact wrap" id="contact">
-    <span class="seam" aria-hidden="true"></span>
     <h2 class="contact__title" data-split>Контакты</h2>
 
     <div class="contact__btns" data-reveal>
@@ -1055,10 +1039,6 @@ a,button,.btn{ touch-action:manipulation; }
           scrollTrigger: { trigger: n, start: 'top 92%', end: 'bottom 22%', toggleActions: REPLAY }
         });
       });
-
-      /* Scrub-параллакс .seam/.act__wash убран: непрерывный transform на
-         размытых пятнах на каждый кадр скролла давал микро-дрожь. Пятна
-         теперь статичные — как чистое свечение, разницы почти нет. */
 
       return function () { /* cleanup handled by matchMedia revert */ };
     });
