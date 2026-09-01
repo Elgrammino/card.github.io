@@ -245,8 +245,11 @@ a,button,.btn{ touch-action:manipulation; }
 .hero__photo{
   position:relative; display:block;
   width:100%; height:auto; z-index:2;
+  /* верхние 70% фото — как есть, нижние 30% уходят в прозрачность —
+     чтобы низ блока плавно сходил к фону, без жёсткой границы на стыке */
+  -webkit-mask-image:linear-gradient(180deg, #000 70%, transparent 100%);
+  mask-image:linear-gradient(180deg, #000 70%, transparent 100%);
 }
-/* затухание низа hero убрано из CSS — оно запечено в самом фото (hero.png) */
 .hero__copy{
   position:absolute; left:var(--pad-x); right:var(--pad-x);
   bottom:clamp(112px, 24dvh, 190px); z-index:3;
@@ -304,8 +307,10 @@ a,button,.btn{ touch-action:manipulation; }
 .act__photo{
   position:absolute; left:0; top:0; width:100%;
   height:auto; z-index:2;
-  /* фото целиком, в своём соотношении — обрезки/масок нет,
-     низ уводит в фон сам прозрачный PNG */
+  /* верхние 70% — как есть, нижние 30% уходят в прозрачность (0 к самому
+     низу) — сглаживает переход к следующему блоку, обрезки по-прежнему нет */
+  -webkit-mask-image:linear-gradient(180deg, #000 70%, transparent 100%);
+  mask-image:linear-gradient(180deg, #000 70%, transparent 100%);
 }
 /* «Шоу» сдвинуто выше (контраст под слово «Шоу»);
    «Левитация» — сдвинута левее. Высоту не фиксируем — фото целиком. */
@@ -458,7 +463,8 @@ a,button,.btn{ touch-action:manipulation; }
 .contact__media{ position:relative; z-index:2; margin-top:var(--sp-5); margin-inline:calc(-1*var(--pad-x)); }
 .contact__photo{
   width:100%; object-fit:cover;
-  /* маски нет — затухание низа запечено в самом фото (contact-bg.png) */
+  -webkit-mask-image:linear-gradient(180deg, #000 70%, transparent 100%);
+  mask-image:linear-gradient(180deg, #000 70%, transparent 100%);
 }
 .contact__foot{
   position:relative; z-index:3;
@@ -1059,18 +1065,4 @@ a,button,.btn{ touch-action:manipulation; }
 
     /* reduced-motion: моментальный финальный вид */
     mm.add('(prefers-reduced-motion: reduce)', function () {
-      gsap.set('[data-split], [data-reveal] > *, [data-hero], [data-video], [data-photo], .act__num, .price__n', { clearProps: 'all', opacity: 1, y: 0 });
-      gsap.set('[data-photo]', { clearProps: 'transform,filter,willChange', scale: 1, opacity: 1 });
-    });
-  }
-  if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(initGsap);
-    setTimeout(initGsap, 2500); /* страховка, если fonts.ready подвиснет */
-  } else {
-    initGsap();
-  }
-})();
-</script>
-<script type="module" src="assets/deck/deck.js"></script>
-</body>
-</html>
+      gsap.set('[data-split], [data-reveal] > *, [data-hero], [data-video], [data-photo], .ac
