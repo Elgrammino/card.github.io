@@ -105,8 +105,10 @@ a,button,.btn{ touch-action:manipulation; }
   --sp-sec: clamp(64px, 16cqw, 100px);
   --pad-x: clamp(20px, 7cqw, 34px);
 
+  /* низкоконтрастный тёмный фон: соседние секции сходятся без видимых
+     «полос» на стыках; края совпадают с body/html (#0a0908) */
   background:
-    linear-gradient(180deg, #0c0a0a 0%, #151110 26%, #120f0e 55%, #171211 78%, #0c0a0a 100%);
+    linear-gradient(180deg, #0a0908 0%, #0f0c0b 30%, #120e0d 52%, #0f0c0b 74%, #0a0908 100%);
   box-shadow:0 0 0 1px #17120f, 0 30px 120px -30px rgba(0,0,0,.7);
 }
 
@@ -243,23 +245,17 @@ a,button,.btn{ touch-action:manipulation; }
   width:100%; height:100%;
   object-fit:cover; object-position:center top; z-index:2;
 }
-/* низ первого фото уводится в чёрный: тёмный градиент + блюр по маске,
-   вместо прежнего затухания в прозрачность (mask → transparent) */
+/* низ первого фото уводим в фон мягким тёмным градиентом (без блюра —
+   у самого фото теперь свой чёрный низ). Заканчивается прозрачностью,
+   а не сплошным цветом — чтобы не было цветовой «ступеньки» на стыке
+   со следующей секцией. */
 .s--hero::after{
   content:""; position:absolute; left:0; right:0; bottom:0; z-index:2;
-  height:48%; pointer-events:none;
+  height:44%; pointer-events:none;
   background:linear-gradient(180deg,
     rgba(10,9,8,0)   0%,
-    rgba(10,9,8,.5) 42%,
-    rgba(10,9,8,.9) 72%,
-    #0a0908        100%);
-  -webkit-backdrop-filter:blur(10px);
-  backdrop-filter:blur(10px);
-  -webkit-mask-image:linear-gradient(180deg, transparent 0%, #000 46%);
-  mask-image:linear-gradient(180deg, transparent 0%, #000 46%);
-}
-@media (prefers-reduced-transparency: reduce){
-  .s--hero::after{ -webkit-backdrop-filter:none; backdrop-filter:none; }
+    rgba(10,9,8,.45) 48%,
+    rgba(10,9,8,.9)  100%);
 }
 .hero__copy{
   position:absolute; left:var(--pad-x); right:var(--pad-x);
@@ -319,8 +315,10 @@ a,button,.btn{ touch-action:manipulation; }
   position:absolute; left:0; top:0; width:100%;
   height:clamp(360px, 104cqw, 500px);
   object-fit:cover; z-index:2;
-  -webkit-mask-image:linear-gradient(#000 54%, transparent);
-  mask-image:linear-gradient(#000 54%, transparent);
+  /* растушёваны только сами края кадра (сверху и снизу) — чтобы не было
+     жёсткой границы фото на стыке секций; у фото уже свой чёрный низ */
+  -webkit-mask-image:linear-gradient(180deg, transparent 0, #000 12%, #000 68%, transparent 100%);
+  mask-image:linear-gradient(180deg, transparent 0, #000 12%, #000 68%, transparent 100%);
 }
 /* «Шоу» — фото крупнее (+10% ранее, ещё +20% сверху = ~1.32 общее) и сдвинуто выше;
    «Левитация» — сдвинута левее и немного увеличена. */
@@ -473,8 +471,9 @@ a,button,.btn{ touch-action:manipulation; }
 .contact__media{ position:relative; z-index:2; margin-top:var(--sp-5); margin-inline:calc(-1*var(--pad-x)); }
 .contact__photo{
   width:100%; object-fit:cover;
-  -webkit-mask-image:linear-gradient(#000 66%, transparent);
-  mask-image:linear-gradient(#000 66%, transparent);
+  /* лёгкая растушёвка низа — под ней лежит подвал (.contact__foot) */
+  -webkit-mask-image:linear-gradient(#000 80%, transparent);
+  mask-image:linear-gradient(#000 80%, transparent);
 }
 .contact__foot{
   position:relative; z-index:3;
@@ -677,7 +676,7 @@ a,button,.btn{ touch-action:manipulation; }
         <p class="sub">для небольших групп гостей</p>
         <p class="sub">для Welcome зоны или в перерывах банкета</p>
       </div>
-      <figure class="video" data-video data-vk="video42097195_456239379" data-vk-kind="video">
+      <figure class="video" data-video data-vk="video-230277884_456239031" data-vk-kind="video">
         <img class="video__poster" src="media/site/poster-micro.jpg" alt="" loading="lazy">
         <button class="video__play" type="button" aria-label="Смотреть промо микромагии"></button>
         <iframe class="video__frame" allow="autoplay; encrypted-media; fullscreen" allowfullscreen loading="lazy"></iframe>
