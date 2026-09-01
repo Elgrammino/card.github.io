@@ -1065,4 +1065,18 @@ a,button,.btn{ touch-action:manipulation; }
 
     /* reduced-motion: моментальный финальный вид */
     mm.add('(prefers-reduced-motion: reduce)', function () {
-      gsap.set('[data-split], [data-reveal] > *, [data-hero], [data-video], [data-photo], .ac
+      gsap.set('[data-split], [data-reveal] > *, [data-hero], [data-video], [data-photo], .act__num, .price__n', { clearProps: 'all', opacity: 1, y: 0 });
+      gsap.set('[data-photo]', { clearProps: 'transform,filter,willChange', scale: 1, opacity: 1 });
+    });
+  }
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(initGsap);
+    setTimeout(initGsap, 2500); /* страховка, если fonts.ready подвиснет */
+  } else {
+    initGsap();
+  }
+})();
+</script>
+<script type="module" src="assets/deck/deck.js"></script>
+</body>
+</html>
