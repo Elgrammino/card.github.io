@@ -15,7 +15,9 @@
 }
 .deck-bg canvas{
   position:absolute; inset:0; display:block; width:100%; height:100%;
-  opacity:.92;
+  opacity:.88;
+  /* лёгкий блюр — карты уходят «в глубину кадра», за фото и текст */
+  filter:blur(3px) saturate(92%);
   /* мягко гасим карты под навигацией и у самого низа — как приглушённые
      блюр-карты в прежней раскладке */
   -webkit-mask-image:linear-gradient(180deg, transparent 0, #000 7%, #000 93%, transparent 100%);
