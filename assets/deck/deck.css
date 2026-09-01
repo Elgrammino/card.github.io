@@ -1,0 +1,31 @@
+/* ============================================================
+   3D-фон «падающая колода» (three.js, локально).
+   Слой живёт ровно там же, где раньше был .rays / .deco:
+   фиксирован к вьюпорту, шириной с колонку-визитку, z-index:1
+   (над лучами .rays z0, ПОД фото z2 и текстом z3).
+   Пока три-d-сцена не инициализирована (нет WebGL, отключён JS,
+   ошибка модуля) — остаются CSS-карты .deco. Как только deck.js
+   успешно поднял рендер, он вешает .deck-on на .phone и CSS-карты
+   прячутся. Это же и путь отката.
+   ============================================================ */
+.deck-bg{
+  position:fixed; top:0; bottom:0; left:50%; transform:translateX(-50%);
+  width:100%; max-width:var(--maxw); z-index:1;
+  pointer-events:none; overflow:hidden; contain:layout paint;
+}
+.deck-bg canvas{
+  position:absolute; inset:0; display:block; width:100%; height:100%;
+  opacity:.92;
+  /* мягко гасим карты под навигацией и у самого низа — как приглушённые
+     блюр-карты в прежней раскладке */
+  -webkit-mask-image:linear-gradient(180deg, transparent 0, #000 7%, #000 93%, transparent 100%);
+  mask-image:linear-gradient(180deg, transparent 0, #000 7%, #000 93%, transparent 100%);
+}
+
+/* 3D-колода поднялась — прежние 2D-карты убираем (не удаляя из DOM) */
+.phone.deck-on .deco{ display:none; }
+
+@media (prefers-reduced-motion: reduce){
+  /* deck.js сам рендерит один статичный кадр; на всякий случай чуть тише */
+  .deck-bg canvas{ opacity:.8; }
+}
