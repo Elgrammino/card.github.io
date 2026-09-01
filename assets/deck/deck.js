@@ -34,14 +34,15 @@ function boot(){
   const CARDS     = 26;     // всего карт в пружине
   const IN_FLIGHT = 10;     // сколько одновременно «в полёте» (≈ карт в кадре)
   const TURNS     = 2.0;    // витков спирали в кадре
-  const RADIUS    = 0.34;   // радиус спирали — уже, чем было (0.44)
+  const RADIUS    = 0.30;   // радиус спирали — уже, чем было (0.44)
   const Y_TOP     = 0.98;
   const Y_BOTTOM  = -1.14;
   const CARD_W = 0.112, CARD_H = 0.160, CARD_T = 0.0016;   // карты отдалены/мельче на ~17%
   const SMOOTH    = 0.0375; // сглаживание прокрутки — ещё на 25% медленнее (было 0.05)
   const SPIN      = 0.30;   // доворот всей колоды от прогресса (демо 0.50)
-  const FACE_EVERY = 4;     // каждая 4-я карта — «лицо» → ~25% лиц, 75% рубашек
-  const DRIFT     = true;   // лёгкое покачивание пружины в покое
+  const CAM_Z     = 1.94;   // отдаление камеры (было 1.62) — спираль дальше на ~20%
+  const FACE_EVERY = 5;     // каждая 4-я карта — «лицо» → ~25% лиц, 75% рубашек
+  const DRIFT     = false;   // лёгкое покачивание пружины в покое
 
   /* ---- рендерер ---- */
   let renderer;
@@ -58,7 +59,7 @@ function boot(){
 
   const scene  = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(45, 1, 0.05, 20);
-  camera.position.set(0.02, 0.06, 1.62);
+  camera.position.set(0.02, 0.06, CAM_Z);
   camera.lookAt(0, 0, 0);
 
   /* ---- свет: тёплый, приглушённый, в тон палитре ---- */
@@ -150,7 +151,7 @@ function boot(){
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     // узкая портретная колонка — чуть отъезжаем, чтобы спираль влезала по высоте
-    camera.position.z = 1.62 * Math.max(1, 0.42 / camera.aspect);
+    camera.position.z = CAM_Z * Math.max(1, 0.42 / camera.aspect);
     camera.updateProjectionMatrix();
     camera.lookAt(0, 0, 0);
   }
