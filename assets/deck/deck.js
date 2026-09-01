@@ -1,19 +1,24 @@
 /* ============================================================
-   Живой фон: 3D-«пружина» из падающих карт.
-   Портирован из media/Падающие карты на сайт/CardSpring.html:
-   карты срываются с колоды и уходят вниз по спирали, фаза
-   привязана к прокрутке страницы (0 — верх, 1 — низ). При
-   скролле вверх карты так же плавно возвращаются.
+   Живой фон: 3D-«хаос» из падающих карт.
+   Портирован из media/хаос карт/Card Deck Background.html:
+   карты сыплются сверху вразнобой — у каждой свой снос, своя
+   скорость и свой кувырок. Фаза привязана к прокрутке страницы
+   (0 — верх, 1 — низ); при скролле вверх карты так же плавно
+   отматываются назад. Остановка скролла — остановка падения,
+   рисунок по пути не повторяется.
 
-   Отличия от демо (по ТЗ):
-   - заметно медленнее и мягче (SMOOTH ниже, витков меньше);
-   - узкая спираль, ~2 витка в кадре, карты чуть отдалены/мельче;
-   - немного карт в кадре и всего — ради FPS на телефоне;
-   - текстуры — сильно уменьшенные копии media/card/*.jpg (108×162,
-     низкое разрешение намеренно: читается как блюр за контентом);
-   - материалы подкрашены под палитру сайта;
+   Раньше здесь была спираль-«пружина»; сменили только характер
+   движения — всё остальное (сглаживание прокрутки, пауза на
+   скрытой вкладке, статичный кадр для reduced-motion / ?static,
+   откат на CSS-карты) осталось прежним.
+
+   Отличия от демо (по ТЗ проекта):
+   - узкое поле под колонку-визитку, карты чуть мельче и дальше;
+   - немного карт — ради FPS на телефоне;
+   - текстуры — сильно уменьшенные копии media/card/*.jpg (108×162);
+   - материалы подкрашены под тёмно-тёплую палитру сайта;
    - three.js подключён локально (assets/deck/three.module.min.js);
-   - лёгкий дрейф в покое (DRIFT), выключается одной константой;
+   - лёгкий общий дрейф поля в покое (DRIFT), выключается константой;
    - prefers-reduced-motion ИЛИ ?static → один статичный кадр;
    - рендер останавливается, когда вкладка скрыта.
 
@@ -31,18 +36,18 @@ function boot(){
   const STATIC  = REDUCED || /[?&]static\b/.test(location.search);
 
   /* ---- настройки эффекта (крутить здесь) ---- */
-  const CARDS     = 26;     // всего карт в пружине
-  const IN_FLIGHT = 10;     // сколько одновременно «в полёте» (≈ карт в кадре)
-  const TURNS     = 3.0;    // витков спирали в кадре
-  const RADIUS    = 0.25;   // радиус спирали — уже, чем было (0.44)
-  const Y_TOP     = 0.98;
-  const Y_BOTTOM  = -1.14;
-  const CARD_W = 0.112, CARD_H = 0.160, CARD_T = 0.0016;   // карты отдалены/мельче на ~17%
-  const SMOOTH    = 0.0375; // сглаживание прокрутки — ещё на 25% медленнее (было 0.05)
-  const SPIN      = 0.30;   // доворот всей колоды от прогресса (демо 0.50)
-  const CAM_Z     = 1.94;   // отдаление камеры (было 1.62) — спираль дальше на ~20%
-  const FACE_EVERY = 8;     // каждая 4-я карта — «лицо» → ~25% лиц, 75% рубашек
-  const DRIFT     = false;   // лёгкое покачивание пружины в покое
+  const CARDS      = 26;      // всего карт в поле
+  const SPAN       = 2.30;    // путь карты по вертикали до возврата наверх
+  const FIELD_W    = 0.44;    // разброс по горизонтали — узко, под колонку
+  const FIELD_D    = 0.42;    // разброс по глубине — даёт параллакс
+  const FALLS      = 1.15;    // прокрутка всей страницы ≈ один проход поля
+  const CARD_W = 0.112, CARD_H = 0.160, CARD_T = 0.0016;   // карты мельче/дальше
+  const SMOOTH     = 0.0375;  // сглаживание прокрутки — как было у спирали
+  const TUMBLE     = 0.85;    // общий множитель кувырка карт
+  const GUST       = 0.30;    // насколько рывок скролла подкручивает всё поле
+  const CAM_Z      = 1.94;    // отдаление камеры
+  const FACE_EVERY = 5;       // каждая 5-я карта — «лицо» → ~20% лиц, 80% рубашек
+  const DRIFT      = false;   // лёгкое покачивание всего поля в покое
 
   /* ---- рендерер ---- */
   let renderer;
@@ -95,8 +100,13 @@ function boot(){
 
   const geo  = new THREE.BoxGeometry(CARD_W, CARD_H, CARD_T);
   const deck = new THREE.Group();
-  deck.name = 'card-spring';
+  deck.name = 'card-chaos';
   scene.add(deck);
+
+  /* детерминированный псевдо-рандом: поле стабильно между перезагрузками,
+     но без видимого узора (LCG, как в демо) */
+  let seed = 20260901;
+  const rnd = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
 
   const cards = [];
   let faceN = 0;
@@ -106,43 +116,50 @@ function boot(){
     // порядок граней BoxGeometry: +x -x +y -y +z(лицо) -z(рубашка)
     const m = new THREE.Mesh(geo, [matEdge, matEdge, matEdge, matEdge, faceMat, matBack]);
     m.name = 'card-' + String(i + 1).padStart(2, '0');
+    m.userData = {
+      x: (rnd() * 2 - 1) * FIELD_W * 0.5,
+      z: (rnd() * 2 - 1) * FIELD_D * 0.5,
+      offset: rnd(),                     // где в падении стартует — неровные зазоры
+      speed: 0.62 + rnd() * 0.85,        // у каждой карты свой темп
+      drift: (rnd() * 2 - 1) * 0.08,     // боковой снос по ходу падения
+      spinX: (rnd() * 2 - 1) * 1.30,
+      spinY: (rnd() * 2 - 1) * 1.90,
+      spinZ: (rnd() * 2 - 1) * 0.95,
+      tilt0: rnd() * Math.PI * 2,        // стартовый разворот
+      wobble: 0.5 + rnd() * 1.4,         // частота бокового покачивания
+    };
     cards.push(m); deck.add(m);
   }
 
-  const ease = t => t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2) / 2;
+  const frac  = v => v - Math.floor(v);
+  const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 
-  function place(card, i, t){
-    if (t <= 0){                              // ещё в стопке над кадром
-      card.visible = t > -0.85;
-      card.position.set(0, Y_TOP + 0.14 + i*CARD_T*1.5 + t*0.45, 0);
-      card.rotation.set(-1.35, 0, 0.02*Math.sin(i));
-      return;
+  /* progress — сглаженная фаза прокрутки; gust — отголосок рывка скролла */
+  function layout(progress, gust){
+    for (let i = 0; i < CARDS; i++){
+      const c = cards[i], u = c.userData;
+      const t = frac(u.offset + progress * u.speed);   // 0 сверху, 1 за нижним краем
+      const wob = Math.sin(u.tilt0 + t * Math.PI * 2 * u.wobble);
+      c.position.set(u.x + u.drift * wob, SPAN * (0.5 - t), u.z);
+      c.rotation.set(
+        u.tilt0        + t * u.spinX * TUMBLE * Math.PI * 2 + gust * 0.6,
+        u.tilt0 * 1.7  + t * u.spinY * TUMBLE * Math.PI * 2,
+        u.tilt0 * 0.6  + t * u.spinZ * TUMBLE * Math.PI * 2 + gust
+      );
+      // у самых краёв кадра карта «съезжается» в точку — без хлопка появления
+      const s = clamp(Math.min(t * 12, (1 - t) * 9), 0, 1);
+      c.visible = s > 0.001;
+      c.scale.setScalar(0.55 + 0.45 * s);
     }
-    if (t >= 1){ card.visible = false; return; }
-    card.visible = true;
-    const e = ease(t);
-    const spread = Math.min(1, t*3.0);       // радиус раскрывается по мере схода
-    const a = t*Math.PI*2*TURNS + i*0.37;
-    const r = RADIUS*spread;
-    card.position.set(
-      Math.sin(a)*r,
-      Y_TOP - e*(Y_TOP - Y_BOTTOM),
-      Math.cos(a)*r*0.8
-    );
-    card.rotation.set(
-      -1.35 + spread*(1.35 - 0.55) + Math.sin(a*1.3)*0.2,
-      -a + Math.PI/2,
-      Math.sin(a*0.8 + i)*0.26
-    );
   }
 
   /* ---- прогресс от прокрутки страницы ---- */
-  let target = 0, current = 0, frame = 0;
+  let target = 0, current = 0, gust = 0, frame = 0;
   function scrollProgress(){
     const max = document.documentElement.scrollHeight - window.innerHeight;
     return max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
   }
-  addEventListener('scroll', () => { target = scrollProgress(); }, { passive:true });
+  addEventListener('scroll', () => { target = scrollProgress() * FALLS; }, { passive:true });
 
   function resize(){
     const w = Math.max(1, host.clientWidth);
@@ -150,7 +167,7 @@ function boot(){
     renderer.setPixelRatio(Math.min(1.75, window.devicePixelRatio || 1));
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
-    // узкая портретная колонка — чуть отъезжаем, чтобы спираль влезала по высоте
+    // узкая портретная колонка — чуть отъезжаем, чтобы поле влезало по высоте
     camera.position.z = CAM_Z * Math.max(1, 0.42 / camera.aspect);
     camera.updateProjectionMatrix();
     camera.lookAt(0, 0, 0);
@@ -158,30 +175,27 @@ function boot(){
   addEventListener('resize', resize, { passive:true });
   resize();
 
-  function frameCards(p){
-    const q = p * (CARDS + IN_FLIGHT);
-    for (let i = 0; i < CARDS; i++) place(cards[i], i, (q - i) / IN_FLIGHT);
-  }
-
   function render(now){
-    frameCards(current);
-    deck.rotation.y = current * SPIN + (DRIFT ? now * 0.000015 : 0);
-    deck.rotation.z = DRIFT ? Math.sin(now * 0.00013) * 0.028 : 0;
+    layout(current, gust);
+    deck.rotation.y = DRIFT ? Math.sin(now * 0.00013) * 0.03 : 0;
     renderer.render(scene, camera);
   }
 
   if (STATIC){
-    target = current = 0.16;                  // несколько карт на середине падения
+    target = current = 0.18 * FALLS;          // несколько карт на середине падения
     render(0);
     // держим кадр корректным при повороте экрана
     addEventListener('resize', () => render(0), { passive:true });
   } else {
-    target = current = scrollProgress();
+    target = current = scrollProgress() * FALLS;
     const loop = () => {
       const now = performance.now();
       const diff = target - current;
       current += diff * SMOOTH;
-      const moving = Math.abs(diff) > 0.0004;
+      // рывок скролла слегка подкручивает всё поле; сильно сглажен и
+      // ограничен — чтобы не вернуть «дрожь» при быстрой прокрутке
+      gust += (clamp(diff * 26, -0.8, 0.8) * GUST - gust) * 0.06;
+      const moving = Math.abs(diff) > 0.0004 || Math.abs(gust) > 0.002;
       frame++;
       if (!moving && (frame & 1)) return;     // в покое — вполовину кадров
       render(now);
