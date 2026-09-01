@@ -242,8 +242,24 @@ a,button,.btn{ touch-action:manipulation; }
   position:absolute; inset:0;
   width:100%; height:100%;
   object-fit:cover; object-position:center top; z-index:2;
-  -webkit-mask-image:linear-gradient(#000 78%, transparent);
-  mask-image:linear-gradient(#000 78%, transparent);
+}
+/* низ первого фото уводится в чёрный: тёмный градиент + блюр по маске,
+   вместо прежнего затухания в прозрачность (mask → transparent) */
+.s--hero::after{
+  content:""; position:absolute; left:0; right:0; bottom:0; z-index:2;
+  height:48%; pointer-events:none;
+  background:linear-gradient(180deg,
+    rgba(10,9,8,0)   0%,
+    rgba(10,9,8,.5) 42%,
+    rgba(10,9,8,.9) 72%,
+    #0a0908        100%);
+  -webkit-backdrop-filter:blur(10px);
+  backdrop-filter:blur(10px);
+  -webkit-mask-image:linear-gradient(180deg, transparent 0%, #000 46%);
+  mask-image:linear-gradient(180deg, transparent 0%, #000 46%);
+}
+@media (prefers-reduced-transparency: reduce){
+  .s--hero::after{ -webkit-backdrop-filter:none; backdrop-filter:none; }
 }
 .hero__copy{
   position:absolute; left:var(--pad-x); right:var(--pad-x);
@@ -308,7 +324,7 @@ a,button,.btn{ touch-action:manipulation; }
 }
 /* «Шоу» — фото крупнее (+10% ранее, ещё +20% сверху = ~1.32 общее) и сдвинуто выше;
    «Левитация» — сдвинута левее и немного увеличена. */
-#show  .act__photo{ height:clamp(475px, 137cqw, 660px); top:calc(clamp(-46px, -11cqw, -24px) - 10px); left:0; width:100%; }
+#show  .act__photo{ height:clamp(475px, 137cqw, 660px); top:calc(clamp(-46px, -11cqw, -24px) - 64px); left:0; width:100%; }
 #levit .act__photo{ height:clamp(378px, 109cqw, 525px); top:calc(clamp(-40px, -9cqw, -22px) - 10px); left:calc(-8cqw); width:calc(100% + 8cqw); }
 .act__wash{
   position:absolute; z-index:1; pointer-events:none; border-radius:50%;
@@ -366,6 +382,8 @@ a,button,.btn{ touch-action:manipulation; }
   box-shadow:0 30px 60px -22px rgba(0,0,0,.6);
 }
 .video--wide{ aspect-ratio:233/360; }
+/* горизонтальное ( landscape) видео — для «Шоу»: внутри ссылка на 16:9 ролик */
+.video--h{ aspect-ratio:16/9; width:min(100%, clamp(300px, 100cqw, 420px)); }
 .video video{ width:100%; height:100%; object-fit:cover; background:#000; }
 .video__poster{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transition:opacity .4s var(--ease); }
 .video.is-playing .video__poster,
@@ -496,9 +514,7 @@ a,button,.btn{ touch-action:manipulation; }
 }
 
 /* ── Раскладка карт — сдвинуты ближе к центру относительно исходной версии ── */
-.deco__c--h1 { left:24%; top:calc(560*var(--u));  width:calc(150*var(--u)); --tilt:7deg;   --cf-dur:34s; --cf-delay:-7s;  }
-.deco__c--h1 .deco__card{ opacity:.14; filter:blur(3.4px); }
-
+/* .deco__c--h1 убрана: карта лежала прямо на первом (hero) фото */
 .deco__c--f1 { right:calc(-18*var(--u)); top:calc(940*var(--u));  width:calc(128*var(--u)); --tilt:-13deg; --cf-dur:37s; --cf-delay:-4s;  }
 .deco__c--f1 .deco__card{ opacity:.34; filter:blur(1.7px); }
 
@@ -537,6 +553,7 @@ a,button,.btn{ touch-action:manipulation; }
   *{ scroll-behavior:auto !important; }
 }
 </style>
+<link rel="stylesheet" href="assets/deck/deck.css">
 </head>
 <body>
 
@@ -585,8 +602,11 @@ a,button,.btn{ touch-action:manipulation; }
     <canvas class="rays__cv" id="raysCv"></canvas>
   </div>
 
+  <!-- 3D-колода на фоне (three.js, assets/deck/). Пока не поднимется —
+       её место занимают CSS-карты .deco ниже; deck.js вешает .deck-on. -->
+  <div class="deck-bg" id="deckBg" aria-hidden="true"></div>
+
   <div class="deco" aria-hidden="true">
-    <div class="deco__c deco__c--h1"><span class="deco__card deco__card--c"></span></div>
     <div class="deco__c deco__c--f1"><span class="deco__card deco__card--b"></span></div>
     <div class="deco__c deco__c--f2"><span class="deco__card deco__card--c"></span></div>
     <div class="deco__c deco__c--mi1"><span class="deco__card"></span></div>
@@ -657,7 +677,7 @@ a,button,.btn{ touch-action:manipulation; }
         <p class="sub">для небольших групп гостей</p>
         <p class="sub">для Welcome зоны или в перерывах банкета</p>
       </div>
-      <figure class="video" data-video data-vk="clip42097195_456239379" data-vk-kind="clip">
+      <figure class="video" data-video data-vk="video42097195_456239379" data-vk-kind="video">
         <img class="video__poster" src="media/site/poster-micro.jpg" alt="" loading="lazy">
         <button class="video__play" type="button" aria-label="Смотреть промо микромагии"></button>
         <iframe class="video__frame" allow="autoplay; encrypted-media; fullscreen" allowfullscreen loading="lazy"></iframe>
@@ -682,7 +702,7 @@ a,button,.btn{ touch-action:manipulation; }
         <p class="sub">Выступление для всех зрителей одновременно во время банкета в качестве шоу-программы мероприятия</p>
         <p class="lead">Интерактив, юмор, вау эффект.</p>
       </div>
-      <figure class="video video--wide" data-video data-vk="video-230277884_456239023" data-vk-kind="video">
+      <figure class="video video--h" data-video data-vk="video-230277884_456239023" data-vk-kind="video">
         <img class="video__poster" src="media/site/poster-show.jpg" alt="" loading="lazy">
         <button class="video__play" type="button" aria-label="Смотреть промо шоу"></button>
         <iframe class="video__frame" allow="autoplay; encrypted-media; fullscreen" allowfullscreen loading="lazy"></iframe>
@@ -706,7 +726,7 @@ a,button,.btn{ touch-action:manipulation; }
         <p class="lead">Специальный номер</p>
         <p class="sub">с левитацией вашего гостя на празднике</p>
       </div>
-      <figure class="video video--wide" data-video data-vk="video-230277884_456239026" data-vk-kind="video">
+      <figure class="video video--wide" data-video data-vk="video-230277884_456239034" data-vk-kind="video">
         <img class="video__poster" src="media/site/poster-levit.png" alt="" loading="lazy">
         <button class="video__play" type="button" aria-label="Смотреть промо левитации"></button>
         <iframe class="video__frame" allow="autoplay; encrypted-media; fullscreen" allowfullscreen loading="lazy"></iframe>
@@ -1073,5 +1093,6 @@ a,button,.btn{ touch-action:manipulation; }
   }
 })();
 </script>
+<script type="module" src="assets/deck/deck.js"></script>
 </body>
 </html>
