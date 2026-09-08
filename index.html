@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Эдуард Грамм · иллюзионист</title>
 <meta name="description" content="Эдуард Грамм, иллюзионист. Современное иллюзионное шоу для частных мероприятий: микромагия, шоу, левитация.">
-<meta name="theme-color" content="#121010">
+<meta name="theme-color" content="#0a0908">
 <meta property="og:title" content="Эдуард Грамм · иллюзионист">
 <meta property="og:description" content="Современное иллюзионное шоу для частных мероприятий.">
 <meta property="og:type" content="website">
@@ -68,21 +68,40 @@
   --font-druk: "Druk Text Cyr","Unbounded","Bounded",system-ui,sans-serif;
   --font-geo:  "Unbounded","Bounded",system-ui,sans-serif;
   --ease: cubic-bezier(.16,1,.3,1);
+
+  /* Фон страницы одной переменной: её же берёт прелоадер, поэтому при
+     снятии оверлея фон не моргает — под ним ровно тот же самый. */
+  --page-bg:   #0a0908;
 }
 
 *,*::before,*::after{ box-sizing:border-box; }
-html{ -webkit-text-size-adjust:100%; background:#0a0908; }
+/* Полосу прокрутки резервируем всегда: пока висит прелоадер, скролл
+   залочен, и без этого в момент снятия оверлея полоса возвращалась бы и
+   двигала всю страницу вбок — это и читалось как глич на стыке. */
+html{ -webkit-text-size-adjust:100%; background:#0a0908; color-scheme:dark; scrollbar-gutter:stable; }
 @media (prefers-reduced-motion: no-preference){ html{ scroll-behavior:smooth; } }
 
 body{
-  margin:0; background:#0a0908; color:var(--ink);
+  margin:0; background:var(--page-bg); color:var(--ink);
   font-family:var(--font); font-weight:200; font-size:21px; line-height:1.5;
   -webkit-font-smoothing:antialiased;
+}
+/* На широких экранах колонка остаётся картой фиксированной ширины (as
+   designed — box-shadow вокруг .phone рамит её как карточку), но пустые
+   поля вокруг неё не должны читаться как «недоделанный» голый чёрный фон —
+   добавляем едва заметное амбиентное свечение по центру. */
+@media (min-width: 640px){
+  :root{
+    --page-bg:
+      radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, var(--accent-deep) 14%, transparent), transparent 60%),
+      #0a0908;
+  }
+  body{ background:var(--page-bg); }
 }
 img,video,picture{ max-width:100%; height:auto; display:block; }
 a{ color:inherit; text-decoration:none; }
 button{ font:inherit; color:inherit; }
-a,button,.btn{ touch-action:manipulation; }
+a,button,.btn{ touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
 
 /* ============================================================
    Колонка-визитка + единицы измерения
@@ -169,13 +188,19 @@ a,button,.btn{ touch-action:manipulation; }
 .nav{
   position:fixed; inset:0 0 auto 0; z-index:100;
   display:flex; align-items:center; justify-content:space-between; gap:18px;
-  height:54px; padding:0 clamp(16px,5vw,26px);
+  height:54px;
+  padding-top:0; padding-bottom:0;
+  padding-left:max(clamp(16px,5vw,26px), env(safe-area-inset-left));
+  padding-right:max(clamp(16px,5vw,26px), env(safe-area-inset-right));
   max-width:var(--maxw); margin-inline:auto;
   background:linear-gradient(#0c0a0a 12%, transparent);
   transition:background .3s var(--ease);
 }
 .nav.is-scrolled{ background:color-mix(in srgb, var(--bg) 88%, transparent); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); }
-.nav__brand{ font-weight:600; font-size:13px; letter-spacing:.06em; text-transform:uppercase; white-space:nowrap; }
+.nav__brand{
+  display:inline-flex; align-items:center; min-height:44px;
+  font-weight:600; font-size:13px; letter-spacing:.06em; text-transform:uppercase; white-space:nowrap;
+}
 .nav__toggle{ display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; margin-right:-10px; background:none; border:0; cursor:pointer; }
 .nav__toggle span, .nav__toggle span::before, .nav__toggle span::after{
   content:""; display:block; width:20px; height:1.6px; background:var(--ink); transition:transform .3s var(--ease);
@@ -188,7 +213,10 @@ a,button,.btn{ touch-action:manipulation; }
 .nav__menu{
   position:fixed; inset:54px 0 auto 0; z-index:99;
   max-width:var(--maxw); margin-inline:auto;
-  display:grid; gap:2px; padding:12px clamp(16px,5vw,26px) 24px;
+  display:grid; gap:2px;
+  padding-top:12px; padding-bottom:24px;
+  padding-left:max(clamp(16px,5vw,26px), env(safe-area-inset-left));
+  padding-right:max(clamp(16px,5vw,26px), env(safe-area-inset-right));
   background:var(--bg-deep); border-bottom:1px solid var(--line);
   transform:translateY(-12px); opacity:0; pointer-events:none;
   transition:transform .3s var(--ease), opacity .3s var(--ease);
@@ -245,7 +273,7 @@ a,button,.btn{ touch-action:manipulation; }
 }
 .hero__name{
   margin:0; font-weight:800; font-size:calc(57*var(--u)); line-height:calc(54*var(--u));
-  letter-spacing:calc(-2*var(--u)); text-transform:uppercase;
+  letter-spacing:calc(-2*var(--u)); text-transform:uppercase; text-wrap:balance;
   text-shadow:0 calc(2*var(--u)) calc(34*var(--u)) rgba(0,0,0,.55);
 }
 .hero__role{
@@ -254,8 +282,19 @@ a,button,.btn{ touch-action:manipulation; }
 }
 .hero__cta{
   display:inline-flex; margin-top:var(--sp-6);
-  width:calc(234*var(--u)); min-height:calc(40*var(--u)); padding:calc(9*var(--u)) 0;
+  width:calc(234*var(--u)); min-height:max(44px, calc(40*var(--u))); padding:calc(9*var(--u)) 0;
   font-size:calc(19*var(--u)); text-transform:lowercase; letter-spacing:calc(2*var(--u));
+}
+/* Короткие широкие окна (телефон в ландшафте, невысокие ноутбучные окна):
+   постерное фото в полную ширину колонки становится намного выше вьюпорта,
+   и имя/подпись у его низа уходят далеко за первый экран. Здесь укорачиваем
+   фото по высоте вместо ширины колонки — не ломает раскладку остальной
+   страницы (та же .phone-колонка), просто hero перестаёт требовать скролл
+   для имени на этой ориентации. */
+@media (max-height: 560px) and (orientation: landscape){
+  .s--hero{ min-height:0; display:flex; justify-content:center; }
+  .hero__photo{ width:auto; max-width:none; height:92vh; max-height:92vh; }
+  .hero__copy{ bottom:clamp(28px, 10vh, 64px); }
 }
 
 /* текст ниже первого экрана — форматы/пункты/фраза + кнопка, обычный поток документа */
@@ -333,7 +372,7 @@ a,button,.btn{ touch-action:manipulation; }
 .act__title{
   position:relative; z-index:2; margin:0;
   font-weight:800; font-size:clamp(32px, 11.2cqw, 46px); line-height:.84;
-  letter-spacing:-.02em; text-transform:uppercase;
+  letter-spacing:-.02em; text-transform:uppercase; text-wrap:balance;
   padding-left:clamp(60px, 18cqw, 88px);
 }
 /* «Шоу» и «Левитация»: цифры 2/3 в гео-шрифте шире, поэтому текст
@@ -418,6 +457,7 @@ a,button,.btn{ touch-action:manipulation; }
   margin-top:var(--sp-1);
   font-weight:900; font-size:clamp(20px, 6.2cqw, 26px);
   color:var(--accent); text-transform:uppercase; letter-spacing:.05em;
+  font-variant-numeric:tabular-nums;
 }
 .price__n{
   position:absolute; right:clamp(-72px, -17cqw, -40px); top:50%; transform:translateY(-52%);
@@ -524,6 +564,109 @@ a,button,.btn{ touch-action:manipulation; }
 .deco__c--co2 .deco__card{ opacity:.2;  filter:blur(2.6px); }
 
 /* ============================================================
+   TABLET (≥768px) — та же мобильная вёрстка, расширенная вверх.
+   Постерная типографика hero (calc(N*var(--u))) капается, чтобы не
+   расти бесконечно вместе с колонкой; сама постерная сцена (hero/акт)
+   остаётся на капе и центрируется, а высвободившееся место у блоков
+   «обо мне / прайс / контакты» уходит под колонки. Цвета и шрифты
+   не тронуты — только layout.
+   ============================================================ */
+@media (min-width: 768px){
+  .phone{
+    --maxw: 720px;
+    /* --u продолжает расти вместе с колонкой (100cqw/440), но не выше
+       значения, которое было бы у колонки ~620px — дальше рост "постера"
+       останавливается, а расширение страницы уходит в колонки ниже */
+    --u: min(calc(100cqw / 440), 1.41px);
+  }
+
+  /* постерные сцены не растягиваются на всю расширенную колонку —
+     иначе имя/цифры теряют пропорции, разъезжаясь на пустом фоне */
+  .s--hero, .act, .formats-label{ max-width:640px; margin-inline:auto; }
+
+  /* ---------- «обо мне»: тег+кнопка слева, пункты+фраза справа ---------- */
+  .hero-info{
+    display:grid; grid-template-columns:1fr 1fr;
+    column-gap:var(--sp-6); row-gap:var(--sp-4);
+    align-items:start; max-width:none;
+  }
+  .hero-info .hero__tag{ grid-column:1; grid-row:1; }
+  .hero-info .hero__cta{ grid-column:1; grid-row:2; margin-inline:0; align-self:start; }
+  .hero-info .hero__points{ grid-column:2; grid-row:1; margin-top:0; }
+  .hero-info .hero__more{ grid-column:2; grid-row:2; margin-top:var(--sp-3); }
+
+  /* ---------- акт: фото слева, номер+заголовок+текст+видео справа ---------- */
+  .act{
+    display:grid; grid-template-columns:minmax(200px, 36%) 1fr;
+    column-gap:var(--sp-6); align-items:start; overflow:visible;
+  }
+  .act__photo{
+    position:relative; grid-column:1; top:0; left:0; width:100%;
+    margin-top:var(--sp-5); align-self:start;
+  }
+  #show  .act__photo{ top:0; left:0; width:100%; }
+  #levit .act__photo{ top:0; left:0; width:100%; }
+  .act__wash{ grid-column:1; left:50%; transform:translateX(-50%); width:100%; }
+  .act .wrap{ grid-column:2; padding-left:0; }
+  .act__head{ padding-top:var(--sp-6); padding-bottom:var(--sp-2); }
+
+  /* контурная цифра — не бежит за левый край фото, а стоит компактным
+     «водяным знаком» над заголовком, в размере под свою новую роль */
+  .act__num{
+    position:static; display:block; line-height:.7;
+    font-size:clamp(84px, 16cqw, 150px);
+    margin:0 0 clamp(-56px, -8cqw, -30px);
+  }
+  .act__title{ padding-left:0; }
+  #show .act__title, #levit .act__title{ padding-left:0; }
+  .video{ margin-inline:0; }
+
+  /* ---------- прайс: три пункта в ряд ---------- */
+  .price__list{ grid-template-columns:repeat(3, 1fr); column-gap:var(--sp-5); }
+  .price__row{ overflow:visible; }
+  .price__n{
+    position:static; display:block; transform:none; z-index:0;
+    font-size:clamp(56px, 12cqw, 96px);
+    margin:0 0 clamp(-30px, -4cqw, -16px);
+  }
+  .price__row:nth-child(1) .price__n{ margin:0 0 clamp(-30px, -4cqw, -16px); }
+
+  /* ---------- контакты: кнопки в ряд ---------- */
+  .contact__btns{ grid-template-columns:repeat(3, 1fr); max-width:none; }
+
+  /* ---------- летящие карты: якоря в % высоты страницы вместо
+     фиксированных --u-пикселей (те были заточены под высоту мобильного
+     стека; на широких breakpoint-ах секции короче из-за колонок) ---------- */
+  .deco__c{ top:auto; }
+  .deco__c--f1 { top:16%;  }
+  .deco__c--f2 { top:27%;  }
+  .deco__c--mi1{ top:39%;  }
+  .deco__c--mi2{ top:43%;  }
+  .deco__c--sh1{ top:56%;  }
+  .deco__c--sh2{ top:60%;  }
+  .deco__c--le1{ top:63%;  }
+  .deco__c--le2{ top:70%;  }
+  .deco__c--pr1{ top:79%;  }
+  .deco__c--co1{ top:92%;  }
+  .deco__c--co2{ top:97%;  }
+}
+
+/* ============================================================
+   DESKTOP (≥1200px) — та же сетка, шире поля и капы.
+   ============================================================ */
+@media (min-width: 1200px){
+  .phone{
+    --maxw: 1080px;
+    --u: min(calc(100cqw / 440), 1.6px);
+  }
+  .s--hero, .act, .formats-label{ max-width:720px; }
+  .hero-info{ column-gap:var(--sp-sec); }
+  .act{ grid-template-columns:minmax(240px, 34%) 1fr; column-gap:var(--sp-sec); }
+  .price__list{ column-gap:var(--sp-6); }
+  .contact__btns{ max-width:640px; margin-inline:auto; }
+}
+
+/* ============================================================
    Reduced motion / без JS — всё в финальном читаемом виде
    ============================================================ */
 @media (prefers-reduced-motion: reduce){
@@ -531,13 +674,273 @@ a,button,.btn{ touch-action:manipulation; }
   .rays__cv{ opacity:.6; }
   *{ scroll-behavior:auto !important; }
 }
+/* ============================================================
+   ПРЕЛОАДЕР
+   Кольца-ripple (идея из ripple-circles: 5 колец через inset,
+   2s ease-in-out, фазовый сдвиг 0/.2/.4/.6/.8s, scale 1 → 1.3)
+   переписаны на чистый CSS — без React/Tailwind/shadcn.
+
+   Кольца одновременно и пульсируют, и показывают прогресс:
+   каждое «зажигается» (растёт непрозрачность и свечение того же
+   --accent, цвет не меняется), когда загрузка проходит его порог.
+   Порядок — от центра к краям. Процентов на экране нет.
+
+   Лампочка — инлайн eg-bulb.svg одним цветом (currentColor →
+   --eg-bulb-color → --ink). Яркость гонит ОДНА переменная --p
+   (прогресс 0..1), нить накала идёт с опережением по --pf.
+   «Плохой контакт» — множитель --flick от JS.
+
+   ВАЖНО по производительности: свечение сделано не через
+   filter:drop-shadow() на самом SVG (это перерастрирование
+   вектора каждый кадр), а отдельными гало-слоями, у которых
+   анимируются только opacity и transform. Ни один кадр не
+   трогает layout/paint-тяжёлые свойства.
+   ============================================================ */
+html.pl-lock, html.pl-lock body{ overflow:hidden; }
+
+/* Пока висит прелоадер, живой фон сайта (лучи + 3D-колода) всё равно не
+   виден — но продолжает рисоваться и отъедает кадры ровно тогда, когда
+   процессор нужен на распаковку картинок. visibility (а не display)
+   выбрана намеренно: раскладка сохраняется, getBoundingClientRect в
+   raysCv/deck.js возвращает настоящие размеры, сцены не ломаются. */
+html.pl-lock .rays, html.pl-lock .deck-bg{ visibility:hidden; }
+
+#preloader{
+  position:fixed; inset:0; z-index:9999;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:clamp(18px, 4vh, 34px);
+  /* прогресс и производные от него */
+  --p:0;      /* общий прогресс 0..1 */
+  --pf:0;     /* прогресс нити накала — с опережением */
+  --flick:1;  /* «плохой контакт»: множитель яркости от JS */
+  --lit: calc(var(--p) * var(--flick));
+  --litf:calc(var(--pf) * var(--flick));
+  --eg-bulb-color: var(--ink);
+  --wave-scale: 60;
+  user-select:none; -webkit-user-select:none;
+  overscroll-behavior:none; touch-action:none;
+}
+
+/* Фон отдельным слоем — чтобы гасить его независимо от лампочки.
+   Ровно тот же --page-bg, что у body: на стыке ничего не моргает. */
+.pl__bg{ position:absolute; inset:0; background:var(--page-bg); z-index:0; }
+
+.pl__stage{
+  position:relative; z-index:1;
+  width:min(70vw, 330px); aspect-ratio:1;
+  display:grid; place-items:center;
+}
+
+/* ---------- кольца ---------- */
+.pl__ring{
+  position:absolute; border-radius:50%;
+  border:1.5px solid var(--bc);
+  background:radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 68%);
+  opacity:calc(var(--go) * .42);
+  transition:opacity .7s var(--ease);
+  animation:pl-ripple 2s ease-in-out infinite;
+  animation-delay:var(--d);
+  will-change:transform;
+}
+/* свечение кольца — статичная box-shadow, анимируется только opacity */
+.pl__ring::after{
+  content:""; position:absolute; inset:-1.5px; border-radius:50%;
+  box-shadow:0 0 22px 1px color-mix(in srgb, var(--accent) 62%, transparent);
+  opacity:0; transition:opacity .7s var(--ease);
+}
+.pl__ring.is-lit{ opacity:var(--go); }
+.pl__ring.is-lit::after{ animation:pl-glow 2s ease-in-out infinite; animation-delay:var(--d); }
+
+.pl__ring--1{ inset:30%; --d:0s;    --go:1;   --bc:color-mix(in srgb, var(--accent) 80%, transparent); }
+.pl__ring--2{ inset:22.5%; --d:.2s;   --go:.88; --bc:color-mix(in srgb, var(--accent) 65%, transparent); }
+.pl__ring--3{ inset:15%; --d:.4s;   --go:.74; --bc:color-mix(in srgb, var(--accent) 50%, transparent); }
+.pl__ring--4{ inset:7.5%; --d:.6s;   --go:.6;  --bc:color-mix(in srgb, var(--accent) 35%, transparent); }
+.pl__ring--5{ inset:0;   --d:.8s;   --go:.46; --bc:color-mix(in srgb, var(--accent) 20%, transparent); }
+
+@keyframes pl-ripple{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.3); } }
+@keyframes pl-glow  { 0%,100%{ opacity:.22; }        50%{ opacity:.85; } }
+
+/* ---------- лампочка ---------- */
+.pl__bulb{
+  position:absolute; left:50%; top:50%; z-index:2;
+  height:36%; aspect-ratio:550 / 810;
+  transform:translate(-50%, -50%);
+}
+.pl__bulbsvg{ display:block; width:100%; height:100%; }
+
+/* Погашенная 0.25 → горящая 1. Цвет не трогаем никогда. */
+#eg-glass, #eg-circuit, #eg-base{ opacity:calc(.25 + .75 * var(--lit)); }
+#eg-filament{ opacity:calc(.25 + .75 * var(--litf)); }
+
+/* гало: широкое — от лампы целиком, узкое — от нити накала */
+.pl__halo{
+  position:absolute; left:50%; top:50%; z-index:1;
+  width:150%; aspect-ratio:1; border-radius:50%; pointer-events:none;
+  background:radial-gradient(circle, color-mix(in srgb, var(--ink) 15%, transparent) 0%, transparent 60%);
+  opacity:calc(.04 + .78 * var(--lit));
+  transform:translate(-50%,-50%) scale(calc(.55 + .45 * var(--lit)));
+  will-change:transform, opacity;
+}
+.pl__halo--f{
+  width:64%;
+  background:radial-gradient(circle, color-mix(in srgb, var(--ink) 34%, transparent) 0%, transparent 56%);
+  opacity:calc(.02 + .9 * var(--litf));
+  transform:translate(-50%,-50%) scale(calc(.4 + .6 * var(--litf)));
+}
+
+/* ---------- подсказка «нажми» ---------- */
+/* Кнопка — та же пилюля, что «ИЛЛЮЗИОНИСТ» под именем в hero: те же
+   .pill-геометрия и обводка, тот же кегль и трекинг, что у .hero__role.
+   Единица --u живёт на .phone (container query), а прелоадер лежит вне
+   колонки — поэтому лестницу --u повторяем здесь один в один, только от
+   ширины вьюпорта вместо cqw. Капы 1.41/1.6px — те же, что у .phone. */
+#preloader{ --u:calc(min(100vw, 460px) / 440); }
+@media (min-width: 768px){
+  #preloader{ --u:min(calc(min(100vw, 720px) / 440), 1.41px); }
+}
+@media (min-width: 1200px){
+  #preloader{ --u:min(calc(min(100vw, 1080px) / 440), 1.6px); }
+}
+.pl__enter{
+  position:relative; z-index:2;
+  appearance:none; -webkit-appearance:none; margin:0; cursor:pointer;
+  display:inline-block; padding:.16em .55em .24em;
+  border:calc(2*var(--u)) solid currentColor; border-radius:999px; line-height:1;
+  background:transparent; color:var(--ink);
+  font-family:var(--font); font-weight:200;
+  font-size:calc(16*var(--u)); letter-spacing:calc(4.5*var(--u));
+  text-transform:uppercase;
+  opacity:0; pointer-events:none;
+  transition:opacity .7s var(--ease) .3s, background .25s var(--ease);
+}
+#preloader.is-ready .pl__enter{ opacity:1; pointer-events:auto; }
+.pl__enter:hover{ background:color-mix(in srgb, var(--ink) 9%, transparent); }
+.pl__enter:focus-visible{
+  outline:1px solid color-mix(in srgb, var(--ink) 45%, transparent);
+  outline-offset:7px; border-radius:999px;
+}
+
+/* кольца уходят — остаётся только горящая лампочка */
+#preloader.is-ready .pl__ring{ opacity:0; }
+#preloader.is-ready .pl__ring::after{ animation:none; opacity:0; }
+
+/* ---------- переход A: волна света ---------- */
+.pl__wave{
+  position:absolute; left:50%; top:50%; z-index:3;
+  width:10px; aspect-ratio:1; border-radius:50%; pointer-events:none;
+  background:radial-gradient(circle,
+    color-mix(in srgb, var(--ink) 32%, transparent) 0%,
+    color-mix(in srgb, var(--ink) 16%, transparent) 50%,
+    color-mix(in srgb, var(--ink) 62%, transparent) 69%,
+    var(--ink) 79%,
+    color-mix(in srgb, var(--ink) 34%, transparent) 88%,
+    transparent 96%);
+  transform:translate(-50%,-50%) scale(0);
+  opacity:0; will-change:transform, opacity;
+}
+#preloader.is-out-a .pl__wave{ animation:pl-wave 1s cubic-bezier(.3,0,.15,1) forwards; }
+#preloader.is-out-a .pl__bg{ opacity:0; transition:opacity .5s linear .3s; }
+#preloader.is-out-a .pl__bulb,
+#preloader.is-out-a .pl__halo,
+#preloader.is-out-a .pl__enter{ opacity:0; transition:opacity .3s linear .2s; }
+@keyframes pl-wave{
+  0%   { transform:translate(-50%,-50%) scale(0);                opacity:0; }
+  14%  {                                                          opacity:1; }
+  100% { transform:translate(-50%,-50%) scale(var(--wave-scale)); opacity:0; }
+}
+
+/* ---------- переход B: лампа гаснет, темнота рассеивается ---------- */
+#preloader.is-out-b .pl__bulb{ opacity:.05; transition:opacity .5s var(--ease); }
+#preloader.is-out-b .pl__halo{
+  opacity:0; transform:translate(-50%,-50%) scale(.35);
+  transition:opacity .4s var(--ease), transform .6s var(--ease);
+}
+#preloader.is-out-b .pl__enter{ opacity:0; transition:opacity .25s linear; }
+#preloader.is-out-b .pl__bg{ opacity:0; transition:opacity .6s var(--ease) .35s; }
+
+/* ---------- переход R: reduced-motion, просто короткий fade ---------- */
+#preloader.is-out-r{ opacity:0; transition:opacity .3s linear; }
+
+/* ---------- prefers-reduced-motion ---------- */
+@media (prefers-reduced-motion: reduce){
+  .pl__ring, .pl__ring.is-lit::after{ animation:none !important; }
+  .pl__halo, .pl__bulb{ transition:none !important; }
+}
+
+/* текст для скринридера */
+.pl__sr{
+  position:absolute; width:1px; height:1px; margin:-1px; padding:0;
+  overflow:hidden; clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap;
+}
 </style>
 <link rel="stylesheet" href="assets/deck/deck.css">
 </head>
 <body>
 
+<!-- ===================== ПРЕЛОАДЕР =====================
+     Слой ПОВЕРХ контента: вся страница отрендерена в HTML с самого
+     начала (поисковики и скринридеры видят её), прелоадер только
+     перекрывает. Пока он висит — контент под ним inert (тот же приём,
+     что у .nav__menu), а «нажми» остаётся настоящей кнопкой:
+     Enter/Space работают, Escape пропускает прелоадер целиком.
+     Логотип — eg-bulb.svg инлайном (копия в assets/eg-bulb.svg):
+     только так работают currentColor и анимация групп по отдельности.
+     ====================================================== -->
+<div id="preloader" data-transition="A">
+  <div class="pl__bg"></div>
+
+  <div class="pl__stage">
+    <span class="pl__ring pl__ring--1"></span>
+    <span class="pl__ring pl__ring--2"></span>
+    <span class="pl__ring pl__ring--3"></span>
+    <span class="pl__ring pl__ring--4"></span>
+    <span class="pl__ring pl__ring--5"></span>
+
+    <span class="pl__halo"></span>
+    <span class="pl__halo pl__halo--f"></span>
+
+    <div class="pl__bulb">
+      <svg class="pl__bulbsvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 550 810"
+           aria-hidden="true" focusable="false"
+           style="color: var(--eg-bulb-color, #F2F0EB)">
+  <g id="eg-bulb" transform="translate(0,810) scale(0.1,-0.1)" fill="currentColor" stroke="none">
+    <!-- колба и горловина -->
+    <g id="eg-glass">
+      <path d="M2560 7959 c-63 -4 -144 -12 -180 -19 -36 -7 -87 -16 -115 -20 -27 -5 -70 -14 -95 -20 -25 -6 -62 -13 -83 -17 -21 -3 -40 -10 -43 -14 -3 -5 -16 -9 -29 -9 -13 0 -34 -4 -47 -9 -13 -5 -41 -14 -63 -21 -22 -6 -53 -18 -70 -25 -16 -7 -52 -23 -80 -35 -83 -36 -227 -111 -273 -141 -24 -16 -45 -29 -48 -29 -12 0 -222 -150 -300 -214 -18 -14 -36 -26 -40 -26 -11 0 -241 -235 -301 -307 -173 -207 -320 -452 -413 -688 -48 -120 -89 -256 -110 -360 -6 -33 -16 -78 -20 -100 -36 -165 -47 -535 -21 -705 30 -203 41 -259 73 -365 45 -150 66 -208 114 -313 13 -29 24 -56 24 -61 0 -26 149 -287 233 -409 29 -41 59 -85 67 -97 39 -58 86 -111 226 -255 207 -212 298 -319 391 -457 77 -115 203 -354 203 -386 0 -9 4 -18 9 -21 5 -3 12 -18 15 -33 4 -16 11 -45 16 -65 6 -21 14 -55 19 -75 5 -21 15 -56 20 -78 20 -74 41 -200 41 -249 0 -46 6 -90 31 -223 19 -98 94 -162 214 -182 146 -25 1711 -7 1739 20 6 5 22 9 36 9 35 0 92 49 117 102 37 78 43 98 43 151 0 29 7 106 16 172 9 66 18 138 20 160 3 22 9 49 14 60 9 21 18 58 27 113 3 18 9 35 14 38 5 3 9 14 9 25 0 10 4 27 9 37 5 9 13 28 19 42 17 43 54 124 68 150 8 14 28 53 44 86 16 34 37 67 45 74 8 7 15 18 15 24 0 11 78 118 154 212 22 27 92 103 155 169 144 150 291 322 291 340 0 3 21 34 48 68 48 63 78 106 98 142 6 11 23 40 37 65 27 47 153 298 168 338 5 12 14 33 19 47 6 14 15 36 20 50 24 61 28 73 40 115 6 25 16 53 21 62 5 10 9 40 9 68 l0 50 -318 0 c-343 0 -342 0 -342 -53 0 -16 -8 -41 -19 -55 -10 -15 -22 -37 -25 -49 l-7 -23 235 0 c255 0 252 1 224 -53 -24 -47 -28 -57 -28 -72 0 -8 -4 -15 -10 -15 -5 0 -10 -9 -10 -19 0 -10 -13 -45 -30 -76 -16 -31 -30 -63 -30 -71 0 -8 -3 -14 -8 -14 -4 0 -13 -15 -21 -32 -8 -18 -26 -51 -40 -73 -15 -22 -33 -52 -40 -67 -8 -16 -18 -28 -23 -28 -4 0 -8 -6 -8 -13 0 -7 -9 -23 -20 -35 -11 -12 -20 -24 -20 -26 0 -3 -7 -14 -15 -23 -8 -10 -36 -47 -62 -83 -69 -94 -131 -166 -268 -309 -127 -133 -194 -210 -234 -270 -14 -20 -28 -37 -33 -39 -4 -2 -8 -9 -8 -16 0 -7 -9 -21 -20 -31 -11 -10 -20 -23 -20 -30 0 -6 -8 -20 -18 -31 -10 -10 -25 -36 -35 -56 -10 -20 -23 -43 -30 -50 -12 -12 -88 -164 -109 -218 -6 -14 -14 -33 -19 -42 -5 -10 -9 -25 -9 -33 0 -8 -4 -23 -9 -33 -5 -9 -14 -37 -21 -62 -7 -25 -16 -53 -21 -62 -5 -10 -9 -31 -9 -47 0 -17 -4 -32 -9 -35 -5 -3 -11 -23 -14 -43 -3 -21 -11 -63 -17 -93 -6 -30 -15 -111 -20 -180 -17 -268 88 -239 -880 -239 -815 -1 -851 1 -886 42 -22 26 -22 25 -50 286 -21 192 -25 220 -35 227 -5 3 -9 20 -9 39 0 19 -4 37 -10 40 -5 3 -10 19 -10 35 0 16 -4 32 -10 35 -5 3 -10 15 -10 26 0 10 -4 27 -9 37 -8 17 -22 49 -40 95 -23 61 -59 135 -92 193 -10 19 -28 51 -40 71 -11 20 -39 63 -62 96 -23 33 -49 69 -57 81 -44 63 -130 159 -279 312 -251 258 -292 307 -417 489 -61 91 -226 409 -216 419 2 3 -3 17 -13 32 -27 41 -19 42 371 44 l362 1 28 -58 c15 -32 35 -69 45 -83 9 -14 29 -46 43 -72 82 -148 300 -388 461 -508 116 -87 132 -105 181 -210 9 -19 34 -73 56 -120 22 -47 44 -94 48 -105 4 -11 13 -33 20 -50 26 -61 40 -102 60 -175 24 -84 33 -115 40 -135 5 -11 13 -51 18 -90 6 -38 16 -100 21 -136 13 -79 13 -533 1 -604 -14 -82 79 -131 147 -77 40 32 33 814 -8 857 -5 5 -9 26 -9 47 0 41 -17 122 -31 150 -5 10 -9 27 -9 37 0 11 -4 23 -10 26 -6 3 -10 17 -10 30 0 13 -4 27 -10 30 -5 3 -10 15 -10 26 0 10 -4 27 -9 37 -5 9 -13 28 -19 42 -5 14 -19 46 -31 72 -12 26 -21 52 -21 57 0 6 -14 33 -30 61 -17 28 -30 55 -30 59 0 5 -14 37 -31 72 -17 35 -40 83 -51 107 -16 31 -39 54 -92 89 -96 63 -235 182 -287 245 -24 29 -61 71 -81 93 -21 22 -38 44 -38 49 0 5 -7 18 -17 28 -9 10 -21 26 -27 37 -6 10 -24 38 -41 62 -47 70 -61 97 -128 251 l-17 38 -462 2 -463 3 -18 55 c-29 87 -75 395 -63 426 5 12 80 14 471 14 l466 0 -3 98 -3 97 -465 5 -465 5 2 25 c12 129 33 249 71 415 9 39 55 180 71 220 5 11 13 31 18 45 6 14 20 45 32 68 11 24 21 48 21 52 0 4 16 37 36 72 20 34 49 86 64 114 24 43 80 126 165 244 30 42 225 260 233 260 4 0 30 21 57 46 118 107 295 235 405 292 182 95 294 149 360 172 19 7 44 16 55 20 38 15 60 23 98 31 20 5 56 14 80 20 83 20 133 30 193 38 34 5 65 11 70 14 33 20 413 25 564 7 58 -6 130 -14 160 -17 30 -2 59 -9 64 -14 6 -5 27 -9 47 -9 21 0 41 -4 44 -10 3 -5 19 -10 35 -10 16 0 32 -4 35 -10 3 -5 21 -10 40 -10 19 0 37 -4 40 -10 3 -5 15 -10 26 -10 10 0 28 -4 39 -10 11 -5 29 -14 40 -20 11 -5 27 -10 35 -10 8 0 15 -4 15 -10 0 -5 6 -10 13 -10 21 0 353 -171 367 -189 3 -3 15 -12 28 -18 12 -7 32 -19 45 -25 12 -7 24 -15 27 -18 4 -5 91 -72 198 -153 106 -80 442 -463 442 -503 0 -3 13 -24 28 -47 16 -23 32 -49 35 -57 4 -8 20 -37 37 -65 28 -47 73 -136 90 -180 8 -19 19 -46 55 -130 9 -22 21 -48 26 -57 5 -10 9 -27 9 -37 0 -11 5 -23 10 -26 6 -3 10 -19 10 -35 0 -16 5 -32 10 -35 6 -3 10 -19 10 -35 0 -16 5 -32 10 -35 6 -3 10 -24 10 -45 0 -21 5 -42 10 -45 6 -3 10 -20 10 -36 l0 -30 93 3 92 3 -3 40 c-1 22 -7 57 -12 78 -6 20 -15 56 -21 80 -35 138 -50 188 -60 209 -5 10 -9 25 -9 33 0 8 -4 24 -10 35 -5 11 -14 29 -20 40 -5 11 -10 26 -10 33 0 8 -14 43 -31 78 -31 63 -39 78 -106 211 -19 37 -41 72 -49 79 -8 6 -14 16 -14 21 0 11 -125 194 -188 273 -121 155 -497 490 -587 525 -12 4 -27 15 -34 24 -7 9 -18 16 -23 16 -6 0 -22 8 -36 19 -39 27 -109 67 -172 97 -85 41 -182 85 -210 97 -14 5 -34 13 -45 18 -57 24 -241 80 -292 89 -32 6 -78 15 -103 21 -25 5 -79 13 -121 18 -42 4 -80 10 -85 13 -15 10 -363 15 -484 7z m443 -6006 c-34 -2 -93 -2 -130 0 -37 2 -9 3 62 3 72 0 102 -1 68 -3z"/>
+    </g>
+    <!-- схема-лабиринт и монограмма EG -->
+    <g id="eg-circuit">
+      <path d="M2606 6873 c-4 -4 -35 -11 -69 -15 -60 -8 -130 -20 -192 -33 -16 -4 -49 -15 -72 -26 -24 -10 -47 -19 -53 -19 -6 0 -18 -4 -28 -9 -16 -8 -68 -32 -142 -64 -20 -9 -66 -36 -104 -61 -37 -26 -70 -46 -73 -46 -39 0 -314 -286 -364 -380 -9 -16 -22 -36 -29 -45 -47 -57 -118 -200 -159 -321 -33 -96 -30 -99 112 -106 30 -1 67 26 67 49 0 8 25 66 55 128 144 295 409 558 650 645 11 4 34 13 50 20 17 7 41 17 55 23 14 5 33 13 42 18 10 5 29 9 42 9 14 0 27 4 30 9 7 10 63 20 161 27 39 3 76 10 83 16 16 14 16 160 0 176 -13 13 -51 16 -62 5z"/>
+      <path d="M2838 6870 c-22 -13 -26 -158 -6 -178 7 -7 43 -12 93 -12 45 0 85 -4 91 -9 5 -5 27 -11 49 -15 85 -12 115 -19 121 -27 3 -5 14 -9 25 -9 10 0 27 -4 37 -9 9 -5 28 -13 42 -18 14 -6 45 -20 68 -32 24 -11 48 -21 54 -21 5 0 29 -13 53 -30 24 -16 47 -30 52 -30 4 0 26 -18 48 -40 22 -21 44 -39 49 -40 18 0 209 -197 249 -255 23 -33 49 -69 59 -79 10 -11 18 -25 18 -32 0 -7 4 -14 8 -16 4 -1 25 -37 45 -78 21 -41 49 -94 62 -118 14 -23 25 -51 25 -62 0 -24 22 -25 115 -8 63 12 86 34 55 53 -5 3 -10 17 -10 31 0 13 -4 32 -9 42 -4 9 -28 58 -52 107 -24 50 -56 109 -71 132 -15 23 -28 46 -28 52 0 6 -4 11 -9 11 -5 0 -12 8 -16 19 -3 10 -15 29 -27 42 -11 13 -37 47 -58 74 -81 107 -327 325 -366 325 -4 0 -15 7 -24 15 -27 25 -189 105 -210 105 -11 0 -20 5 -20 10 0 6 -11 10 -24 10 -14 0 -28 5 -31 10 -3 6 -17 10 -30 10 -13 0 -26 4 -29 9 -3 5 -20 11 -38 14 -18 3 -53 11 -78 17 -25 6 -81 15 -125 20 -44 5 -93 12 -110 15 -16 3 -38 0 -47 -5z m37 -30 c3 -5 16 -11 28 -11 16 -1 14 -3 -8 -8 -28 -6 -30 -9 -27 -46 5 -51 7 -53 72 -58 44 -3 41 -4 -15 -3 l-70 1 -3 68 c-3 62 6 84 23 57z m915 -376 c36 -37 58 -63 48 -58 -18 10 -128 112 -128 120 0 14 22 -4 80 -62z m-31 -137 c83 -87 74 -89 -13 -5 -42 41 -76 78 -76 82 0 12 24 -9 89 -77z"/>
+      <path d="M2605 6411 c-6 -5 -30 -11 -55 -14 -67 -8 -112 -17 -137 -28 -13 -5 -33 -13 -45 -18 -111 -43 -280 -151 -353 -226 -37 -38 -115 -135 -115 -143 0 -5 -7 -15 -15 -22 -14 -12 -21 -22 -65 -110 -49 -98 -60 -123 -60 -140 0 -11 -4 -21 -9 -24 -5 -3 -12 -20 -15 -38 -4 -18 -12 -55 -18 -83 -15 -65 -15 -445 0 -510 6 -27 14 -65 18 -83 3 -18 10 -35 15 -38 5 -3 9 -13 9 -23 0 -16 28 -84 52 -126 7 -11 22 -41 35 -67 13 -25 31 -52 38 -58 8 -7 15 -18 15 -25 0 -14 197 -215 211 -215 5 0 32 -18 60 -39 29 -22 61 -43 73 -49 69 -31 124 -55 141 -62 55 -20 94 -30 118 -30 14 0 28 -4 31 -9 29 -47 484 -19 611 38 149 66 275 150 379 255 92 91 136 142 136 155 0 5 7 14 15 21 17 14 45 67 45 87 0 7 5 13 10 13 6 0 10 9 10 20 0 11 5 20 10 20 6 0 10 11 10 24 0 14 5 28 10 31 6 3 10 15 10 26 0 10 4 27 9 37 26 50 50 187 55 317 6 139 -15 368 -35 381 -5 3 -9 16 -9 30 0 13 -4 32 -9 42 -37 74 -51 106 -51 118 0 8 -4 14 -10 14 -5 0 -10 9 -10 19 0 11 -5 23 -10 26 -6 4 -34 41 -62 83 -112 166 -255 277 -468 364 -14 6 -33 14 -42 19 -10 5 -31 9 -47 9 -17 0 -32 4 -35 9 -14 22 -430 42 -451 22z m393 -36 c23 -4 45 -11 48 -16 3 -5 20 -9 39 -9 19 0 37 -4 40 -10 3 -5 15 -10 26 -10 10 0 19 -5 19 -11 0 -7 -7 -8 -17 -4 -10 3 -31 9 -48 12 -16 2 -41 9 -55 13 -14 5 -45 12 -70 15 -24 4 -48 9 -53 12 -15 9 -262 5 -331 -7 -48 -7 -72 -8 -80 0 -7 7 4 10 35 11 24 0 53 4 64 9 22 10 314 6 383 -5z m-691 -101 c-37 -19 -73 -33 -80 -30 -7 2 -4 5 6 5 9 1 17 6 17 11 0 6 9 10 20 10 11 0 20 3 20 8 0 10 40 29 65 31 11 0 -11 -15 -48 -35z m654 -4 c57 -12 113 -25 124 -30 126 -54 186 -90 151 -90 -9 0 -16 3 -16 8 0 8 -49 32 -67 32 -7 0 -13 5 -13 10 0 6 -10 10 -23 10 -13 0 -27 4 -32 8 -6 5 -37 14 -70 21 -33 7 -79 17 -102 22 -23 5 -102 10 -175 11 -92 1 -119 3 -88 8 90 14 208 10 311 -10z m379 -30 c0 -5 6 -10 13 -10 6 0 24 -10 38 -23 48 -40 102 -82 111 -85 4 -2 13 -13 20 -25 12 -24 2 -18 -47 26 -11 10 -49 39 -85 64 -83 59 -88 63 -67 63 9 0 17 -4 17 -10z m-415 -10 c3 -5 24 -10 45 -10 21 0 42 -4 45 -10 3 -5 15 -10 26 -10 10 0 27 -4 37 -9 9 -5 28 -13 42 -19 38 -15 124 -56 130 -62 3 -3 23 -18 45 -35 102 -75 265 -262 265 -305 0 -5 3 -10 8 -10 4 0 13 -15 20 -32 7 -18 18 -41 23 -50 5 -10 9 -27 9 -37 0 -11 4 -22 9 -25 12 -8 22 -64 28 -158 l4 -76 -118 0 c-65 -1 -245 -1 -401 -1 l-282 -1 2 -172 3 -173 225 3 c252 3 241 -1 238 82 l-3 55 -132 3 c-100 2 -134 6 -143 17 -20 24 -2 25 310 23 l295 -3 -2 -40 c-3 -64 -14 -125 -24 -131 -5 -3 -9 -14 -9 -25 0 -10 -4 -27 -9 -37 -5 -9 -24 -48 -42 -87 -19 -38 -37 -71 -41 -73 -5 -2 -8 -9 -8 -16 0 -7 -9 -21 -20 -31 -11 -10 -20 -23 -20 -29 0 -38 -216 -214 -325 -265 -27 -13 -58 -27 -67 -32 -10 -5 -27 -9 -37 -9 -11 0 -22 -4 -25 -9 -6 -9 -36 -15 -148 -31 -38 -5 -71 -11 -75 -13 -8 -4 -195 15 -276 29 -20 3 -40 10 -43 15 -3 5 -13 9 -23 9 -10 0 -53 18 -97 40 -200 103 -349 274 -435 498 -5 12 -13 32 -18 45 -43 103 -43 536 0 563 5 3 9 14 9 25 0 10 4 27 9 37 5 9 24 49 42 87 95 202 218 325 417 420 29 14 59 25 67 25 7 0 17 5 20 10 3 6 19 10 36 10 16 0 29 5 29 10 0 6 17 10 38 10 20 0 44 5 52 10 20 13 287 13 295 0z m-849 -111 c-31 -28 -67 -64 -81 -81 -14 -16 -25 -25 -25 -20 0 12 140 152 152 152 5 0 -15 -23 -46 -51z m1395 -146 c62 -65 151 -207 94 -149 -8 8 -15 17 -15 21 0 12 -58 90 -99 133 -23 23 -37 42 -33 42 4 0 28 -21 53 -47z m184 -47 c22 -21 55 -85 55 -104 0 -9 -14 7 -30 37 -16 29 -35 60 -41 67 -15 18 -2 18 16 0z m-10 -226 c10 -30 25 -70 34 -87 12 -26 13 -35 3 -45 -9 -9 -12 -5 -12 19 0 18 -4 35 -10 38 -5 3 -10 17 -10 31 0 13 -4 24 -10 24 -5 0 -10 11 -10 24 0 14 -4 28 -10 31 -5 3 -10 14 -10 23 0 27 16 1 35 -58z m162 -452 c-1 -51 -3 -12 -3 87 0 99 2 141 3 93 2 -48 2 -129 0 -180z m-388 98 c-2 -2 -116 -6 -253 -10 -137 -3 -251 -8 -254 -11 -3 -3 -5 -66 -5 -140 1 -76 -3 -135 -8 -135 -5 0 -9 66 -9 150 l0 150 267 0 c146 0 264 -2 262 -4z m-10 -92 c2 -2 -85 -4 -195 -4 -135 0 -194 3 -184 10 14 9 369 4 379 -6z m-114 -114 c-8 -13 -225 -13 -245 0 -10 7 28 10 118 10 86 0 131 -4 127 -10z"/>
+      <path d="M2635 6010 c-3 -5 -17 -10 -30 -10 -82 0 -277 -125 -351 -225 -34 -46 -82 -124 -90 -145 -3 -8 -10 -23 -15 -32 -5 -10 -9 -28 -9 -41 0 -13 -4 -27 -9 -32 -36 -38 -36 -340 0 -407 5 -10 9 -26 9 -36 0 -10 4 -22 8 -27 5 -6 15 -29 22 -52 7 -24 21 -50 32 -59 10 -10 18 -21 18 -25 0 -31 165 -199 196 -199 3 0 17 -9 32 -20 38 -28 130 -60 174 -60 20 0 40 -4 43 -10 3 -6 52 -10 110 -10 58 0 107 4 110 10 3 6 22 10 41 10 19 0 42 4 52 9 9 5 51 25 93 45 90 43 193 140 187 178 -5 38 -169 36 -223 -3 -35 -25 -89 -49 -110 -49 -13 0 -27 -4 -30 -10 -3 -5 -42 -10 -85 -10 -219 0 -398 109 -476 290 -6 14 -21 45 -33 68 -30 62 -29 63 162 62 95 0 178 -1 185 0 8 0 12 23 12 80 l0 80 -187 2 -188 3 -3 38 c-2 21 1 37 7 37 6 0 11 11 11 24 0 14 5 28 10 31 6 3 10 13 10 21 0 39 134 197 198 232 96 53 129 62 266 69 56 3 92 1 99 -6 6 -6 25 -11 43 -11 18 0 58 -13 89 -30 60 -31 75 -36 75 -21 0 11 -70 57 -96 64 -16 4 -16 5 4 6 13 0 33 -4 45 -10 32 -17 80 -59 68 -59 -18 0 -12 -18 22 -64 l32 -45 83 1 c85 1 107 12 84 41 -5 6 -12 24 -15 38 -8 31 -130 160 -172 181 -16 8 -39 19 -50 25 -11 6 -31 15 -45 21 -14 5 -38 15 -53 21 -15 6 -43 11 -62 11 -19 0 -37 5 -40 10 -4 6 -58 10 -130 10 -72 0 -126 -4 -130 -10z m225 -26 c-58 -7 -210 -8 -210 -1 0 4 53 6 118 6 64 -1 106 -3 92 -5z m116 -25 c3 -5 16 -9 30 -9 13 0 24 -4 24 -10 0 -5 9 -10 20 -10 11 0 20 -4 20 -10 0 -15 -4 -14 -97 26 -17 8 -43 14 -57 14 -14 0 -26 3 -26 8 0 10 79 2 86 -9z m-456 -33 c0 -2 -24 -16 -52 -31 -29 -15 -60 -33 -69 -41 -8 -8 -19 -14 -24 -14 -14 0 37 40 72 57 18 8 33 19 33 24 0 5 9 9 20 9 11 0 20 -2 20 -4z m600 -26 c0 -5 6 -10 13 -10 18 -1 143 -128 133 -137 -4 -4 -12 1 -18 11 -18 33 -88 96 -128 117 -45 24 -49 29 -20 29 11 0 20 -4 20 -10z m-285 -20 c41 -6 32 -7 -55 -8 -66 0 -96 3 -80 8 32 10 72 10 135 0z m-205 -561 c0 -17 -4 -28 -10 -24 -5 3 -10 15 -10 26 0 11 -3 18 -7 16 -5 -3 -78 -1 -163 3 l-155 7 173 1 172 2 0 -31z m155 -548 c88 -5 101 -7 65 -12 -65 -9 -159 -2 -205 16 l-40 16 35 -7 c19 -3 85 -9 145 -13z m-285 -46 c34 -17 105 -42 140 -48 16 -3 10 -5 -17 -6 -23 0 -45 4 -48 9 -3 6 -17 10 -31 10 -13 0 -24 5 -24 10 0 6 -8 10 -17 10 -20 1 -64 30 -44 30 6 0 25 -7 41 -15z m360 -67 c0 -4 -40 -8 -90 -8 -49 0 -90 4 -90 9 0 5 41 9 90 8 50 0 90 -4 90 -9z"/>
+      <path d="M4725 5580 l-560 -5 -7 -160 c-6 -154 -14 -223 -38 -330 -6 -27 -13 -62 -17 -78 -3 -15 -9 -30 -14 -33 -5 -3 -9 -18 -9 -34 0 -16 -4 -32 -10 -35 -5 -3 -10 -17 -10 -30 0 -13 -4 -27 -10 -30 -5 -3 -10 -17 -10 -30 0 -13 -4 -27 -10 -30 -5 -3 -10 -15 -10 -26 0 -10 -4 -19 -10 -19 -5 0 -10 -11 -10 -25 0 -14 -4 -25 -10 -25 -5 0 -10 -7 -10 -16 0 -9 -8 -28 -18 -42 -11 -15 -25 -42 -33 -59 -8 -18 -17 -33 -21 -33 -5 0 -8 -6 -8 -12 -1 -53 -356 -427 -406 -428 -6 0 -19 -9 -29 -20 -10 -11 -22 -20 -27 -20 -12 0 -38 -26 -38 -38 0 -6 -9 -27 -20 -49 -35 -70 -60 -127 -60 -138 0 -7 -22 -56 -50 -110 -27 -54 -50 -104 -50 -112 0 -7 -4 -13 -10 -13 -5 0 -10 -9 -10 -20 0 -11 -9 -35 -20 -55 -11 -20 -20 -42 -20 -50 0 -9 -4 -23 -9 -33 -17 -34 -30 -67 -36 -97 -3 -16 -10 -50 -16 -75 -45 -198 -50 -256 -55 -626 l-5 -341 32 -7 c146 -29 153 -18 146 229 -8 248 12 617 34 640 5 5 9 18 9 29 0 21 17 80 31 108 5 10 9 29 9 42 0 14 5 28 10 31 6 3 10 15 10 26 0 10 4 27 9 37 5 9 13 28 19 42 18 45 103 233 123 273 6 10 24 46 41 80 29 56 128 167 149 167 15 0 121 90 164 139 17 19 53 59 80 90 107 118 202 264 248 381 5 14 13 33 18 42 5 10 9 25 9 33 0 8 5 15 10 15 6 0 10 9 10 19 0 11 5 23 10 26 6 3 10 17 10 30 0 13 5 27 10 30 6 3 10 19 10 35 0 16 5 32 10 35 6 3 10 19 10 35 0 16 5 32 10 35 6 3 10 23 10 44 0 20 4 41 9 47 9 9 15 48 27 174 3 30 9 64 14 75 5 11 11 40 12 65 l3 45 478 3 477 2 0 90 c0 49 -3 90 -7 92 -5 2 -260 1 -568 -2z m-415 -37 c-68 -3 -107 -8 -112 -16 -5 -8 -8 -7 -8 6 0 15 11 17 113 15 l112 -2 -105 -3z"/>
+    </g>
+    <!-- нить накала -->
+    <g id="eg-filament">
+      <path d="M2360 3877 c0 -73 8 -83 88 -105 23 -7 59 -17 80 -23 71 -20 523 -2 538 22 3 5 15 9 28 9 36 0 46 19 46 93 l0 69 -42 -5 c-24 -3 -74 -12 -113 -19 -87 -16 -379 -15 -455 2 -30 6 -81 14 -112 17 l-58 5 0 -65z m488 -104 c-32 -2 -86 -2 -120 0 -35 2 -9 3 57 3 66 0 94 -1 63 -3z"/>
+      <path d="M2688 3516 c-33 -28 -38 -91 -12 -131 26 -39 114 -37 143 4 68 95 -44 203 -131 127z"/>
+      <path d="M2669 3158 c-6 -26 -5 -827 2 -845 12 -31 133 -33 149 -2 6 10 10 188 10 433 l0 416 -80 0 c-44 0 -80 -1 -81 -2z"/>
+    </g>
+    <!-- цоколь -->
+    <g id="eg-base">
+      <path d="M2014 1690 c-206 -12 -279 -84 -181 -177 71 -67 143 -73 952 -68 742 3 838 10 910 58 113 76 73 177 -69 177 -30 0 -58 5 -61 10 -7 12 -1350 11 -1551 0z m1195 -24 c-9 -10 -350 -15 -424 -7 -64 6 -29 8 174 10 140 0 252 -1 250 -3z m-221 -193 c-43 -2 -113 -2 -155 0 -43 1 -8 3 77 3 85 0 120 -2 78 -3z"/>
+      <path d="M2012 1164 c-95 -42 -45 -164 79 -192 49 -12 145 -16 569 -26 185 -5 779 13 805 24 11 4 40 14 64 21 120 36 141 122 44 176 -35 20 -1516 16 -1561 -3z"/>
+      <path d="M2290 786 c0 -68 102 -152 229 -189 72 -22 452 -10 467 14 3 5 13 9 23 9 10 0 30 9 44 20 14 11 35 20 47 20 27 0 120 92 120 120 0 20 -3 20 -465 20 -397 0 -465 -2 -465 -14z m693 -23 c-56 -2 -151 -2 -210 0 -59 1 -13 3 102 3 116 0 164 -2 108 -3z"/>
+    </g>
+  </g>
+      </svg>
+    </div>
+  </div>
+
+  <button type="button" class="pl__enter" disabled>нажми</button>
+  <p class="pl__sr" role="status">Загрузка сайта</p>
+  <span class="pl__wave"></span>
+</div>
+<noscript><style>#preloader{display:none !important}</style></noscript>
+
 <header class="nav" id="nav">
-  <a href="#top" class="nav__brand">Эдуард Грамм</a>
+  <a href="#top" class="nav__brand" translate="no">Эдуард Грамм</a>
   <button class="nav__toggle" id="navToggle" aria-label="Меню" aria-expanded="false" aria-controls="navMenu">
     <span></span>
   </button>
@@ -742,7 +1145,7 @@ a,button,.btn{ touch-action:manipulation; }
 
     <div class="contact__btns" data-reveal>
       <a class="btn" href="https://t.me/ElGrammino" target="_blank" rel="noopener">написать в телеграм</a>
-      <a class="btn" href="https://max.ru/u/f9LHodD0cOIS-M3oo-QU2NM4VEI-LdABy_c8qnJuOqHQGXpA3Pcg3II67-o" target="_blank" rel="noopener">написать в MAX</a>
+      <a class="btn" href="https://max.ru/u/f9LHodD0cOIS-M3oo-QU2NM4VEI-LdABy_c8qnJuOqHQGXpA3Pcg3II67-o" target="_blank" rel="noopener">написать в <span translate="no">MAX</span></a>
       <a class="btn" href="tel:+79185418004">позвонить</a>
     </div>
 
@@ -752,12 +1155,261 @@ a,button,.btn{ touch-action:manipulation; }
     </div>
 
     <footer class="contact__foot">
-      <span>Эдуард Грамм — иллюзионист</span>
+      <span><span translate="no">Эдуард Грамм</span> — иллюзионист</span>
       <span>+7 918 541-80-04</span>
     </footer>
   </section>
 
 </div>
+
+
+<script>
+/* Аварийный выход №2, полностью независимый от основного скрипта:
+   если тот упал с ошибкой на любом браузере — прелоадер всё равно
+   снимется и человек увидит сайт. Чёрного экрана быть не может. */
+setTimeout(function () {
+  var p = document.getElementById('preloader');
+  if (!p) return;
+  p.parentNode.removeChild(p);
+  document.documentElement.classList.remove('pl-lock');
+  var t = document.getElementById('top'), n = document.getElementById('nav');
+  if (t) t.inert = false;
+  if (n) n.inert = false;
+  document.dispatchEvent(new CustomEvent('preloader:done'));
+}, 12000);
+</script>
+<script>
+(function () {
+  "use strict";
+
+  /* ============================================================
+     ПРЕЛОАДЕР · логика
+     Прогресс честный: считаем реально загруженные ресурсы, а не
+     таймер. Ждём ВЕСЬ сайт (все картинки всех секций, включая
+     ленивые, оба шрифта, GSAP и 3D-колоду) — к моменту показа всё
+     уже в памяти, поэтому первый экран можно анимировать богато,
+     без рывков на подгрузке. Промо-mp4 не ждём: они не подключены
+     к странице (в секциях постеры + VK-плеер по клику).
+     ============================================================ */
+
+  /* Вариант перехода: 'A' — волна света (по умолчанию),
+     'B' — лампа гаснет, темнота рассеивается.
+     Переключается здесь или атрибутом data-transition на #preloader. */
+  var TRANSITION       = 'A';
+  var HARD_TIMEOUT     = 8000;   /* аварийный выход: показываем сайт при любом раскладе */
+  var IDLE_BEFORE_AUTO = 3500;   /* не нажали — уходим сами */
+
+  var pl = document.getElementById('preloader');
+  if (!pl) return;
+
+  var root   = document.documentElement;
+  var btn    = pl.querySelector('.pl__enter');
+  var rings  = pl.querySelectorAll('.pl__ring');
+  var mqr    = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var reduce = mqr.matches;
+
+  var content = document.getElementById('top');
+  var header  = document.getElementById('nav');
+
+  root.classList.add('pl-lock');
+  if (content) content.inert = true;
+  if (header)  header.inert  = true;
+
+  /* ---------- буферы прогресса ---------- */
+  var W  = { img: 0.60, font: 0.18, gsap: 0.10, deck: 0.12 };
+  var st = { img: 0,    font: 0,    gsap: 0,    deck: 0 };
+  function targetP () {
+    return st.img * W.img + st.font * W.font + st.gsap * W.gsap + st.deck * W.deck;
+  }
+
+  /* ---------- 1. картинки: все, что есть на странице, + текстуры колоды ----------
+     Ленивые img loading="lazy" сами по себе ждали бы скролла — тянем их
+     параллельными new Image() на тот же src: браузер кладёт файл в кэш,
+     и ниже по странице картинка появляется уже мгновенно. */
+  (function () {
+    var seen = {}, list = [];
+    function push (s) { if (s && !seen[s]) { seen[s] = 1; list.push(s); } }
+
+    Array.prototype.forEach.call(document.querySelectorAll('img'), function (im) {
+      push(im.currentSrc || im.getAttribute('src'));
+    });
+    push('assets/deck/back.jpg');
+    push('assets/deck/face1.jpg');
+    push('assets/deck/face2.jpg');
+
+    var total = list.length, done = 0;
+    if (!total) { st.img = 1; return; }
+
+    list.forEach(function (src) {
+      var im = new Image(), fired = false;
+      var fin = function () {
+        if (fired) return;
+        fired = true;
+        done++;
+        st.img = done / total;
+      };
+      im.onload = fin;
+      im.onerror = fin;                 /* битый файл не должен вешать прелоадер */
+      im.src = src;
+      if (im.complete) fin();
+    });
+  })();
+
+  /* ---------- 2. шрифты (Bounded + Druk Text Cyr) ---------- */
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(function () { st.font = 1; });
+  } else {
+    st.font = 1;
+  }
+
+  /* ---------- 3. GSAP + ScrollTrigger + SplitText ---------- */
+  var gsapPoll = setInterval(function () {
+    var n = (window.gsap ? 1 : 0) + (window.ScrollTrigger ? 1 : 0) + (window.SplitText ? 1 : 0);
+    st.gsap = n / 3;
+    if (n === 3) clearInterval(gsapPoll);
+  }, 80);
+
+  /* ---------- 4. 3D-колода: deck.js вешает .deck-on, когда сцена поднялась.
+     Нет WebGL / упал модуль — добираем по window.load, прелоадер не виснет. */
+  (function () {
+    var deckDone = false;
+    function mark () { if (!deckDone) { deckDone = true; st.deck = 1; } }
+    if (content) {
+      if (content.classList.contains('deck-on')) mark();
+      else {
+        var mo = new MutationObserver(function () {
+          if (content.classList.contains('deck-on')) { mark(); mo.disconnect(); }
+        });
+        mo.observe(content, { attributes: true, attributeFilter: ['class'] });
+      }
+    }
+    window.addEventListener('load', function () {
+      if (st.deck < 0.65) st.deck = 0.65;
+      setTimeout(mark, 900);
+    });
+  })();
+
+  /* ---------- состояние отрисовки ---------- */
+  var shown = 0, raf = 0, ready = false, revealed = false;
+  var TH = [0.18, 0.36, 0.54, 0.72, 0.9];   /* пороги колец: от центра к краям */
+
+  /* ---------- «плохой контакт»: неровные вспышки, реже к 100% ---------- */
+  var flick = 1, flickT = 0;
+  function scheduleFlicker () {
+    if (reduce) return;
+    var p = shown;
+    if (p >= 0.995) { flick = 1; return; }
+    /* чем ближе к 100%, тем длиннее паузы между сбоями */
+    var gap = 70 + Math.random() * 380 + p * 1100;
+    flickT = setTimeout(function () {
+      flick = 1 - (0.12 + 0.72 * (1 - p)) * (0.45 + Math.random() * 0.55);
+      flickT = setTimeout(function () {
+        flick = 1;
+        scheduleFlicker();
+      }, 28 + Math.random() * 95);
+    }, gap);
+  }
+
+  function paint () {
+    var pf = Math.min(1, shown * 1.55);      /* нить накала — с опережением */
+    pl.style.setProperty('--p',     shown.toFixed(3));
+    pl.style.setProperty('--pf',    pf.toFixed(3));
+    pl.style.setProperty('--flick', flick.toFixed(3));
+    for (var i = 0; i < rings.length; i++) {
+      if (shown >= TH[i]) rings[i].classList.add('is-lit');
+    }
+  }
+
+  function tick () {
+    var t = Math.min(1, targetP());
+    shown += (t - shown) * 0.06;             /* сглаживаем показ, вперёд цели не убегаем */
+    if (t - shown < 0.003) shown = t;
+    paint();
+    if (shown >= 1) { onReady(); return; }
+    raf = requestAnimationFrame(tick);
+  }
+
+  /* ---------- всё загрузилось (или сработал аварийный таймаут) ---------- */
+  var hardT = setTimeout(function () { onReady(); }, HARD_TIMEOUT);
+  var autoT = 0;
+
+  function onReady () {
+    if (ready) return;
+    ready = true;
+    if (raf) cancelAnimationFrame(raf);
+    clearTimeout(hardT);
+    clearTimeout(flickT);
+    clearInterval(gsapPoll);
+
+    shown = 1; flick = 1; paint();
+    pl.classList.add('is-ready');            /* кольца уходят, появляется «нажми» */
+    /* Фокус на кнопку НЕ ставим: программный фокус рисует вокруг пилюли
+       вторую обводку и ломает её сходство с «ИЛЛЮЗИОНИСТ». Enter и Space
+       ловим глобально ниже — клавиатура работает сразу, без Tab, а кто
+       дошёл до кнопки табом, тот кольцо фокуса увидит честно. */
+    if (btn) btn.disabled = false;
+
+    /* reduced-motion: никакого ожидания клика — короткий fade и сайт */
+    if (reduce) { reveal(); return; }
+    autoT = setTimeout(reveal, IDLE_BEFORE_AUTO);
+  }
+
+  /* ---------- переход ---------- */
+  function reveal () {
+    if (revealed) return;
+    revealed = true;
+    /* Снимаем pl-lock сразу: под ещё непрозрачным фоном оверлея оживают
+       лучи и колода. Если тянуть до конца перехода, они бы всплыли уже
+       поверх открывшегося сайта — заметный «щелчок» на последних кадрах. */
+    root.classList.remove('pl-lock');
+    clearTimeout(autoT);
+    clearTimeout(flickT);
+    clearTimeout(hardT);
+    if (raf) cancelAnimationFrame(raf);
+
+    var mode = reduce
+      ? 'r'
+      : String(pl.getAttribute('data-transition') || TRANSITION).trim().toLowerCase();
+    if (mode !== 'a' && mode !== 'b') mode = 'a';
+
+    if (mode === 'a') {
+      /* волна = последнее, самое большое кольцо: диаметр до дальнего угла */
+      var d = Math.sqrt(window.innerWidth * window.innerWidth +
+                        window.innerHeight * window.innerHeight);
+      pl.style.setProperty('--wave-scale', (d * 1.18 / 10).toFixed(1));
+    }
+
+    pl.classList.add('is-out', 'is-out-' + mode);
+    setTimeout(finish, reduce ? 320 : (mode === 'a' ? 1050 : 1000));
+  }
+
+  function finish () {
+    root.classList.remove('pl-lock');
+    if (content) content.inert = false;
+    if (header)  header.inert  = false;
+    if (pl.parentNode) pl.parentNode.removeChild(pl);
+    document.dispatchEvent(new CustomEvent('preloader:done'));
+  }
+
+  /* ---------- управление ---------- */
+  if (btn) btn.addEventListener('click', function (e) { e.stopPropagation(); reveal(); });
+  pl.addEventListener('click', function () { if (ready) reveal(); });
+  document.addEventListener('keydown', function (e) {
+    if (revealed) return;
+    if (e.key === 'Escape') { onReady(); reveal(); return; }  /* пропустить прелоадер */
+    if (!ready) return;
+    if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+      e.preventDefault();                                      /* Space иначе скроллит */
+      reveal();
+    }
+  });
+
+  /* ---------- старт ---------- */
+  paint();
+  scheduleFlicker();
+  raf = requestAnimationFrame(tick);
+})();
+</script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
@@ -775,14 +1427,17 @@ a,button,.btn{ touch-action:manipulation; }
   onNavScroll();
   window.addEventListener('scroll', onNavScroll, { passive: true });
 
+  navMenu.inert = true;
   navToggle.addEventListener('click', function () {
     var open = nav.classList.toggle('is-open');
     navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    navMenu.inert = !open;
   });
   navMenu.addEventListener('click', function (e) {
     if (e.target.closest('a')) {
       nav.classList.remove('is-open');
       navToggle.setAttribute('aria-expanded', 'false');
+      navMenu.inert = true;
     }
   });
 
@@ -1049,6 +1704,13 @@ a,button,.btn{ touch-action:manipulation; }
       gsap.set('[data-photo]', { clearProps: 'transform,filter,willChange', scale: 1, opacity: 1 });
     });
   }
+  /* ВАЖНО для бесшовного стыка: GSAP поднимаем как обычно, ПОКА оверлей
+     ещё закрывает страницу. Первый экран за это время успевает отыграть
+     свои появления вхолостую и к моменту ухода света стоит в финальном
+     виде — свет уходит, под ним готовая картинка. Если ждать снятия
+     прелоадера, фото сначала показывалось, потом гасло в 0 и проявлялось
+     заново, а имя пересобиралось по буквам — это и был глич на стыке.
+     Всё, что ниже первого экрана, по-прежнему появляется по скроллу. */
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(initGsap);
     setTimeout(initGsap, 2500); /* страховка, если fonts.ready подвиснет */
