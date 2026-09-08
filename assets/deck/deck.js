@@ -42,7 +42,7 @@ function boot(){
   const STATIC  = REDUCED || /[?&]static\b/.test(location.search);
 
   /* ---- настройки эффекта (крутить здесь) ---- */
-  const CARDS      = 15;      // всего карт в поле
+  const CARDS      = 10;      // всего карт в поле
   const SPAN       = 3.30;    // путь карты по вертикали до возврата наверх
                               //   (больше — карты реже, дальше друг от друга)
   const SPREAD     = 0.94;    // где сидят крайние карты, в долях полуширины кадра
@@ -64,14 +64,30 @@ function boot(){
      отпускает карты: верхняя пачка выстреливает СТРОГО ВНИЗ плотной
      колонной и только потом расходится вширь в обычное падение, а в конце
      пути карты сводятся обратно в колонну и падают в нижнюю пачку. */
-  const STACK_EDGE     = 0.10;   // доля прокрутки страницы на «взрыв»/«стяжку» у края
+  const STACK_EDGE     = 0.08;   // доля прокрутки страницы на «взрыв»/«стяжку» у края
   const STACK_FAN      = 0.05;   // веерный разброс карт внутри стопки, доля полуширины кадра
-  const STACK_TOP_DROP = 0.10;   // насколько верхняя стопка опущена от ВЕРХА фото hero,
-                                 //   в долях высоты самого фото. Пачка должна лежать
-                                 //   выше зоны полёта — иначе карты вылетают вверх
-  const STACK_LAG      = 0.55;   // насколько горизонталь отстаёт от вертикали при
+  /* ---- ГДЕ ЛЕЖАТ ПАЧКИ КАРТ (крутить здесь) ----
+     Обе цифры — доля высоты соответствующего фото.
+     МЕНЬШЕ число → пачка уезжает ВВЕРХ.  БОЛЬШЕ число → пачка уезжает ВНИЗ. */
+
+  const STACK_TOP_DROP = 0.40;   // ВЕРХНЯЯ пачка, прячется за фото hero.
+                                 //   Отсчёт от ВЕРХНЕГО края фото вниз:
+                                 //     0     — вплотную к верхнему краю фото (выше некуда)
+                                 //     0.10  — на 10% высоты фото ниже верхнего края  ← сейчас
+                                 //     0.50  — ровно посередине фото
+                                 //     1.00  — у нижнего края фото
+                                 //   Пачка обязана лежать ВЫШЕ зоны полёта, иначе карты
+                                 //   полетят из неё вверх, а не вниз. Практический потолок ~0.4.
+
+  const STACK_BOT_AT   = 0.50;   // НИЖНЯЯ пачка, прячется за фото контактов.
+                                 //   Отсчёт по ВИДИМОЙ части фото (то, что реально в кадре,
+                                 //   когда страница доскроллена донизу), сверху вниз:
+                                 //     0     — у верхнего края видимой части
+                                 //     0.50  — ровно посередине видимой части        ← сейчас
+                                 //     1.00  — у нижнего края видимой части
+  const STACK_LAG      = 0.45;   // насколько горизонталь отстаёт от вертикали при
                                  //   вылете из пачки (и опережает её при влёте)
-  const STACK_BURST    = 0.25;   // доп. толчок вниз в момент вылета/влёта,
+  const STACK_BURST    = 0.35;   // доп. толчок вниз в момент вылета/влёта,
                                  //   в долях полувысоты кадра
   const STACK_TOP_Y    = 0.30;   // запасная доля полувысоты кадра, если фото hero не найдено
   const STACK_BOT_Y    = 0.30;   // запасная доля полувысоты кадра, если фото контактов нет
@@ -186,46 +202,38 @@ function boot(){
 
   const smoothstep = (a, b, x) => { const k = clamp((x - a) / (b - a), 0, 1); return k * k * (3 - 2 * k); };
 
-  /* ---- где именно прячутся стопки ----
-     Не «примерно у края кадра», а по реальным фото: меряем низ .hero__photo
-     и фото контактов через getBoundingClientRect и переводим экранную Y в
-     мировую координату той же плоскости, где летают карты.
-       верхняя стопка — на STACK_TOP_DROP высоты фото ниже ВЕРХНЕГО края фото,
-       то есть над зоной полёта: карты выстреливают из неё вниз;
-       нижняя стопка  — в середине той части фото контактов, которая реально
-                        видна на экране, когда страница доскроллена донизу.
-     Если разметка изменится и фото не найдётся — откат на старые доли кадра. */
-  let topStackWorldY = 0, botStackWorldY = 0;
-  let haveTopAnchor = false, haveBotAnchor = false;
+  /* ---- где именно прячутся пачки ----
+     Позиция пачки СЛЕДИТ ЗА ФОТО покадрово, а не считается один раз.
+     Это принципиально: полотно карт — position:fixed, оно не двигается со
+     страницей, а фото уходит вверх при прокрутке. Если запомнить позицию
+     один раз, фото уедет, а пачка останется висеть на экране — и вылезет
+     из-за фото на видное место. getBoundingClientRect() возвращает координаты
+     относительно окна, то есть уже с учётом текущей прокрутки: меряем прямо
+     в кадре — и пачка остаётся приклеенной к фото, сколько ни скролль.
+     Считаем только когда пачка реально собрана (у самых краёв страницы),
+     в середине пути этих замеров нет вообще.
+     Если разметка изменится и фото не найдётся — откат на доли кадра. */
+  const heroImg    = document.querySelector('.hero__photo');
+  const contactImg = document.querySelector('.contact__photo');
 
   function screenYToWorld(y){
     const ndc = 1 - 2 * (y / window.innerHeight);   // 1 — верх экрана, -1 — низ
     return ndc * halfViewH;
   }
-  function measureAnchors(){
-    const scrollY = window.scrollY || window.pageYOffset || 0;
-    const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
 
-    const heroImg = document.querySelector('.hero__photo');
-    if (heroImg){
-      const r = heroImg.getBoundingClientRect();
-      const topAbs = r.top + scrollY;                // страничная Y верха фото
-      // при scrollY=0 экранная Y совпадает с абсолютной; пачка сидит в верхней
-      // части фото и спрятана за ним по z-index — карты сыплются из неё вниз
-      topStackWorldY = screenYToWorld(topAbs + r.height * STACK_TOP_DROP);
-      haveTopAnchor = true;
-    }
-    const contactImg = document.querySelector('.contact__photo');
-    if (contactImg){
-      const r = contactImg.getBoundingClientRect();
-      const topAbs = r.top + scrollY, botAbs = r.bottom + scrollY;
-      // экранные координаты фото в момент, когда страница доскроллена до конца
-      const topV = topAbs - maxScroll, botV = botAbs - maxScroll;
-      // середина именно ВИДИМОЙ части фото — туда и убирается пачка
-      const midV = (Math.max(0, topV) + Math.min(window.innerHeight, botV)) / 2;
-      botStackWorldY = screenYToWorld(midV);
-      haveBotAnchor = true;
-    }
+  function topStackY(){
+    if (!heroImg) return halfViewH * STACK_TOP_Y;
+    const r = heroImg.getBoundingClientRect();
+    return screenYToWorld(r.top + r.height * STACK_TOP_DROP);
+  }
+  function botStackY(){
+    if (!contactImg) return -halfViewH * STACK_BOT_Y;
+    const r = contactImg.getBoundingClientRect();
+    const vh = window.innerHeight;
+    // видимая часть фото в кадре; если фото вне экрана — берём его целиком
+    let top = Math.max(0, r.top), bot = Math.min(vh, r.bottom);
+    if (bot <= top){ top = r.top; bot = r.bottom; }
+    return screenYToWorld(top + (bot - top) * STACK_BOT_AT);
   }
 
   /* progress — сглаженная фаза прокрутки; gust — отголосок рывка скролла */
@@ -239,9 +247,8 @@ function boot(){
     const toTop   = 1 - smoothstep(0, STACK_EDGE, pageP);          // стяжка к стопке за hero
     const toBot   = smoothstep(1 - STACK_EDGE, 1, pageP);          // стяжка к стопке за контактами
     const stackPull = Math.max(toTop, toBot);   // 0 — обычный разлёт, 1 — собраны в пачку
-    const stackY = (toTop >= toBot
-      ? (haveTopAnchor ? topStackWorldY :  halfViewH * STACK_TOP_Y)
-      : (haveBotAnchor ? botStackWorldY : -halfViewH * STACK_BOT_Y));
+    // позицию пачки меряем прямо сейчас, по текущему положению фото на экране
+    const stackY = stackPull > 0.001 ? (toTop >= toBot ? topStackY() : botStackY()) : 0;
 
     /* Вертикаль и горизонталь отпускаем НЕ одновременно — иначе карты
        расходятся из точки во все стороны сразу, как салют.
@@ -311,13 +318,9 @@ function boot(){
     const halfH = Math.tan((camera.fov * Math.PI / 180) / 2) * camera.position.z;
     halfViewW = halfH * camera.aspect;
     halfViewH = halfH;
-    measureAnchors();   // зависит от halfViewH выше — считаем после неё
   }
   addEventListener('resize', resize, { passive:true });
   resize();
-  // фото к этому моменту уже загружены (их ждал прелоадер) — меряем по факту
-  addEventListener('load', measureAnchors, { passive:true });
-  document.addEventListener('preloader:done', measureAnchors);
 
   function render(now){
     layout(current, gust);
