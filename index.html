@@ -5,7 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Эдуард Грамм · иллюзионист</title>
 <meta name="description" content="Эдуард Грамм, иллюзионист. Современное иллюзионное шоу для частных мероприятий: микромагия, шоу, левитация.">
-<meta name="theme-color" content="#0a0908">
+<!-- Safari тонирует этим свою панель с адресом. Ставим цвет подложки
+     нижнего навбара, чтобы панель браузера и бар читались как одно целое
+     и полоса между ними исчезла. -->
+<meta name="theme-color" content="#1b1714">
 <meta property="og:title" content="Эдуард Грамм · иллюзионист">
 <meta property="og:description" content="Современное иллюзионное шоу для частных мероприятий.">
 <meta property="og:type" content="website">
@@ -129,6 +132,9 @@ a,button,.btn{ touch-action:manipulation; -webkit-tap-highlight-color:transparen
   background:
     linear-gradient(180deg, #0a0908 0%, #0f0c0b 30%, #120e0d 52%, #0f0c0b 74%, #0a0908 100%);
   box-shadow:0 0 0 1px #17120f, 0 30px 120px -30px rgba(0,0,0,.7);
+  /* воздух под нижний навбар, чтобы телефон и подпись в контактах
+     не уезжали под него */
+  padding-bottom:calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px));
 }
 
 .wrap{ position:relative; z-index:3; padding-inline:var(--pad-x); }
@@ -185,28 +191,48 @@ a,button,.btn{ touch-action:manipulation; -webkit-tap-highlight-color:transparen
 /* ============================================================
    Навигация
    ============================================================ */
-/* Перенесено из прототипа tabbar-variants.html. Логика оригинального
+/* ============================================================
+   НИЖНИЙ НАВБАР
+   Перенесено из прототипа tabbar-variants.html. Логика оригинального
    animated-tab-bar (маркер едет к активному пункту через translate3d,
    позиция из getBoundingClientRect) — своя, на ванильном CSS и JS.
    Разноцветные вкладки и смена фона страницы из оригинала выброшены:
-   в баре ровно два цвета — приглушённый --ink и активный --accent. */
+   в баре ровно два цвета — приглушённый --ink и активный --accent.
+
+   Бар стоит внизу, и кривая горба вернулась в РОДНОЕ положение: она
+   рисовалась именно для нижнего бара, в прототипе её переворачивали
+   через scale(1,-1) ради верхнего. Здесь переворота нет — горб
+   выгибается вверх, активная иконка поднимается в него.
+
+   Подложка — liquid glass тем же приёмом, что у .btn: полупрозрачный
+   --surface плюс backdrop-filter. Фильтр висит на двух отдельных слоях
+   (прямоугольник бара и горб), а не на общем родителе: вложенные
+   backdrop-filter друг друга съедают.
+   ============================================================ */
 .tabbar{
-  position:fixed; inset:0 0 auto 0; z-index:100;
+  position:fixed; inset:auto 0 0 0; z-index:100;
   max-width:var(--maxw); margin-inline:auto;
-  background:var(--surface);
+  --tabbar-h:64px;
+  /* фон уходит вниз под плавающую панель Safari — стыка не видно */
+  padding-bottom:env(safe-area-inset-bottom, 0px);
   /* Цвет активного пункта — тот же, которым набраны суммы в прайсе
      (.price__sum). Отдельный токен не заводим. */
   --tab-active:var(--accent);
   --tab-idle:color-mix(in srgb, var(--ink) 42%, transparent);
   /* тонкая светлая граница между баром и страницей */
   --tab-edge:color-mix(in srgb, var(--ink) 30%, transparent);
+  /* стекло: та же логика, что у .btn — полупрозрачная подложка + блюр */
+  --tab-glass:color-mix(in srgb, var(--surface) 62%, transparent);
   /* кривая из прототипа — мягче проектной --ease, горб на ней не «щёлкает» */
   --tab-ease:cubic-bezier(.22,.8,.3,1);
-  /* выезд сверху после прелоадера */
-  transform:translateY(-100%); opacity:0;
+  /* выезд снизу после прелоадера */
+  transform:translateY(100%); opacity:0;
   transition:transform .8s var(--tab-ease) .75s, opacity .6s linear .75s;
 }
 body.is-revealed .tabbar{ transform:none; opacity:1; }
+
+/* --tabbar-h нужна .phone для нижнего отступа, а она выше по дереву */
+:root{ --tabbar-h:64px; }
 
 /* Колонка контента расширяется по брейкпоинтам через --maxw на .phone, но
    бар лежит вне неё (position:fixed) и своего container query не видит —
@@ -214,22 +240,32 @@ body.is-revealed .tabbar{ transform:none; opacity:1; }
 @media (min-width: 768px){  .tabbar{ max-width:720px; } }
 @media (min-width: 1200px){ .tabbar{ max-width:1080px; } }
 
-.tabbar__row{
-  position:relative;
-  display:grid; grid-template-columns:repeat(4,1fr);
-  height:64px; align-items:center;
-  /* Горб шире ячейки и на крайних пунктах уходит за край. overflow:hidden
-     обрезал бы и провисание вниз — режем только по бокам, вниз пропускаем. */
-  clip-path:inset(0 0 -80px 0);
+/* стекло прямоугольной части бара, включая зону под панелью Safari */
+.tabbar__glass{
+  position:absolute; inset:0; z-index:0;
+  background:var(--tab-glass);
+  -webkit-backdrop-filter:blur(22px) saturate(150%);
+  backdrop-filter:blur(22px) saturate(150%);
 }
-/* Прямые участки нижней линии слева и справа от горба.
-   bottom:-.5px, а не -1px: обводка кривой — это stroke шириной 1px,
-   центрированный ровно по нижней границе бара (63.5..64.5), а полоса
-   с bottom:-1px легла бы на 64..65. Полпикселя расхождения на реальном
-   экране видно как ступеньку на стыке — проверено скриншотом с 8×. */
-.tabbar__row::after{
-  content:""; position:absolute; left:0; right:0; bottom:-.5px; height:1px;
-  background:var(--tab-edge);
+/* Блюр дорог на слабых телефонах; там, где браузер о нём не знает,
+   подложка обязана стать плотной, иначе бар «поплывёт» по контенту. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))){
+  .tabbar__glass{ background:color-mix(in srgb, var(--surface) 96%, transparent); }
+}
+@media (prefers-reduced-transparency: reduce){
+  .tabbar__glass{
+    background:color-mix(in srgb, var(--surface) 97%, transparent);
+    -webkit-backdrop-filter:none; backdrop-filter:none;
+  }
+}
+
+.tabbar__row{
+  position:relative; z-index:1;
+  display:grid; grid-template-columns:repeat(4,1fr);
+  height:var(--tabbar-h); align-items:center;
+  /* Горб шире ячейки и на крайних пунктах уходит за край. overflow:hidden
+     обрезал бы и выпуклость вверх — режем только по бокам, вверх пропускаем. */
+  clip-path:inset(-80px 0 0 0);
 }
 
 .tabbar__tab{
@@ -253,12 +289,12 @@ body.is-revealed .tabbar{ transform:none; opacity:1; }
 .tabbar__lbl{
   font-family:var(--font); font-weight:500;
   font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; white-space:nowrap;
-  opacity:0; transform:translateY(-3px);
+  opacity:0; transform:translateY(3px);
   transition:opacity .3s var(--tab-ease), transform .35s var(--tab-ease);
 }
-/* активный пункт опускается в горб и подсвечивается — той же логикой,
+/* активный пункт поднимается в горб и подсвечивается — той же логикой,
    что лампочка в прелоадере: цвет не меняется, растёт свечение */
-.tabbar__tab.is-active{ color:var(--tab-active); transform:translateY(13px); }
+.tabbar__tab.is-active{ color:var(--tab-active); transform:translateY(-13px); }
 .tabbar__tab.is-active .tabbar__ico{
   filter:drop-shadow(0 0 10px color-mix(in srgb, var(--tab-active) 70%, transparent));
 }
@@ -270,20 +306,42 @@ body.is-revealed .tabbar{ transform:none; opacity:1; }
 
 /* ---------- горб ---------- */
 .tabbar__notch{
-  position:absolute; left:0; top:100%; z-index:2;
+  position:absolute; left:0; bottom:100%; z-index:2;
   height:30px; pointer-events:none;
   transition:transform .5s var(--tab-ease);
   will-change:transform;
 }
-.tabbar__notch svg{ display:block; width:100%; height:100%; overflow:visible; }
-/* Заглушка срезает прямую линию ровно там, где начинается горб. Её края
-   обязаны совпасть с концами кривой (x от 6.7 до 196.3): шире — на стыке
-   разрыв, уже — в щелях прямая просвечивает из-под обводки и линия
-   задваивается. В прототипе стояло 7.2…195.8 — замер яркости на 16×
-   показал всплеск 21 единицы ровно в этих щелях. */
-.tabbar__notch .mask{ fill:var(--surface); }
-.tabbar__notch .fill{ fill:var(--surface); }
-/* Обводка — НЕЗАМКНУТЫЙ контур: у замкнутого сверху протянулась бы
+/* Стекло горба — отдельным слоем, обрезанным по силуэту кривой.
+   backdrop-filter уважает mask, поэтому блюр честно повторяет форму;
+   на сам SVG маску вешать нельзя — она срезала бы наружную половину
+   обводки. Картинка маски тянется вместе с шириной горба. */
+.tabbar__notch-glass{
+  position:absolute; inset:0;
+  background:var(--tab-glass);
+  -webkit-backdrop-filter:blur(22px) saturate(150%);
+  backdrop-filter:blur(22px) saturate(150%);
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20202.9%2045.5'%20preserveAspectRatio='none'%3E%3Cpath%20fill='%23fff'%20d='M6.7,45.5c5.7,0.1,14.1-0.4,23.3-4c5.7-2.3,9.9-5,18.1-10.5c10.7-7.1,11.8-9.2,20.6-14.3c5-2.9,9.2-5.2,15.2-7%20c7.1-2.1,13.3-2.3,17.6-2.1c4.2-0.2,10.5,0.1,17.6,2.1c6.1,1.8,10.2,4.1,15.2,7c8.8,5,9.9,7.1,20.6,14.3c8.3,5.5,12.4,8.2,18.1,10.5%20c9.2,3.6,17.6,4.2,23.3,4H6.7z'/%3E%3C/svg%3E");
+  mask-image:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20202.9%2045.5'%20preserveAspectRatio='none'%3E%3Cpath%20fill='%23fff'%20d='M6.7,45.5c5.7,0.1,14.1-0.4,23.3-4c5.7-2.3,9.9-5,18.1-10.5c10.7-7.1,11.8-9.2,20.6-14.3c5-2.9,9.2-5.2,15.2-7%20c7.1-2.1,13.3-2.3,17.6-2.1c4.2-0.2,10.5,0.1,17.6,2.1c6.1,1.8,10.2,4.1,15.2,7c8.8,5,9.9,7.1,20.6,14.3c8.3,5.5,12.4,8.2,18.1,10.5%20c9.2,3.6,17.6,4.2,23.3,4H6.7z'/%3E%3C/svg%3E");
+  -webkit-mask-size:100% 100%; mask-size:100% 100%;
+  -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))){
+  .tabbar__notch-glass{ background:color-mix(in srgb, var(--surface) 96%, transparent); }
+}
+@media (prefers-reduced-transparency: reduce){
+  .tabbar__notch-glass{
+    background:color-mix(in srgb, var(--surface) 97%, transparent);
+    -webkit-backdrop-filter:none; backdrop-filter:none;
+  }
+}
+.tabbar__notch svg{ position:relative; display:block; width:100%; height:100%; overflow:visible; }
+/* Вся светлая линия — ОДИН непрерывный штрих: прямые участки слева и
+   справа входят в тот же путь горизонтальными «хвостами» (M-3000…H3200).
+   Так стыка не существует физически. Прежняя схема из прототипа — полоса
+   на псевдоэлементе плюс заглушка-прямоугольник поверх неё — давала на
+   стыке зазубрину: вертикальный край заглушки подъедал горизонтальную
+   линию, и на 12× это было видно. Хвосты обрезаются clip-path строки.
+   Обводка — НЕЗАМКНУТЫЙ контур: у замкнутого снизу протянулась бы
    перемычка и горб стал бы приклеенной нашлёпкой.
    non-scaling-stroke обязателен: у svg preserveAspectRatio="none",
    без него толщина линии поедет неравномерно по осям. */
@@ -322,7 +380,8 @@ body.is-revealed .tabbar{ transform:none; opacity:1; }
    Секции — поток, единая ритмика
    ============================================================ */
 .s{ position:relative; }
-.s[id]{ scroll-margin-top:78px; }
+/* шапки сверху больше нет — якорю достаточно небольшого воздуха */
+.s[id]{ scroll-margin-top:14px; }
 
 /* ---------- HERO (постерная композиция, координаты из макета) ---------- */
 /* высота секции задаётся самим фото — оно показывается целиком, без обрезки;
@@ -561,8 +620,11 @@ body.is-revealed .tabbar{ transform:none; opacity:1; }
 .contact__media{ position:relative; z-index:2; margin-top:var(--sp-5); margin-inline:calc(-1*var(--pad-x)); }
 .contact__photo{
   width:100%; object-fit:cover;
-  -webkit-mask-image:linear-gradient(180deg, #000 70%, transparent 100%);
-  mask-image:linear-gradient(180deg, #000 70%, transparent 100%);
+  /* Низ фото уводим в прозрачность раньше и до конца: под ним стоит
+     стеклянный навбар, и мутное полупрозрачное фото за стеклом читалось
+     грязью. К низу страницы остаётся чистый чёрный фон. */
+  -webkit-mask-image:linear-gradient(180deg, #000 46%, rgba(0,0,0,.45) 74%, transparent 92%);
+  mask-image:linear-gradient(180deg, #000 46%, rgba(0,0,0,.45) 74%, transparent 92%);
 }
 .contact__foot{
   position:relative; z-index:3;
@@ -1013,22 +1075,20 @@ html.pl-lock .rays, html.pl-lock .deck-bg{ visibility:hidden; }
   .tabbar{ transform:none !important; opacity:1 !important }
 </style></noscript>
 
-<!-- ===================== ВЕРХНИЙ НАВБАР =====================
-     Полоса бара провисает вниз фигурной кривой под активным пунктом,
-     активная иконка опускается в горб. Пункты — настоящие ссылки внутри
+<!-- ===================== НИЖНИЙ НАВБАР =====================
+     Полоса бара выгибается вверх фигурной кривой над активным пунктом,
+     активная иконка поднимается в горб. Пункты — настоящие ссылки внутри
      <nav>, чтобы поисковики видели структуру сайта; плавный скролл
      навешан сверху с preventDefault. id="nav" сохранён: на него завязан
      прелоадер (снимает inert после перехода).
      ========================================================== -->
 <nav class="tabbar" id="nav" aria-label="Разделы сайта">
+  <span class="tabbar__glass" aria-hidden="true"></span>
   <div class="tabbar__row" data-tabrow>
     <span class="tabbar__notch" data-notch aria-hidden="true">
+      <span class="tabbar__notch-glass"></span>
       <svg viewBox="0 0 202.9 45.5" preserveAspectRatio="none">
-        <g transform="translate(0,45.5) scale(1,-1)">
-          <rect class="mask" x="6.7" y="45.3" width="189.6" height="10"/>
-          <path class="fill"   d="M6.7,45.5c5.7,0.1,14.1-0.4,23.3-4c5.7-2.3,9.9-5,18.1-10.5c10.7-7.1,11.8-9.2,20.6-14.3c5-2.9,9.2-5.2,15.2-7 c7.1-2.1,13.3-2.3,17.6-2.1c4.2-0.2,10.5,0.1,17.6,2.1c6.1,1.8,10.2,4.1,15.2,7c8.8,5,9.9,7.1,20.6,14.3c8.3,5.5,12.4,8.2,18.1,10.5 c9.2,3.6,17.6,4.2,23.3,4H6.7z"/>
-          <path class="stroke" d="M6.7,45.5c5.7,0.1,14.1-0.4,23.3-4c5.7-2.3,9.9-5,18.1-10.5c10.7-7.1,11.8-9.2,20.6-14.3c5-2.9,9.2-5.2,15.2-7 c7.1-2.1,13.3-2.3,17.6-2.1c4.2-0.2,10.5,0.1,17.6,2.1c6.1,1.8,10.2,4.1,15.2,7c8.8,5,9.9,7.1,20.6,14.3c8.3,5.5,12.4,8.2,18.1,10.5 c9.2,3.6,17.6,4.2,23.3,4"/>
-        </g>
+        <path class="stroke" d="M-3000,45.5H6.7c5.7,0.1,14.1-0.4,23.3-4c5.7-2.3,9.9-5,18.1-10.5c10.7-7.1,11.8-9.2,20.6-14.3c5-2.9,9.2-5.2,15.2-7 c7.1-2.1,13.3-2.3,17.6-2.1c4.2-0.2,10.5,0.1,17.6,2.1c6.1,1.8,10.2,4.1,15.2,7c8.8,5,9.9,7.1,20.6,14.3c8.3,5.5,12.4,8.2,18.1,10.5 c9.2,3.6,17.6,4.2,23.3,4H3200"/>
       </svg>
     </span>
 
@@ -1573,7 +1633,9 @@ setTimeout(function () {
       current = i;
     }
 
-    var BAR_H = 78;   /* та же величина, что у scroll-margin-top секций */
+    /* Бар теперь внизу и верх экрана ничем не перекрыт — активной считаем
+       секцию, чей верх ближе всего к верхней кромке вьюпорта. */
+    var BAR_H = 14;   /* та же величина, что у scroll-margin-top секций */
     function spy () {
       /* у самого низа страницы последняя секция активна по определению —
          иначе «ближайшая к верху» так и останется предпоследней */
