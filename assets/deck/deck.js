@@ -42,7 +42,7 @@ function boot(){
   const STATIC  = REDUCED || /[?&]static\b/.test(location.search);
 
   /* ---- настройки эффекта (крутить здесь) ---- */
-  const CARDS      = 10;      // всего карт в поле
+  const CARDS      = 15;      // всего карт в поле
   const SPAN       = 3.30;    // путь карты по вертикали до возврата наверх
                               //   (больше — карты реже, дальше друг от друга)
   const SPREAD     = 0.94;    // где сидят крайние карты, в долях полуширины кадра
@@ -56,6 +56,25 @@ function boot(){
   const CAM_Z      = 1.94;    // отдаление камеры
   const FACE_EVERY = 5;       // каждая 5-я карта — «лицо» → ~20% лиц, 80% рубашек
   const DRIFT      = false;   // лёгкое покачивание всего поля в покое
+
+  /* ---- стопки у краёв страницы ----
+     У самого верха (за фото hero) и у самого низа (за фото контактов) карты
+     не разлетаются, а стянуты почти в одну точку и спрятаны за фото по
+     z-index. В первые/последние STACK_EDGE прокрутки эта стяжка плавно
+     отпускает карты: верхняя пачка выстреливает СТРОГО ВНИЗ плотной
+     колонной и только потом расходится вширь в обычное падение, а в конце
+     пути карты сводятся обратно в колонну и падают в нижнюю пачку. */
+  const STACK_EDGE     = 0.10;   // доля прокрутки страницы на «взрыв»/«стяжку» у края
+  const STACK_FAN      = 0.05;   // веерный разброс карт внутри стопки, доля полуширины кадра
+  const STACK_TOP_DROP = 0.10;   // насколько верхняя стопка опущена от ВЕРХА фото hero,
+                                 //   в долях высоты самого фото. Пачка должна лежать
+                                 //   выше зоны полёта — иначе карты вылетают вверх
+  const STACK_LAG      = 0.55;   // насколько горизонталь отстаёт от вертикали при
+                                 //   вылете из пачки (и опережает её при влёте)
+  const STACK_BURST    = 0.25;   // доп. толчок вниз в момент вылета/влёта,
+                                 //   в долях полувысоты кадра
+  const STACK_TOP_Y    = 0.30;   // запасная доля полувысоты кадра, если фото hero не найдено
+  const STACK_BOT_Y    = 0.30;   // запасная доля полувысоты кадра, если фото контактов нет
 
   /* ---- рендерер ---- */
   let renderer;
@@ -150,6 +169,10 @@ function boot(){
       spinZ: (rnd() * 2 - 1) * 0.95,
       tilt0: rnd() * Math.PI * 2,            // стартовый разворот
       wobble: 0.5 + rnd() * 1.4,             // частота бокового покачивания
+      stackJx: rnd() * 2 - 1,                // место карты внутри стопки (веер), [-1..1]
+      stackJz: rnd() * 2 - 1,
+      stackRotY: rnd() * 2 - 1,              // свой разворот в стопке — пачка не «слипается»
+      stackRotZ: rnd() * 2 - 1,
     };
     cards.push(m); deck.add(m);
   }
@@ -157,29 +180,110 @@ function boot(){
   const frac  = v => v - Math.floor(v);
   const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 
-  // полуширина кадра камеры на плоскости карт (z≈0) — пересчитывается в resize()
+  // полуширина/полувысота кадра камеры на плоскости карт (z≈0) — из resize()
   let halfViewW = 0.4;
+  let halfViewH = 0.3;
+
+  const smoothstep = (a, b, x) => { const k = clamp((x - a) / (b - a), 0, 1); return k * k * (3 - 2 * k); };
+
+  /* ---- где именно прячутся стопки ----
+     Не «примерно у края кадра», а по реальным фото: меряем низ .hero__photo
+     и фото контактов через getBoundingClientRect и переводим экранную Y в
+     мировую координату той же плоскости, где летают карты.
+       верхняя стопка — на STACK_TOP_DROP высоты фото ниже ВЕРХНЕГО края фото,
+       то есть над зоной полёта: карты выстреливают из неё вниз;
+       нижняя стопка  — в середине той части фото контактов, которая реально
+                        видна на экране, когда страница доскроллена донизу.
+     Если разметка изменится и фото не найдётся — откат на старые доли кадра. */
+  let topStackWorldY = 0, botStackWorldY = 0;
+  let haveTopAnchor = false, haveBotAnchor = false;
+
+  function screenYToWorld(y){
+    const ndc = 1 - 2 * (y / window.innerHeight);   // 1 — верх экрана, -1 — низ
+    return ndc * halfViewH;
+  }
+  function measureAnchors(){
+    const scrollY = window.scrollY || window.pageYOffset || 0;
+    const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+
+    const heroImg = document.querySelector('.hero__photo');
+    if (heroImg){
+      const r = heroImg.getBoundingClientRect();
+      const topAbs = r.top + scrollY;                // страничная Y верха фото
+      // при scrollY=0 экранная Y совпадает с абсолютной; пачка сидит в верхней
+      // части фото и спрятана за ним по z-index — карты сыплются из неё вниз
+      topStackWorldY = screenYToWorld(topAbs + r.height * STACK_TOP_DROP);
+      haveTopAnchor = true;
+    }
+    const contactImg = document.querySelector('.contact__photo');
+    if (contactImg){
+      const r = contactImg.getBoundingClientRect();
+      const topAbs = r.top + scrollY, botAbs = r.bottom + scrollY;
+      // экранные координаты фото в момент, когда страница доскроллена до конца
+      const topV = topAbs - maxScroll, botV = botAbs - maxScroll;
+      // середина именно ВИДИМОЙ части фото — туда и убирается пачка
+      const midV = (Math.max(0, topV) + Math.min(window.innerHeight, botV)) / 2;
+      botStackWorldY = screenYToWorld(midV);
+      haveBotAnchor = true;
+    }
+  }
 
   /* progress — сглаженная фаза прокрутки; gust — отголосок рывка скролла */
   function layout(progress, gust){
     const spread = halfViewW * SPREAD;
     const depth  = halfViewW * DEPTH;
+
+    // прогресс по странице целиком (0 — самый верх, 1 — самый низ), без FALLS:
+    // по нему решаем, когда карты собраны в стопку, а когда разлетелись
+    const pageP   = clamp(progress / FALLS, 0, 1);
+    const toTop   = 1 - smoothstep(0, STACK_EDGE, pageP);          // стяжка к стопке за hero
+    const toBot   = smoothstep(1 - STACK_EDGE, 1, pageP);          // стяжка к стопке за контактами
+    const stackPull = Math.max(toTop, toBot);   // 0 — обычный разлёт, 1 — собраны в пачку
+    const stackY = (toTop >= toBot
+      ? (haveTopAnchor ? topStackWorldY :  halfViewH * STACK_TOP_Y)
+      : (haveBotAnchor ? botStackWorldY : -halfViewH * STACK_BOT_Y));
+
+    /* Вертикаль и горизонталь отпускаем НЕ одновременно — иначе карты
+       расходятся из точки во все стороны сразу, как салют.
+         вылет из верхней пачки: Y свободен раньше, XZ ещё стянут —
+           карты уходят вниз плотной колонной и только потом расходятся вширь;
+         влёт в нижнюю пачку: XZ стягивается раньше, Y — последним —
+           карты сначала сводятся в колонну, потом падают в пачку.
+       Формула одна на оба края: pull у верхней стопки убывает по мере
+       прокрутки, у нижней растёт, поэтому порядок сам собой переворачивается. */
+    const pullXZ = Math.min(1, stackPull / STACK_LAG);
+    const pullY  = Math.max(0, (stackPull - (1 - STACK_LAG)) / STACK_LAG);
+    // толчок вниз, максимальный в середине вылета и нулевой на обоих концах
+    const burst  = 4 * stackPull * (1 - stackPull) * STACK_BURST * halfViewH;
+
     for (let i = 0; i < CARDS; i++){
       const c = cards[i], u = c.userData;
       const t = frac(u.offset + progress * u.speed);   // 0 сверху, 1 за нижним краем
       const wob = Math.sin(u.tilt0 + t * Math.PI * 2 * u.wobble);
+
+      const flyX = (u.xn + u.driftN * wob) * spread;
+      const flyY = SPAN * (0.5 - t);
+      const flyZ = u.zn * depth;
+
+      const stackX = u.stackJx * halfViewW * STACK_FAN;
+      const stackZ = u.stackJz * halfViewW * STACK_FAN * 0.5;
+
       c.position.set(
-        (u.xn + u.driftN * wob) * spread,
-        SPAN * (0.5 - t),
-        u.zn * depth
+        flyX + (stackX - flyX) * pullXZ,
+        flyY + (stackY - flyY) * pullY - burst,
+        flyZ + (stackZ - flyZ) * pullXZ
       );
+      // в стопке кувырок гасим — иначе пачка «кипит» на месте
+      const spinT = 1 - stackPull;
       c.rotation.set(
-        u.tilt0        + t * u.spinX * TUMBLE * Math.PI * 2 + gust * 0.6,
-        u.tilt0 * 1.7  + t * u.spinY * TUMBLE * Math.PI * 2,
-        u.tilt0 * 0.6  + t * u.spinZ * TUMBLE * Math.PI * 2 + gust
+        u.tilt0        + t * u.spinX * TUMBLE * Math.PI * 2 * spinT + gust * 0.6 * spinT + u.stackRotY * 0.25 * stackPull,
+        u.tilt0 * 1.7  + t * u.spinY * TUMBLE * Math.PI * 2 * spinT                      + u.stackRotY * 0.6  * stackPull,
+        u.tilt0 * 0.6  + t * u.spinZ * TUMBLE * Math.PI * 2 * spinT + gust * spinT       + u.stackRotZ        * stackPull
       );
-      // у самых краёв кадра карта «съезжается» в точку — без хлопка появления
-      const s = clamp(Math.min(t * 12, (1 - t) * 9), 0, 1);
+      // у самых краёв кадра карта «съезжается» в точку — без хлопка появления;
+      // но собранная пачка обязана быть видимой целиком, поэтому подмешиваем
+      const s0 = clamp(Math.min(t * 12, (1 - t) * 9), 0, 1);
+      const s  = s0 + (1 - s0) * stackPull;
       c.visible = s > 0.001;
       c.scale.setScalar(0.55 + 0.45 * s);
     }
@@ -206,9 +310,14 @@ function boot(){
     // ширина кадра на плоскости карт — отсюда берётся разлёт по горизонтали
     const halfH = Math.tan((camera.fov * Math.PI / 180) / 2) * camera.position.z;
     halfViewW = halfH * camera.aspect;
+    halfViewH = halfH;
+    measureAnchors();   // зависит от halfViewH выше — считаем после неё
   }
   addEventListener('resize', resize, { passive:true });
   resize();
+  // фото к этому моменту уже загружены (их ждал прелоадер) — меряем по факту
+  addEventListener('load', measureAnchors, { passive:true });
+  document.addEventListener('preloader:done', measureAnchors);
 
   function render(now){
     layout(current, gust);
