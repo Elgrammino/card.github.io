@@ -185,48 +185,117 @@ a,button,.btn{ touch-action:manipulation; -webkit-tap-highlight-color:transparen
 /* ============================================================
    Навигация
    ============================================================ */
-.nav{
+/* Перенесено из прототипа tabbar-variants.html. Логика оригинального
+   animated-tab-bar (маркер едет к активному пункту через translate3d,
+   позиция из getBoundingClientRect) — своя, на ванильном CSS и JS.
+   Разноцветные вкладки и смена фона страницы из оригинала выброшены:
+   в баре ровно два цвета — приглушённый --ink и активный --accent. */
+.tabbar{
   position:fixed; inset:0 0 auto 0; z-index:100;
-  display:flex; align-items:center; justify-content:space-between; gap:18px;
-  height:54px;
-  padding-top:0; padding-bottom:0;
-  padding-left:max(clamp(16px,5vw,26px), env(safe-area-inset-left));
-  padding-right:max(clamp(16px,5vw,26px), env(safe-area-inset-right));
   max-width:var(--maxw); margin-inline:auto;
-  background:linear-gradient(#0c0a0a 12%, transparent);
-  transition:background .3s var(--ease);
+  background:var(--surface);
+  /* Цвет активного пункта — тот же, которым набраны суммы в прайсе
+     (.price__sum). Отдельный токен не заводим. */
+  --tab-active:var(--accent);
+  --tab-idle:color-mix(in srgb, var(--ink) 42%, transparent);
+  /* тонкая светлая граница между баром и страницей */
+  --tab-edge:color-mix(in srgb, var(--ink) 30%, transparent);
+  /* кривая из прототипа — мягче проектной --ease, горб на ней не «щёлкает» */
+  --tab-ease:cubic-bezier(.22,.8,.3,1);
+  /* выезд сверху после прелоадера */
+  transform:translateY(-100%); opacity:0;
+  transition:transform .8s var(--tab-ease) .75s, opacity .6s linear .75s;
 }
-.nav.is-scrolled{ background:color-mix(in srgb, var(--bg) 88%, transparent); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); }
-.nav__brand{
-  display:inline-flex; align-items:center; min-height:44px;
-  font-weight:600; font-size:13px; letter-spacing:.06em; text-transform:uppercase; white-space:nowrap;
+body.is-revealed .tabbar{ transform:none; opacity:1; }
+
+/* Колонка контента расширяется по брейкпоинтам через --maxw на .phone, но
+   бар лежит вне неё (position:fixed) и своего container query не видит —
+   повторяем ту же лестницу, чтобы бар совпадал с колонкой по ширине. */
+@media (min-width: 768px){  .tabbar{ max-width:720px; } }
+@media (min-width: 1200px){ .tabbar{ max-width:1080px; } }
+
+.tabbar__row{
+  position:relative;
+  display:grid; grid-template-columns:repeat(4,1fr);
+  height:64px; align-items:center;
+  /* Горб шире ячейки и на крайних пунктах уходит за край. overflow:hidden
+     обрезал бы и провисание вниз — режем только по бокам, вниз пропускаем. */
+  clip-path:inset(0 0 -80px 0);
 }
-.nav__toggle{ display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; margin-right:-10px; background:none; border:0; cursor:pointer; }
-.nav__toggle span, .nav__toggle span::before, .nav__toggle span::after{
-  content:""; display:block; width:20px; height:1.6px; background:var(--ink); transition:transform .3s var(--ease);
+/* Прямые участки нижней линии слева и справа от горба.
+   bottom:-.5px, а не -1px: обводка кривой — это stroke шириной 1px,
+   центрированный ровно по нижней границе бара (63.5..64.5), а полоса
+   с bottom:-1px легла бы на 64..65. Полпикселя расхождения на реальном
+   экране видно как ступеньку на стыке — проверено скриншотом с 8×. */
+.tabbar__row::after{
+  content:""; position:absolute; left:0; right:0; bottom:-.5px; height:1px;
+  background:var(--tab-edge);
 }
-.nav__toggle span::before{ transform:translateY(-6px); }
-.nav__toggle span::after{ transform:translateY(4.4px); }
-.nav.is-open .nav__toggle span{ background:transparent; }
-.nav.is-open .nav__toggle span::before{ transform:rotate(45deg); }
-.nav.is-open .nav__toggle span::after{ transform:rotate(-45deg); }
-.nav__menu{
-  position:fixed; inset:54px 0 auto 0; z-index:99;
-  max-width:var(--maxw); margin-inline:auto;
-  display:grid; gap:2px;
-  padding-top:12px; padding-bottom:24px;
-  padding-left:max(clamp(16px,5vw,26px), env(safe-area-inset-left));
-  padding-right:max(clamp(16px,5vw,26px), env(safe-area-inset-right));
-  background:var(--bg-deep); border-bottom:1px solid var(--line);
-  transform:translateY(-12px); opacity:0; pointer-events:none;
-  transition:transform .3s var(--ease), opacity .3s var(--ease);
+
+.tabbar__tab{
+  position:relative; z-index:3;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;
+  min-width:0; color:var(--tab-idle);
+  transition:color .35s var(--tab-ease), transform .45s var(--tab-ease);
+  -webkit-tap-highlight-color:transparent;
 }
-.nav.is-open .nav__menu{ transform:none; opacity:1; pointer-events:auto; }
-.nav__menu a{
-  padding:13px 2px; font-weight:500; font-size:15px; letter-spacing:.02em; text-transform:uppercase;
-  color:var(--ink-dim); border-bottom:1px solid var(--line);
+.tabbar__ico{ width:23px; height:23px; display:block; }
+.tabbar__ico path, .tabbar__ico circle, .tabbar__ico rect{
+  fill:none; stroke:currentColor; stroke-width:1.6;
+  stroke-linecap:round; stroke-linejoin:round;
+  transition:stroke-width .35s var(--tab-ease);
 }
-.nav__menu a:last-child{ border-bottom:0; }
+/* Карты веера залиты цветом бара и рисуются одна поверх другой — иначе
+   обводки задних карт просвечивают сквозь передние и веер слипается
+   в сплошное пятно. Заливку не убирать. */
+.tabbar__ico .card{ fill:var(--surface); }
+
+.tabbar__lbl{
+  font-family:var(--font); font-weight:500;
+  font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; white-space:nowrap;
+  opacity:0; transform:translateY(-3px);
+  transition:opacity .3s var(--tab-ease), transform .35s var(--tab-ease);
+}
+/* активный пункт опускается в горб и подсвечивается — той же логикой,
+   что лампочка в прелоадере: цвет не меняется, растёт свечение */
+.tabbar__tab.is-active{ color:var(--tab-active); transform:translateY(13px); }
+.tabbar__tab.is-active .tabbar__ico{
+  filter:drop-shadow(0 0 10px color-mix(in srgb, var(--tab-active) 70%, transparent));
+}
+.tabbar__tab.is-active .tabbar__ico path,
+.tabbar__tab.is-active .tabbar__ico circle,
+.tabbar__tab.is-active .tabbar__ico rect{ stroke-width:1.9; }
+.tabbar__tab.is-active .tabbar__lbl{ opacity:1; transform:none; }
+.tabbar__tab:focus-visible{ outline:2px solid var(--tab-active); outline-offset:-4px; border-radius:10px; }
+
+/* ---------- горб ---------- */
+.tabbar__notch{
+  position:absolute; left:0; top:100%; z-index:2;
+  height:30px; pointer-events:none;
+  transition:transform .5s var(--tab-ease);
+  will-change:transform;
+}
+.tabbar__notch svg{ display:block; width:100%; height:100%; overflow:visible; }
+/* Заглушка срезает прямую линию ровно там, где начинается горб. Её края
+   обязаны совпасть с концами кривой (x от 6.7 до 196.3): шире — на стыке
+   разрыв, уже — в щелях прямая просвечивает из-под обводки и линия
+   задваивается. В прототипе стояло 7.2…195.8 — замер яркости на 16×
+   показал всплеск 21 единицы ровно в этих щелях. */
+.tabbar__notch .mask{ fill:var(--surface); }
+.tabbar__notch .fill{ fill:var(--surface); }
+/* Обводка — НЕЗАМКНУТЫЙ контур: у замкнутого сверху протянулась бы
+   перемычка и горб стал бы приклеенной нашлёпкой.
+   non-scaling-stroke обязателен: у svg preserveAspectRatio="none",
+   без него толщина линии поедет неравномерно по осям. */
+.tabbar__notch .stroke{
+  fill:none; stroke:var(--tab-edge); stroke-width:1;
+  vector-effect:non-scaling-stroke;
+}
+
+@media (prefers-reduced-motion: reduce){
+  .tabbar{ transition:opacity .01ms; transform:none; }
+  .tabbar__notch, .tabbar__tab, .tabbar__lbl{ transition-duration:.01ms; }
+}
 
 /* ============================================================
    Живой фон: диагональные лучи (canvas, чистый JS — без библиотек,
@@ -253,7 +322,7 @@ a,button,.btn{ touch-action:manipulation; -webkit-tap-highlight-color:transparen
    Секции — поток, единая ритмика
    ============================================================ */
 .s{ position:relative; }
-.s[id]{ scroll-margin-top:64px; }
+.s[id]{ scroll-margin-top:78px; }
 
 /* ---------- HERO (постерная композиция, координаты из макета) ---------- */
 /* высота секции задаётся самим фото — оно показывается целиком, без обрезки;
@@ -880,8 +949,8 @@ html.pl-lock .rays, html.pl-lock .deck-bg{ visibility:hidden; }
 <!-- ===================== ПРЕЛОАДЕР =====================
      Слой ПОВЕРХ контента: вся страница отрендерена в HTML с самого
      начала (поисковики и скринридеры видят её), прелоадер только
-     перекрывает. Пока он висит — контент под ним inert (тот же приём,
-     что у .nav__menu), а «нажми» остаётся настоящей кнопкой:
+     перекрывает. Пока он висит — контент под ним inert,
+     а «нажми» остаётся настоящей кнопкой:
      Enter/Space работают, Escape пропускает прелоадер целиком.
      Логотип — eg-bulb.svg инлайном (копия в assets/eg-bulb.svg):
      только так работают currentColor и анимация групп по отдельности.
@@ -937,21 +1006,65 @@ html.pl-lock .rays, html.pl-lock .deck-bg{ visibility:hidden; }
   <p class="pl__sr" role="status">Загрузка сайта</p>
   <span class="pl__wave"></span>
 </div>
-<noscript><style>#preloader{display:none !important}</style></noscript>
+<noscript><style>
+  #preloader{ display:none !important }
+  /* без JS прелоадер не отработает и класс is-revealed не появится —
+     показываем бар сразу, иначе навигации на странице не будет вовсе */
+  .tabbar{ transform:none !important; opacity:1 !important }
+</style></noscript>
 
-<header class="nav" id="nav">
-  <a href="#top" class="nav__brand" translate="no">Эдуард Грамм</a>
-  <button class="nav__toggle" id="navToggle" aria-label="Меню" aria-expanded="false" aria-controls="navMenu">
-    <span></span>
-  </button>
-  <nav class="nav__menu" id="navMenu">
-    <a href="#micro">Микромагия</a>
-    <a href="#show">Шоу</a>
-    <a href="#levit">Левитация</a>
-    <a href="#price">Прайс</a>
-    <a href="#contact">Контакты</a>
-  </nav>
-</header>
+<!-- ===================== ВЕРХНИЙ НАВБАР =====================
+     Полоса бара провисает вниз фигурной кривой под активным пунктом,
+     активная иконка опускается в горб. Пункты — настоящие ссылки внутри
+     <nav>, чтобы поисковики видели структуру сайта; плавный скролл
+     навешан сверху с preventDefault. id="nav" сохранён: на него завязан
+     прелоадер (снимает inert после перехода).
+     ========================================================== -->
+<nav class="tabbar" id="nav" aria-label="Разделы сайта">
+  <div class="tabbar__row" data-tabrow>
+    <span class="tabbar__notch" data-notch aria-hidden="true">
+      <svg viewBox="0 0 202.9 45.5" preserveAspectRatio="none">
+        <g transform="translate(0,45.5) scale(1,-1)">
+          <rect class="mask" x="6.7" y="45.3" width="189.6" height="10"/>
+          <path class="fill"   d="M6.7,45.5c5.7,0.1,14.1-0.4,23.3-4c5.7-2.3,9.9-5,18.1-10.5c10.7-7.1,11.8-9.2,20.6-14.3c5-2.9,9.2-5.2,15.2-7 c7.1-2.1,13.3-2.3,17.6-2.1c4.2-0.2,10.5,0.1,17.6,2.1c6.1,1.8,10.2,4.1,15.2,7c8.8,5,9.9,7.1,20.6,14.3c8.3,5.5,12.4,8.2,18.1,10.5 c9.2,3.6,17.6,4.2,23.3,4H6.7z"/>
+          <path class="stroke" d="M6.7,45.5c5.7,0.1,14.1-0.4,23.3-4c5.7-2.3,9.9-5,18.1-10.5c10.7-7.1,11.8-9.2,20.6-14.3c5-2.9,9.2-5.2,15.2-7 c7.1-2.1,13.3-2.3,17.6-2.1c4.2-0.2,10.5,0.1,17.6,2.1c6.1,1.8,10.2,4.1,15.2,7c8.8,5,9.9,7.1,20.6,14.3c8.3,5.5,12.4,8.2,18.1,10.5 c9.2,3.6,17.6,4.2,23.3,4"/>
+        </g>
+      </svg>
+    </span>
+
+    <a class="tabbar__tab" href="#hero" data-tab>
+      <svg class="tabbar__ico" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="8.2" r="3.7"/><path d="M5 19.9c0-3.5 3.1-5.5 7-5.5s7 2 7 5.5"/>
+      </svg>
+      <span class="tabbar__lbl">Обо мне</span>
+    </a>
+
+    <a class="tabbar__tab" href="#micro" data-tab>
+      <svg class="tabbar__ico" viewBox="0 0 24 24" aria-hidden="true">
+        <rect class="card" x="3.0" y="6.0" width="7.8" height="11.2" rx="1.1" transform="rotate(-12 6.9 11.6)"/>
+        <rect class="card" x="6.4" y="5.3" width="7.8" height="11.2" rx="1.1" transform="rotate(-4 10.3 10.9)"/>
+        <rect class="card" x="9.8" y="5.3" width="7.8" height="11.2" rx="1.1" transform="rotate(4 13.7 10.9)"/>
+        <rect class="card" x="13.2" y="6.0" width="7.8" height="11.2" rx="1.1" transform="rotate(12 17.1 11.6)"/>
+      </svg>
+      <span class="tabbar__lbl">Форматы</span>
+    </a>
+
+    <a class="tabbar__tab" href="#price" data-tab>
+      <svg class="tabbar__ico" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M11.2 3.9H19c.6 0 1.1.5 1.1 1.1v7.8c0 .3-.1.6-.3.8l-7 7c-.4.4-1.1.4-1.6 0l-6.7-6.7c-.4-.4-.4-1.1 0-1.6l7-7c.2-.2.5-.4.7-.4z"/>
+        <circle cx="15.9" cy="8.1" r="1.5"/>
+      </svg>
+      <span class="tabbar__lbl">Прайс</span>
+    </a>
+
+    <a class="tabbar__tab" href="#contact" data-tab>
+      <svg class="tabbar__ico" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M20.1 12.2c0 3.6-3.6 6.6-8.1 6.6-.9 0-1.8-.1-2.7-.4l-4.8 1.7 1.4-3.5c-1.3-1.2-2-2.7-2-4.4 0-3.6 3.6-6.6 8.1-6.6s8.1 3 8.1 6.6z"/>
+      </svg>
+      <span class="tabbar__lbl">Контакты</span>
+    </a>
+  </div>
+</nav>
 
 <!-- Фильтры для цифр разделов и прайса: настоящая ВНЕШНЯЯ обводка без
      самопересечений на углах глифа. -webkit-text-stroke обводит сам
@@ -1172,6 +1285,7 @@ setTimeout(function () {
   if (!p) return;
   p.parentNode.removeChild(p);
   document.documentElement.classList.remove('pl-lock');
+  document.body.classList.add('is-revealed');
   var t = document.getElementById('top'), n = document.getElementById('nav');
   if (t) t.inert = false;
   if (n) n.inert = false;
@@ -1362,6 +1476,8 @@ setTimeout(function () {
        лучи и колода. Если тянуть до конца перехода, они бы всплыли уже
        поверх открывшегося сайта — заметный «щелчок» на последних кадрах. */
     root.classList.remove('pl-lock');
+    /* этот же класс выводит верхний навбар — отдельного механизма нет */
+    document.body.classList.add('is-revealed');
     clearTimeout(autoT);
     clearTimeout(flickT);
     clearTimeout(hardT);
@@ -1418,28 +1534,88 @@ setTimeout(function () {
 (function () {
   "use strict";
 
-  /* ---------- Навигация ---------- */
-  var nav = document.getElementById('nav');
-  var navToggle = document.getElementById('navToggle');
-  var navMenu = document.getElementById('navMenu');
+  /* ---------- Верхний навбар: горб едет к активному пункту ----------
+     Порт прототипа tabbar-variants.html. Отличия от него:
+       - пункты не <button>, а <a href="#id"> — это навигация, поисковики
+         должны видеть структуру; плавный скролл навешан поверх;
+       - скролл-спай считает по window, а не по контейнеру с прокруткой;
+       - ширина горба берётся от ширины ячейки (× 1.55, с ограничениями),
+         а не константой: на узком телефоне ячейки мелкие и фиксированный
+         горб перестал бы помещаться.
+     На скролле — только rAF с флагом и passive-слушатель; getBoundingClientRect
+     дёргается лишь когда активный пункт реально сменился. */
+  (function tabbar () {
+    var bar = document.getElementById('nav');
+    if (!bar) return;
+    var row   = bar.querySelector('[data-tabrow]');
+    var notch = bar.querySelector('[data-notch]');
+    var tabs  = Array.prototype.slice.call(bar.querySelectorAll('[data-tab]'));
+    if (!row || !notch || !tabs.length) return;
 
-  var onNavScroll = function () { nav.classList.toggle('is-scrolled', window.scrollY > 8); };
-  onNavScroll();
-  window.addEventListener('scroll', onNavScroll, { passive: true });
+    var mqr = window.matchMedia('(prefers-reduced-motion: reduce)');
+    var targets = tabs.map(function (a) {
+      return document.querySelector(a.getAttribute('href'));
+    });
 
-  navMenu.inert = true;
-  navToggle.addEventListener('click', function () {
-    var open = nav.classList.toggle('is-open');
-    navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-    navMenu.inert = !open;
-  });
-  navMenu.addEventListener('click', function (e) {
-    if (e.target.closest('a')) {
-      nav.classList.remove('is-open');
-      navToggle.setAttribute('aria-expanded', 'false');
-      navMenu.inert = true;
+    var current = -1;
+    function place (i) {
+      if (i < 0 || i >= tabs.length) return;
+      tabs.forEach(function (t, k) {
+        var on = k === i;
+        t.classList.toggle('is-active', on);
+        if (on) t.setAttribute('aria-current', 'page');
+        else t.removeAttribute('aria-current');
+      });
+      var t = tabs[i].getBoundingClientRect(), r = row.getBoundingClientRect();
+      var w = Math.min(Math.max(t.width * 1.55, 104), 168);
+      notch.style.width = Math.round(w) + 'px';
+      notch.style.transform = 'translate3d(' + Math.round(t.left - r.left + (t.width - w) / 2) + 'px,0,0)';
+      current = i;
     }
-  });
+
+    var BAR_H = 78;   /* та же величина, что у scroll-margin-top секций */
+    function spy () {
+      /* у самого низа страницы последняя секция активна по определению —
+         иначе «ближайшая к верху» так и останется предпоследней */
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      if (max > 0 && window.scrollY >= max - 2) {
+        if (current !== tabs.length - 1) place(tabs.length - 1);
+        return;
+      }
+      var best = 0, bestD = Infinity;
+      for (var i = 0; i < targets.length; i++) {
+        if (!targets[i]) continue;
+        var d = Math.abs(targets[i].getBoundingClientRect().top - BAR_H);
+        if (d < bestD) { bestD = d; best = i; }
+      }
+      if (best !== current) place(best);
+    }
+
+    var raf = 0;
+    window.addEventListener('scroll', function () {
+      if (raf) return;
+      raf = requestAnimationFrame(function () { raf = 0; spy(); });
+    }, { passive: true });
+    window.addEventListener('resize', function () { place(current < 0 ? 0 : current); }, { passive: true });
+
+    tabs.forEach(function (a, i) {
+      a.addEventListener('click', function (e) {
+        var el = targets[i];
+        if (!el) return;                       /* нет секции — обычный переход по якорю */
+        e.preventDefault();
+        place(i);
+        el.scrollIntoView({ behavior: mqr.matches ? 'auto' : 'smooth', block: 'start' });
+        if (history.replaceState) history.replaceState(null, '', a.getAttribute('href'));
+      });
+    });
+
+    spy();
+    if (current < 0) place(0);
+    /* шрифт подписи меняет ширину ячейки — пересчитываем, когда он приедет */
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function () { place(current < 0 ? 0 : current); });
+    }
+  })();
 
   /* ---------- Видео с VK: встраивание через video_ext.php при клике ----------
      ВАЖНО (см. пояснение в чате): у VK официально встраивается на чужих
