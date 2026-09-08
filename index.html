@@ -652,6 +652,8 @@ body.is-revealed .tabbar{ transform:none; opacity:1; }
   /* Низ фото уводим в прозрачность раньше и до конца: под ним стоит
      стеклянный навбар, и мутное полупрозрачное фото за стеклом читалось
      грязью. К низу страницы остаётся чистый чёрный фон. */
+       -webkit-mask-image:linear-gradient(180deg, #000 46%, rgba(0,0,0,.45) 80%, transparent 82%);
+  mask-image:linear-gradient(180deg, #000 46%, rgba(0,0,0,.45) 80%, transparent 82%);
 }
 .contact__foot{
   position:relative; z-index:3;
