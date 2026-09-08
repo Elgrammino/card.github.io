@@ -235,11 +235,14 @@ a,button,.btn{ touch-action:manipulation; -webkit-tap-highlight-color:transparen
   --tab-chrome:#0f0d0b;
   /* кривая из прототипа — мягче проектной --ease, горб на ней не «щёлкает» */
   --tab-ease:cubic-bezier(.22,.8,.3,1);
-  /* выезд снизу после прелоадера */
+  /* Выезд снизу. Раньше бар появлялся сразу после прелоадера и накрывал
+     подпись «ИЛЛЮЗИОНИСТ» в hero (см. скрин от 8 сентября). Теперь он
+     прячется, пока человек не пролистает hero — класс nav-shown вешает
+     скролл-обработчик, задержки в transition больше не нужны. */
   transform:translateY(100%); opacity:0;
-  transition:transform .8s var(--tab-ease) .75s, opacity .6s linear .75s;
+  transition:transform .8s var(--tab-ease), opacity .6s linear;
 }
-body.is-revealed .tabbar{ transform:none; opacity:1; }
+body.nav-shown .tabbar{ transform:none; opacity:1; }
 
 /* --tabbar-h нужна .phone для нижнего отступа, а она выше по дереву */
 :root{ --tabbar-h:64px; }
@@ -380,7 +383,7 @@ body.is-revealed .tabbar{ transform:none; opacity:1; }
 }
 
 @media (prefers-reduced-motion: reduce){
-  .tabbar{ transition:opacity .01ms; transform:none; }
+  .tabbar{ transition:opacity .01ms, transform .01ms; }
   .tabbar__notch, .tabbar__tab, .tabbar__lbl{ transition-duration:.01ms; }
 }
 
@@ -652,8 +655,8 @@ body.is-revealed .tabbar{ transform:none; opacity:1; }
   /* Низ фото уводим в прозрачность раньше и до конца: под ним стоит
      стеклянный навбар, и мутное полупрозрачное фото за стеклом читалось
      грязью. К низу страницы остаётся чистый чёрный фон. */
-       -webkit-mask-image:linear-gradient(180deg, #000 46%, rgba(0,0,0,.45) 72%, transparent 92%);
-  mask-image:linear-gradient(180deg, #000 46%, rgba(0,0,0,.45) 72%, transparent 92%);
+  -webkit-mask-image:linear-gradient(180deg, #000 46%, rgba(0,0,0,.45) 74%, transparent 92%);
+  mask-image:linear-gradient(180deg, #000 46%, rgba(0,0,0,.45) 74%, transparent 92%);
 }
 .contact__foot{
   position:relative; z-index:3;
@@ -1380,6 +1383,37 @@ setTimeout(function () {
   if (n) n.inert = false;
   document.dispatchEvent(new CustomEvent('preloader:done'));
 }, 12000);
+</script>
+<script>
+/* Нижний навбар выезжает не сразу, а когда человек начал листать hero.
+   Раньше он появлялся вместе с сайтом и накрывал подпись «ИЛЛЮЗИОНИСТ»
+   под именем (скрин от 8 сентября). Класс body.nav-shown включает выезд;
+   гистерезис в ~20% высоты экрана убирает дрожание у порога. У самого
+   верха бар снова прячется, поэтому первый экран всегда виден целиком.
+   Блок независимый — работает, даже если основной скрипт упадёт. */
+(function () {
+  "use strict";
+  var SHOW_AT, HIDE_AT;
+  function calc () {
+    var h = window.innerHeight || 800;
+    SHOW_AT = h * 0.42;   /* пролистал почти половину hero — показываем */
+    HIDE_AT = h * 0.22;   /* вернулся к началу — прячем */
+  }
+  calc();
+  var raf = 0;
+  function update () {
+    raf = 0;
+    var y = window.pageYOffset || document.documentElement.scrollTop || 0;
+    var shown = document.body.classList.contains('nav-shown');
+    if (!shown && y > SHOW_AT) document.body.classList.add('nav-shown');
+    else if (shown && y < HIDE_AT) document.body.classList.remove('nav-shown');
+  }
+  window.addEventListener('scroll', function () {
+    if (!raf) raf = requestAnimationFrame(update);
+  }, { passive: true });
+  window.addEventListener('resize', function () { calc(); update(); }, { passive: true });
+  update();  /* на случай перезагрузки со скроллом посередине */
+})();
 </script>
 <script>
 (function () {
