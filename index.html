@@ -247,11 +247,11 @@ body.nav-shown .tabbar{ transform:none; opacity:1; }
 /* --tabbar-h нужна .phone для нижнего отступа, а она выше по дереву */
 :root{ --tabbar-h:64px; }
 
-/* Колонка контента расширяется по брейкпоинтам через --maxw на .phone, но
-   бар лежит вне неё (position:fixed) и своего container query не видит —
-   повторяем ту же лестницу, чтобы бар совпадал с колонкой по ширине. */
-@media (min-width: 768px){  .tabbar{ max-width:720px; } }
-@media (min-width: 1200px){ .tabbar{ max-width:1080px; } }
+/* 14 сентября: десктопную раскладку решили не доделывать — весь контент,
+   включая бар, остаётся мобильного размера на любом экране (var(--maxw) на
+   .tabbar не переопределяется нигде ниже, дефолт 460px из :root). Растёт
+   только .phone — под ней живой фон (рэйсы + колода карт), он и подстраивается
+   под экран, см. блоки TABLET/DESKTOP ниже. */
 
 /* стекло прямоугольной части бара, включая зону под панелью Safari */
 .tabbar__glass{
@@ -727,106 +727,37 @@ body.nav-shown .tabbar{ transform:none; opacity:1; }
 .deco__c--co2 .deco__card{ opacity:.2;  filter:blur(2.6px); }
 
 /* ============================================================
-   TABLET (≥768px) — та же мобильная вёрстка, расширенная вверх.
-   Постерная типографика hero (calc(N*var(--u))) капается, чтобы не
-   расти бесконечно вместе с колонкой; сама постерная сцена (hero/акт)
-   остаётся на капе и центрируется, а высвободившееся место у блоков
-   «обо мне / прайс / контакты» уходит под колонки. Цвета и шрифты
-   не тронуты — только layout.
+   TABLET/DESKTOP (≥768px) — контент как на мобильной версии,
+   растёт только фон. Подробности в комментарии внутри блока.
    ============================================================ */
 @media (min-width: 768px){
-  .phone{
-    --maxw: 720px;
-    /* --u продолжает расти вместе с колонкой (100cqw/440), но не выше
-       значения, которое было бы у колонки ~620px — дальше рост "постера"
-       останавливается, а расширение страницы уходит в колонки ниже */
-    --u: min(calc(100cqw / 440), 1.41px);
-  }
+  /* 14 сентября: десктопную раскладку (сетки ниже) решили не доделывать —
+     не было времени. Вместо неё: контент остаётся один в один мобильной
+     вёрсткой (та же колонка, тот же --u, те же переносы), а расширяется
+     только сама .phone — под неё уходит живой фон (рэйсы + 3D-колода
+     карт, оба уже растягиваются на 100% ширины .phone сами, без правок
+     здесь). Так видно, что сайт живой на любом экране, а не просто
+     мобильная страница с полями. Если когда-нибудь вернёмся к нормальной
+     десктопной сетке — сетки для .hero-info/.act/.price__list/.contact__btns
+     лежат в истории правок, переигрывать не с нуля. */
+  .phone{ --maxw: 720px; }
 
-  /* постерные сцены не растягиваются на всю расширенную колонку —
-     иначе имя/цифры теряют пропорции, разъезжаясь на пустом фоне */
-  .s--hero, .act, .formats-label{ max-width:640px; margin-inline:auto; }
-
-  /* ---------- «обо мне»: тег+кнопка слева, пункты+фраза справа ---------- */
-  .hero-info{
-    display:grid; grid-template-columns:1fr 1fr;
-    column-gap:var(--sp-6); row-gap:var(--sp-4);
-    align-items:start; max-width:none;
-  }
-  .hero-info .hero__tag{ grid-column:1; grid-row:1; }
-  .hero-info .hero__cta{ grid-column:1; grid-row:2; margin-inline:0; align-self:start; }
-  .hero-info .hero__points{ grid-column:2; grid-row:1; margin-top:0; }
-  .hero-info .hero__more{ grid-column:2; grid-row:2; margin-top:var(--sp-3); }
-
-  /* ---------- акт: фото слева, номер+заголовок+текст+видео справа ---------- */
-  .act{
-    display:grid; grid-template-columns:minmax(200px, 36%) 1fr;
-    column-gap:var(--sp-6); align-items:start; overflow:visible;
-  }
-  .act__photo{
-    position:relative; grid-column:1; top:0; left:0; width:100%;
-    margin-top:var(--sp-5); align-self:start;
-  }
-  #show  .act__photo{ top:0; left:0; width:100%; }
-  #levit .act__photo{ top:0; left:0; width:100%; }
-  .act__wash{ grid-column:1; left:50%; transform:translateX(-50%); width:100%; }
-  .act .wrap{ grid-column:2; padding-left:0; }
-  .act__head{ padding-top:var(--sp-6); padding-bottom:var(--sp-2); }
-
-  /* контурная цифра — не бежит за левый край фото, а стоит компактным
-     «водяным знаком» над заголовком, в размере под свою новую роль */
-  .act__num{
-    position:static; display:block; line-height:.7;
-    font-size:clamp(84px, 16cqw, 150px);
-    margin:0 0 clamp(-56px, -8cqw, -30px);
-  }
-  .act__title{ padding-left:0; }
-  #show .act__title, #levit .act__title{ padding-left:0; }
-  .video{ margin-inline:0; }
-
-  /* ---------- прайс: три пункта в ряд ---------- */
-  .price__list{ grid-template-columns:repeat(3, 1fr); column-gap:var(--sp-5); }
-  .price__row{ overflow:visible; }
-  .price__n{
-    position:static; display:block; transform:none; z-index:0;
-    font-size:clamp(56px, 12cqw, 96px);
-    margin:0 0 clamp(-30px, -4cqw, -16px);
-  }
-  .price__row:nth-child(1) .price__n{ margin:0 0 clamp(-30px, -4cqw, -16px); }
-
-  /* ---------- контакты: кнопки в ряд ---------- */
-  .contact__btns{ grid-template-columns:repeat(3, 1fr); max-width:none; }
-
-  /* ---------- летящие карты: якоря в % высоты страницы вместо
-     фиксированных --u-пикселей (те были заточены под высоту мобильного
-     стека; на широких breakpoint-ах секции короче из-за колонок) ---------- */
-  .deco__c{ top:auto; }
-  .deco__c--f1 { top:16%;  }
-  .deco__c--f2 { top:27%;  }
-  .deco__c--mi1{ top:39%;  }
-  .deco__c--mi2{ top:43%;  }
-  .deco__c--sh1{ top:56%;  }
-  .deco__c--sh2{ top:60%;  }
-  .deco__c--le1{ top:63%;  }
-  .deco__c--le2{ top:70%;  }
-  .deco__c--pr1{ top:79%;  }
-  .deco__c--co1{ top:92%;  }
-  .deco__c--co2{ top:97%;  }
+  /* --u и ширина контентных блоков заморожены на мобильном максимуме
+     (как если бы колонка была 460px) — иначе типографика и раскладка
+     поплывут за выросшей .phone. calc(min(100cqw,460px)/440) — тот же
+     приём, что у #preloader (см. ниже), но от cqw, а не от vw. */
+  .phone{ --u: calc(min(100cqw, 460px) / 440); }
+  .s--hero, .act, .formats-label,
+  .hero-info, .price, .contact{ max-width:640px; margin-inline:auto; }
 }
 
 /* ============================================================
-   DESKTOP (≥1200px) — та же сетка, шире поля и капы.
+   DESKTOP (≥1200px) — та же мобильная колонка, фон растёт дальше.
    ============================================================ */
 @media (min-width: 1200px){
-  .phone{
-    --maxw: 1080px;
-    --u: min(calc(100cqw / 440), 1.6px);
-  }
-  .s--hero, .act, .formats-label{ max-width:720px; }
-  .hero-info{ column-gap:var(--sp-sec); }
-  .act{ grid-template-columns:minmax(240px, 34%) 1fr; column-gap:var(--sp-sec); }
-  .price__list{ column-gap:var(--sp-6); }
-  .contact__btns{ max-width:640px; margin-inline:auto; }
+  .phone{ --maxw: 1080px; --u: calc(min(100cqw, 460px) / 440); }
+  .s--hero, .act, .formats-label,
+  .hero-info, .price, .contact{ max-width:720px; }
 }
 
 /* ============================================================
