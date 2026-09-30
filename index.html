@@ -528,7 +528,10 @@ body.nav-shown .tabbar{ transform:none; opacity:1; }
 }
 /* «Шоу» сдвинуто выше (контраст под слово «Шоу»);
    Высоту не фиксируем — фото целиком. «Левитация» прижата правым краем к краю экрана (max-width:100% у img не даёт растянуть шире). */
-#show  .act__photo{ top:calc(clamp(-46px, -11cqw, -24px) - 64px); left:0; width:100%; }
+/* «Шоу»: в show-bg прозрачные верхние 190 из 880 px ширины (21.6%) —
+   поднимаем фото ровно на эту полосу, верхняя карта начинается в 6px от
+   края секции. Раньше было -107px и .act{overflow:hidden} срезал карты. */
+#show  .act__photo{ top:calc(-21.6cqw + 6px); left:0; width:100%; }
 #levit .act__photo{ top:calc(clamp(-40px, -9cqw, -22px) - 10px); left:auto; right:0; width:100%; }
 .act__wash{
   position:absolute; z-index:1; pointer-events:none; border-radius:50%;
