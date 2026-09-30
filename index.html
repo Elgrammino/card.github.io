@@ -645,6 +645,16 @@ body.nav-shown .tabbar{ transform:none; opacity:1; }
   color:var(--accent); text-transform:uppercase; letter-spacing:.05em;
   font-variant-numeric:tabular-nums;
 }
+/* Сплошной --accent на тёмном фоне с тем же золотым свечением читался
+   горчицей («грязно»). Металлический градиент: светлый верх → насыщенный
+   низ, основа та же #CDA434. Без свечения — оно мутнит фон вокруг. */
+@supports ((-webkit-background-clip:text) or (background-clip:text)){
+  .price__sum{
+    background:linear-gradient(180deg, #F7E3A1 0%, #E3BD4E 55%, #C9A032 100%);
+    -webkit-background-clip:text; background-clip:text;
+    color:transparent; -webkit-text-fill-color:transparent;
+  }
+}
 .price__n{
   position:absolute; right:clamp(-72px, -17cqw, -40px); top:50%; transform:translateY(-52%);
   z-index:-1;
