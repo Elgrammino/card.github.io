@@ -63,9 +63,9 @@
   --ink-dim:   #c2afa7;
   --ink-faint: #9b8981;
 
-  --accent:      #d43c26;
-  --accent-hi:   #e94f30;
-  --accent-deep: #7c2318;
+  --accent:      #C9922E;
+  --accent-hi:   #E0AA45;
+  --accent-deep: #7A5518;
 
   --maxw: 460px;
   --font:      "Bounded","Unbounded",system-ui,sans-serif;
@@ -181,7 +181,7 @@ a,button,.btn{ touch-action:manipulation; -webkit-tap-highlight-color:transparen
   border-color:rgba(243,237,228,.5);
   background:
     linear-gradient(135deg, rgba(243,237,228,.2), rgba(243,237,228,.05)),
-    rgba(212,60,38,.14);
+    rgba(224,170,69,.14);
 }
 .btn:active{ transform:translateY(1px) scale(.99); }
 @media (prefers-reduced-transparency: reduce){
@@ -220,9 +220,9 @@ a,button,.btn{ touch-action:manipulation; -webkit-tap-highlight-color:transparen
   bottom:calc(var(--tabbar-h) * -.10);
   /* фон уходит вниз под плавающую панель Safari — стыка не видно */
   padding-bottom:env(safe-area-inset-bottom, 0px);
-  /* Цвет активного пункта — тот же, которым набраны суммы в прайсе
-     (.price__sum). Отдельный токен не заводим. */
-  --tab-active:var(--accent);
+  /* Цвет активного пункта — светлое золото (--accent-hi), на тон ярче
+     сумм в прайсе. Отдельный токен не заводим. */
+  --tab-active:var(--accent-hi);
   --tab-idle:color-mix(in srgb, var(--ink) 42%, transparent);
   /* тонкая светлая граница между баром и страницей */
   --tab-edge:color-mix(in srgb, var(--ink) 30%, transparent);
@@ -950,6 +950,47 @@ html.pl-lock .rays, html.pl-lock .deck-bg{ visibility:hidden; }
   position:absolute; width:1px; height:1px; margin:-1px; padding:0;
   overflow:hidden; clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap;
 }
+
+/* ============================================================
+   НОВЫЙ ГОД — кнопка и снег. Отдельный слой, ничего в вёрстке не
+   двигает: кнопка fixed в правом верхнем углу колонки, снег —
+   fixed-канвас на весь экран с pointer-events:none. Кнопка выше
+   навбара (100), снег ниже него — бар остаётся «стеклом над снегом».
+   ============================================================ */
+.ny-btn{
+  position:fixed; z-index:101;
+  top:calc(env(safe-area-inset-top, 0px) + 12px);
+  right:max(12px, calc((100vw - var(--maxw)) / 2 + 12px));
+  display:inline-flex; align-items:center; gap:7px;
+  height:34px; padding:0 13px 0 10px; border-radius:999px;
+  font:600 10px/1 var(--font); letter-spacing:.08em; text-transform:uppercase;
+  color:var(--ink); cursor:pointer;
+  border:1px solid rgba(243,237,228,.3);
+  background:linear-gradient(135deg, rgba(243,237,228,.16), rgba(243,237,228,.03)), rgba(18,16,15,.35);
+  -webkit-backdrop-filter:blur(16px) saturate(150%); backdrop-filter:blur(16px) saturate(150%);
+  box-shadow:inset 0 1px 0 rgba(243,237,228,.35), 0 10px 26px -12px rgba(0,0,0,.7);
+  transition:border-color .3s var(--ease), color .3s var(--ease), transform .18s var(--ease);
+  -webkit-tap-highlight-color:transparent;
+}
+.ny-btn:hover{ border-color:rgba(243,237,228,.55); }
+.ny-btn:active{ transform:scale(.97); }
+.ny-btn__ico{ width:15px; height:15px; flex:none; transition:transform .8s var(--ease), filter .3s var(--ease); }
+.ny-btn[aria-pressed="true"]{ color:var(--accent-hi); border-color:color-mix(in srgb, var(--accent-hi) 60%, transparent); }
+.ny-btn[aria-pressed="true"] .ny-btn__ico{
+  transform:rotate(60deg);
+  filter:drop-shadow(0 0 6px color-mix(in srgb, var(--accent-hi) 70%, transparent));
+}
+/* за прелоадером кнопку не видно и не нужно */
+html.pl-lock .ny-btn{ visibility:hidden; }
+@media (prefers-reduced-transparency: reduce){
+  .ny-btn{ -webkit-backdrop-filter:none; backdrop-filter:none; background:rgba(28,23,20,.97); }
+}
+.ny-snow{
+  position:fixed; inset:0; z-index:99; pointer-events:none;
+  width:100%; height:100%;
+  opacity:0; transition:opacity 1.2s var(--ease);
+}
+.ny-snow.is-on{ opacity:1; }
 </style>
 <link rel="stylesheet" href="assets/deck/deck.css">
 </head>
@@ -1097,6 +1138,17 @@ html.pl-lock .rays, html.pl-lock .deck-bg{ visibility:hidden; }
     </filter>
   </defs>
 </svg>
+
+<!-- ===================== НОВЫЙ ГОД =====================
+     Кнопка включает/выключает снег. Выбор запоминается (localStorage). -->
+<button class="ny-btn" id="nyBtn" type="button" aria-pressed="false">
+  <svg class="ny-btn__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+    <path d="M12 2v20M3.34 7l17.32 10M3.34 17 20.66 7"/>
+    <path d="M9.5 3.5 12 6l2.5-2.5M9.5 20.5 12 18l2.5 2.5M3.2 10.4l3.4-.9-.9-3.4M20.8 13.6l-3.4.9.9 3.4M3.2 13.6l3.4.9-.9 3.4M20.8 10.4l-3.4-.9.9-3.4"/>
+  </svg>
+  <span>Новый год</span>
+</button>
+<canvas class="ny-snow" id="nySnow" aria-hidden="true"></canvas>
 
 <div class="phone" id="top">
 
@@ -1565,6 +1617,89 @@ setTimeout(function () {
 })();
 </script>
 
+<script>
+/* Новый год: снег по кнопке. Блок независимый — не зависит ни от
+   основного скрипта, ни от GSAP. Канвас рисует только пока снег включён,
+   на скрытой вкладке кадры не крутятся. */
+(function () {
+  "use strict";
+  var btn = document.getElementById('nyBtn');
+  var cv  = document.getElementById('nySnow');
+  var ctx = cv && cv.getContext ? cv.getContext('2d') : null;
+  if (!btn || !ctx) return;
+
+  var KEY = 'ny-snow';
+  var calm = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var DPR = Math.min(window.devicePixelRatio || 1, 2);
+  var W = 1, H = 1, flakes = [], raf = 0, last = 0, on = false, t = 0;
+
+  function mk (anyY) {
+    var z = Math.random();                 /* глубина: 0 — дальний, 1 — ближний */
+    return {
+      x: Math.random() * W,
+      y: anyY ? Math.random() * H : -10 - Math.random() * 40,
+      r: 0.8 + z * z * 2.8,
+      vy: 0.35 + z * 1.05,
+      sway: 0.3 + Math.random() * 0.9,
+      ph: Math.random() * 6.2832,
+      a: 0.35 + z * 0.55
+    };
+  }
+  function size () {
+    W = window.innerWidth; H = window.innerHeight;
+    cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    var n = Math.round(Math.min(160, Math.max(60, W * H / 9000)));
+    if (calm.matches) n = Math.round(n * 0.5);
+    while (flakes.length < n) flakes.push(mk(true));
+    flakes.length = n;
+  }
+  function frame (now) {
+    raf = 0;
+    var dt = last ? Math.min((now - last) / 16.667, 3) : 1;
+    last = now; t += dt;
+    var k = calm.matches ? 0.4 : 1;
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#fff';
+    for (var i = 0; i < flakes.length; i++) {
+      var f = flakes[i];
+      f.y += f.vy * dt * k;
+      f.x += Math.sin(t * 0.012 * f.sway + f.ph) * 0.35 * f.sway * dt * k;
+      if (f.y > H + 8) { flakes[i] = mk(false); continue; }
+      if (f.x < -8) f.x = W + 8; else if (f.x > W + 8) f.x = -8;
+      ctx.globalAlpha = f.a;
+      ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, 6.2832); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    if (on || cv.classList.contains('is-on')) raf = requestAnimationFrame(frame);
+  }
+  function start () { if (!raf && !document.hidden) { last = 0; raf = requestAnimationFrame(frame); } }
+  function stop ()  { if (raf) cancelAnimationFrame(raf); raf = 0; }
+
+  function set (v, save) {
+    on = v;
+    btn.setAttribute('aria-pressed', v ? 'true' : 'false');
+    btn.setAttribute('aria-label', v ? 'Выключить снег' : 'Включить снег');
+    if (v) { size(); cv.classList.add('is-on'); start(); }
+    else {
+      cv.classList.remove('is-on');
+      /* даём снегу растаять вместе с opacity-переходом, потом гасим цикл */
+      setTimeout(function () { if (!on) { stop(); ctx.clearRect(0, 0, W, H); } }, 1300);
+    }
+    if (save) { try { localStorage.setItem(KEY, v ? '1' : '0'); } catch (e) {} }
+  }
+
+  btn.addEventListener('click', function () { set(!on, true); });
+  window.addEventListener('resize', function () { if (on) size(); }, { passive: true });
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) stop(); else if (on) start();
+  });
+
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) {}
+  set(saved === '1', false);
+})();
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/SplitText.min.js"></script>
@@ -1723,7 +1858,7 @@ setTimeout(function () {
 
     var DPR = Math.min(window.devicePixelRatio || 1, 2);
     var W = 1, H = 1, beams = [], raf = 0, lastT = 0, N = 14;
-    var HUE_MIN = 6, HUE_SPAN = 22;   /* тёплый: акцент → терракота → бордо */
+    var HUE_MIN = 34, HUE_SPAN = 10;  /* тёплый: золото → янтарь */
 
     function mkBeam (i) {
       return {
