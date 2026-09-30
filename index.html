@@ -14,9 +14,12 @@
 <meta property="og:description" content="Современное иллюзионное шоу для частных мероприятий.">
 <meta property="og:type" content="website">
 
+<link rel="preload" href="fonts/Bounded-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/Bounded-ExtraLight.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="media/site/hero.webp" as="image" fetchpriority="high">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700&display=swap" rel="stylesheet">
 
 <style>
 /* ============================================================
@@ -45,13 +48,14 @@
 
 @font-face{
   font-family:"Bounded"; font-weight:100 900; font-display:swap;
-  src:url("fonts/Bounded-Variable.ttf") format("truetype-variations"),
-      url("fonts/Bounded-Regular.ttf")  format("truetype");
+  src:url("fonts/Bounded-Variable.woff2") format("woff2-variations"),
+      url("fonts/Bounded-Variable.woff2") format("woff2"),
+      url("fonts/Bounded-Regular.woff2")  format("woff2");
 }
-@font-face{ font-family:"Bounded"; font-weight:200; font-display:swap; src:url("fonts/Bounded-ExtraLight.ttf") format("truetype"); }
-@font-face{ font-family:"Bounded"; font-weight:900; font-display:swap; src:url("fonts/Bounded-Black.ttf") format("truetype"); }
-@font-face{ font-family:"Druk Text Cyr"; font-weight:900; font-display:swap; src:url("fonts/Druk%20Text%20Cyr%20Heavy.otf") format("opentype"); }
-@font-face{ font-family:"Druk Text Cyr"; font-weight:500; font-display:swap; src:url("fonts/Druk%20Text%20Cyr%20Medium.otf") format("opentype"); }
+@font-face{ font-family:"Bounded"; font-weight:200; font-display:swap; src:url("fonts/Bounded-ExtraLight.woff2") format("woff2"); }
+@font-face{ font-family:"Bounded"; font-weight:900; font-display:swap; src:url("fonts/Bounded-Black.woff2") format("woff2"); }
+@font-face{ font-family:"Druk Text Cyr"; font-weight:900; font-display:swap; src:url("fonts/Druk-Text-Cyr-Heavy.woff2") format("woff2"); }
+@font-face{ font-family:"Druk Text Cyr"; font-weight:500; font-display:swap; src:url("fonts/Druk-Text-Cyr-Medium.woff2") format("woff2"); }
 
 :root{
   --bg:        #121010;
@@ -63,9 +67,9 @@
   --ink-dim:   #c2afa7;
   --ink-faint: #9b8981;
 
-  --accent:      #C9922E;
-  --accent-hi:   #E0AA45;
-  --accent-deep: #7A5518;
+  --accent:      #CDA434;
+  --accent-hi:   #E2BD55;
+  --accent-deep: #7D6420;
 
   --maxw: 460px;
   --font:      "Bounded","Unbounded",system-ui,sans-serif;
@@ -181,7 +185,7 @@ a,button,.btn{ touch-action:manipulation; -webkit-tap-highlight-color:transparen
   border-color:rgba(243,237,228,.5);
   background:
     linear-gradient(135deg, rgba(243,237,228,.2), rgba(243,237,228,.05)),
-    rgba(224,170,69,.14);
+    rgba(226,189,85,.14);
 }
 .btn:active{ transform:translateY(1px) scale(.99); }
 @media (prefers-reduced-transparency: reduce){
@@ -427,6 +431,11 @@ body.nav-shown .tabbar{ transform:none; opacity:1; }
      чтобы низ блока плавно сходил к фону, без жёсткой границы на стыке */
   -webkit-mask-image:linear-gradient(180deg, #000 70%, transparent 100%);
   mask-image:linear-gradient(180deg, #000 70%, transparent 100%);
+  /* в hero.png снизу ~10% прозрачной полосы (непрозрачное кончается на
+     1690 из 1870) — растушёвка должна дойти до нуля там, а не на краю
+     файла, иначе на 90% остаётся резкая ступенька */
+  -webkit-mask-image:linear-gradient(180deg, #000 62%, transparent 90%);
+  mask-image:linear-gradient(180deg, #000 62%, transparent 90%);
 }
 .hero__copy{
   position:absolute; left:var(--pad-x); right:var(--pad-x);
@@ -502,9 +511,9 @@ body.nav-shown .tabbar{ transform:none; opacity:1; }
   mask-image:linear-gradient(180deg, #000 70%, transparent 100%);
 }
 /* «Шоу» сдвинуто выше (контраст под слово «Шоу»);
-   «Левитация» — сдвинута левее. Высоту не фиксируем — фото целиком. */
+   Высоту не фиксируем — фото целиком. «Левитация» прижата правым краем к краю экрана (max-width:100% у img не даёт растянуть шире). */
 #show  .act__photo{ top:calc(clamp(-46px, -11cqw, -24px) - 64px); left:0; width:100%; }
-#levit .act__photo{ top:calc(clamp(-40px, -9cqw, -22px) - 10px); left:calc(-8cqw); width:calc(100% + 8cqw); }
+#levit .act__photo{ top:calc(clamp(-40px, -9cqw, -22px) - 10px); left:auto; right:0; width:100%; }
 .act__wash{
   position:absolute; z-index:1; pointer-events:none; border-radius:50%;
   width:150%; height:clamp(420px, 120cqw, 640px);
@@ -653,11 +662,8 @@ body.nav-shown .tabbar{ transform:none; opacity:1; }
 .contact__media{ position:relative; z-index:2; margin-top:var(--sp-5); margin-inline:calc(-1*var(--pad-x)); }
 .contact__photo{
   width:100%; object-fit:cover;
-  /* Низ фото уводим в прозрачность раньше и до конца: под ним стоит
-     стеклянный навбар, и мутное полупрозрачное фото за стеклом читалось
-     грязью. К низу страницы остаётся чистый чёрный фон. */
-  -webkit-mask-image:linear-gradient(180deg, #000 46%, rgba(0,0,0,.45) 74%, transparent 92%);
-  mask-image:linear-gradient(180deg, #000 46%, rgba(0,0,0,.45) 74%, transparent 92%);
+  /* Без маски-растушёвки: низ фото заказчик сам залил чёрным под текст
+     подвала — уводить его в прозрачность не нужно (30 сентября). */
 }
 .contact__foot{
   position:relative; z-index:3;
@@ -667,6 +673,7 @@ body.nav-shown .tabbar{ transform:none; opacity:1; }
   font-weight:600; font-size:clamp(11px, 3.2cqw, 13px); letter-spacing:.14em;
   text-transform:uppercase; color:var(--ink-dim);
 }
+.contact__foot{ touch-action:manipulation; }
 .contact__foot span{ display:block; }
 .contact__foot span + span{ margin-top:8px; color:var(--ink-faint); }
 
@@ -681,15 +688,15 @@ body.nav-shown .tabbar{ transform:none; opacity:1; }
 .deco__c{ position:absolute; width:calc(168*var(--u)); }
 .deco__card{
   display:block; width:100%; aspect-ratio:620/1107;
-  background:center/contain no-repeat url("media/site/cards.png");
+  background:center/contain no-repeat url("media/site/cards.webp");
   opacity:.9; filter:drop-shadow(0 calc(24*var(--u)) calc(40*var(--u)) rgba(0,0,0,.55));
   transform:translate3d(0,0,0) rotate(var(--tilt,0deg));
   animation:cardFloat var(--cf-dur,26s) ease-in-out var(--cf-delay,0s) infinite alternate;
   will-change:transform; backface-visibility:hidden;
 }
 /* три разные карты в колоде — файлы: cards.png / «cards 2.png» / «cards 3.png» */
-.deco__card--b{ background-image:url("media/site/cards%202.png"); }
-.deco__card--c{ background-image:url("media/site/cards%203.png"); }
+.deco__card--b{ background-image:url("media/site/cards%202.webp"); }
+.deco__card--c{ background-image:url("media/site/cards%203.webp"); }
 /* плавное парение: только translate по Y + мягкий наклон, через translate3d */
 @keyframes cardFloat{
   from{ transform:translate3d(0, calc(-9*var(--u)),  0) rotate(calc(var(--tilt,0deg) - 1.1deg)); }
@@ -952,15 +959,13 @@ html.pl-lock .rays, html.pl-lock .deck-bg{ visibility:hidden; }
 }
 
 /* ============================================================
-   НОВЫЙ ГОД — кнопка и снег. Отдельный слой, ничего в вёрстке не
-   двигает: кнопка fixed в правом верхнем углу колонки, снег —
-   fixed-канвас на весь экран с pointer-events:none. Кнопка выше
-   навбара (100), снег ниже него — бар остаётся «стеклом над снегом».
+   НОВЫЙ ГОД — кнопка и снег. Снег — fixed-канвас на весь экран с
+   pointer-events:none, ниже навбара (100): бар остаётся «стеклом над
+   снегом». Кнопка — только для владельца: спрятана в подвале контактов,
+   появляется по тройному тапу по подвалу.
    ============================================================ */
 .ny-btn{
-  position:fixed; z-index:101;
-  top:calc(env(safe-area-inset-top, 0px) + 12px);
-  right:max(12px, calc((100vw - var(--maxw)) / 2 + 12px));
+  position:relative; margin-top:var(--sp-3);
   display:inline-flex; align-items:center; gap:7px;
   height:34px; padding:0 13px 0 10px; border-radius:999px;
   font:600 10px/1 var(--font); letter-spacing:.08em; text-transform:uppercase;
@@ -972,6 +977,8 @@ html.pl-lock .rays, html.pl-lock .deck-bg{ visibility:hidden; }
   transition:border-color .3s var(--ease), color .3s var(--ease), transform .18s var(--ease);
   -webkit-tap-highlight-color:transparent;
 }
+.ny-btn[hidden]{ display:none; }
+.ny-btn:disabled{ opacity:.55; cursor:progress; }
 .ny-btn:hover{ border-color:rgba(243,237,228,.55); }
 .ny-btn:active{ transform:scale(.97); }
 .ny-btn__ico{ width:15px; height:15px; flex:none; transition:transform .8s var(--ease), filter .3s var(--ease); }
@@ -1140,14 +1147,8 @@ html.pl-lock .ny-btn{ visibility:hidden; }
 </svg>
 
 <!-- ===================== НОВЫЙ ГОД =====================
-     Кнопка включает/выключает снег. Выбор запоминается (localStorage). -->
-<button class="ny-btn" id="nyBtn" type="button" aria-pressed="false">
-  <svg class="ny-btn__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
-    <path d="M12 2v20M3.34 7l17.32 10M3.34 17 20.66 7"/>
-    <path d="M9.5 3.5 12 6l2.5-2.5M9.5 20.5 12 18l2.5 2.5M3.2 10.4l3.4-.9-.9-3.4M20.8 13.6l-3.4.9.9 3.4M3.2 13.6l3.4.9-.9 3.4M20.8 10.4l-3.4-.9.9-3.4"/>
-  </svg>
-  <span>Новый год</span>
-</button>
+     Снег общий для всех посетителей: состояние лежит в snow.json в
+     репозитории. Кнопка управления спрятана в подвале (тройной тап). -->
 <canvas class="ny-snow" id="nySnow" aria-hidden="true"></canvas>
 
 <div class="phone" id="top">
@@ -1176,9 +1177,9 @@ html.pl-lock .ny-btn{ visibility:hidden; }
 
   <!-- ===================== HERO (первый экран: фото + имя) ===================== -->
   <section class="s s--hero" id="hero">
-    <img class="hero__photo" src="media/site/hero.png" data-photo
+    <img class="hero__photo" src="media/site/hero.webp" data-photo
          alt="Эдуард Грамм в чёрном костюме держит веер игральных карт" fetchpriority="high"
-         width="880" height="2042">
+         width="880" height="1870">
 
     <div class="hero__copy">
       <h1 class="hero__name" data-split>Эдуард<br>Грамм</h1>
@@ -1216,7 +1217,7 @@ html.pl-lock .ny-btn{ visibility:hidden; }
 
   <!-- ===================== МИКРОМАГИЯ ===================== -->
   <section class="s act" id="micro">
-    <img class="act__photo" src="media/site/micro-bg.png" alt="" loading="lazy" data-photo
+    <img class="act__photo" src="media/site/micro-bg.webp" alt="" loading="lazy" data-photo
          width="880" height="1464" style="object-position:center 22%">
     <div class="act__wash" aria-hidden="true" style="top:clamp(260px,74cqw,420px)"></div>
 
@@ -1231,7 +1232,7 @@ html.pl-lock .ny-btn{ visibility:hidden; }
         <p class="sub">для Welcome зоны или в перерывах банкета</p>
       </div>
       <figure class="video" data-video data-vk="video-230277884_456239031" data-vk-kind="video">
-        <img class="video__poster" src="media/site/poster-micro.jpg" alt="" loading="lazy">
+        <img class="video__poster" src="media/site/poster-micro.webp" alt="" loading="lazy">
         <button class="video__play" type="button" aria-label="Смотреть промо микромагии"></button>
         <iframe class="video__frame" allow="autoplay; encrypted-media; fullscreen" allowfullscreen loading="lazy"></iframe>
       </figure>
@@ -1240,7 +1241,7 @@ html.pl-lock .ny-btn{ visibility:hidden; }
 
   <!-- ===================== ШОУ ===================== -->
   <section class="s act" id="show">
-    <img class="act__photo" src="media/site/show-bg.png" alt="" loading="lazy" data-photo
+    <img class="act__photo" src="media/site/show-bg.webp" alt="" loading="lazy" data-photo
          width="880" height="1480" style="object-position:center 26%">
     <div class="act__wash" aria-hidden="true" style="top:clamp(300px,84cqw,460px)"></div>
 
@@ -1255,7 +1256,7 @@ html.pl-lock .ny-btn{ visibility:hidden; }
         <p class="lead">Интерактив, юмор, вау эффект.</p>
       </div>
       <figure class="video video--h" data-video data-vk="video-230277884_456239023" data-vk-kind="video">
-        <img class="video__poster" src="media/site/poster-show.jpg" alt="" loading="lazy">
+        <img class="video__poster" src="media/site/poster-show.webp" alt="" loading="lazy">
         <button class="video__play" type="button" aria-label="Смотреть промо шоу"></button>
         <iframe class="video__frame" allow="autoplay; encrypted-media; fullscreen" allowfullscreen loading="lazy"></iframe>
       </figure>
@@ -1264,7 +1265,7 @@ html.pl-lock .ny-btn{ visibility:hidden; }
 
   <!-- ===================== ЛЕВИТАЦИЯ ===================== -->
   <section class="s act" id="levit">
-    <img class="act__photo" src="media/site/levit-bg.png" alt="" loading="lazy" data-photo
+    <img class="act__photo" src="media/site/levit-bg.webp" alt="" loading="lazy" data-photo
          width="880" height="1320" style="object-position:center 20%">
     <div class="act__wash" aria-hidden="true" style="top:clamp(280px,80cqw,440px)"></div>
 
@@ -1278,7 +1279,7 @@ html.pl-lock .ny-btn{ visibility:hidden; }
         <p class="sub">с левитацией вашего гостя на празднике</p>
       </div>
       <figure class="video video--wide" data-video data-vk="video-230277884_456239034" data-vk-kind="video">
-        <img class="video__poster" src="media/site/poster-levit.png" alt="" loading="lazy">
+        <img class="video__poster" src="media/site/poster-levit.webp" alt="" loading="lazy">
         <button class="video__play" type="button" aria-label="Смотреть промо левитации"></button>
         <iframe class="video__frame" allow="autoplay; encrypted-media; fullscreen" allowfullscreen loading="lazy"></iframe>
       </figure>
@@ -1322,13 +1323,20 @@ html.pl-lock .ny-btn{ visibility:hidden; }
     </div>
 
     <div class="contact__media">
-      <img class="contact__photo" src="media/site/contact-bg.png" data-photo
+      <img class="contact__photo" src="media/site/contact-bg.webp" data-photo
            alt="Эдуард Грамм с веером карт" loading="lazy" width="880" height="1608">
     </div>
 
     <footer class="contact__foot">
       <span><span translate="no">Эдуард Грамм</span> — иллюзионист</span>
       <span>+7 918 541-80-04</span>
+      <button class="ny-btn" id="nyBtn" type="button" aria-pressed="false" hidden>
+        <svg class="ny-btn__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+          <path d="M12 2v20M3.34 7l17.32 10M3.34 17 20.66 7"/>
+          <path d="M9.5 3.5 12 6l2.5-2.5M9.5 20.5 12 18l2.5 2.5M3.2 10.4l3.4-.9-.9-3.4M20.8 13.6l-3.4.9.9 3.4M3.2 13.6l3.4.9-.9 3.4M20.8 10.4l-3.4-.9.9-3.4"/>
+        </svg>
+        <span>Новый год</span>
+      </button>
     </footer>
   </section>
 
@@ -1618,9 +1626,18 @@ setTimeout(function () {
 </script>
 
 <script>
-/* Новый год: снег по кнопке. Блок независимый — не зависит ни от
-   основного скрипта, ни от GSAP. Канвас рисует только пока снег включён,
-   на скрытой вкладке кадры не крутятся. */
+/* Новый год: снег, общий для всех посетителей. Блок независимый — не
+   зависит ни от основного скрипта, ни от GSAP. Канвас рисует только пока
+   снег включён, на скрытой вкладке кадры не крутятся.
+
+   Где живёт состояние: файл snow.json в репозитории ({"snow": true|false}).
+   Посетители читают его через GitHub API (свежий), при отказе API (лимит
+   60 запросов/час на IP) — копию с самого сайта. Перечитывают раз в 90 с,
+   так что снег включается/гаснет и у тех, у кого страница уже открыта.
+   Пишет только владелец: тройной тап по подвалу показывает кнопку, при
+   первом нажатии спрашивается GitHub-токен (fine-grained, только этот
+   репозиторий, Contents: read/write). Токен хранится лишь в localStorage
+   устройства владельца, в коде его нет. */
 (function () {
   "use strict";
   var btn = document.getElementById('nyBtn');
@@ -1628,7 +1645,12 @@ setTimeout(function () {
   var ctx = cv && cv.getContext ? cv.getContext('2d') : null;
   if (!btn || !ctx) return;
 
-  var KEY = 'ny-snow';
+  var REPO = 'Elgrammino/card.github.io', FILE = 'snow.json';
+  var API  = 'https://api.github.com/repos/' + REPO + '/contents/' + FILE;
+  var TOKEN_KEY = 'ny-gh-token';
+  var POLL = 90000;
+  var holdUntil = 0;   /* после своей записи не даём устаревшему ответу откатить кнопку */
+  var foot = document.querySelector('.contact__foot');
   var calm = window.matchMedia('(prefers-reduced-motion: reduce)');
   var DPR = Math.min(window.devicePixelRatio || 1, 2);
   var W = 1, H = 1, flakes = [], raf = 0, last = 0, on = false, t = 0;
@@ -1676,28 +1698,119 @@ setTimeout(function () {
   function start () { if (!raf && !document.hidden) { last = 0; raf = requestAnimationFrame(frame); } }
   function stop ()  { if (raf) cancelAnimationFrame(raf); raf = 0; }
 
-  function set (v, save) {
+  function set (v) {
+    if (v === on) return;
     on = v;
     btn.setAttribute('aria-pressed', v ? 'true' : 'false');
-    btn.setAttribute('aria-label', v ? 'Выключить снег' : 'Включить снег');
+    btn.setAttribute('aria-label', v ? 'Выключить снег у всех' : 'Включить снег у всех');
     if (v) { size(); cv.classList.add('is-on'); start(); }
     else {
       cv.classList.remove('is-on');
       /* даём снегу растаять вместе с opacity-переходом, потом гасим цикл */
       setTimeout(function () { if (!on) { stop(); ctx.clearRect(0, 0, W, H); } }, 1300);
     }
-    if (save) { try { localStorage.setItem(KEY, v ? '1' : '0'); } catch (e) {} }
   }
 
-  btn.addEventListener('click', function () { set(!on, true); });
+  function parse (txt) {
+    try { return JSON.parse(txt).snow === true; } catch (e) { return false; }
+  }
+  function fromApi (j) {
+    return decodeURIComponent(escape(atob(String(j.content || '').replace(/\s/g, ''))));
+  }
+
+  /* ---------- чтение: API → копия на сайте ---------- */
+  function read () {
+    return fetch(API, { cache: 'no-store', headers: { Accept: 'application/vnd.github+json' } })
+      .then(function (r) { if (!r.ok) throw r; return r.json(); })
+      .then(function (j) { return parse(fromApi(j)); })
+      .catch(function () {
+        return fetch(FILE + '?t=' + Date.now(), { cache: 'no-store' })
+          .then(function (r) { if (!r.ok) throw r; return r.text(); })
+          .then(parse);
+      });
+  }
+  function sync () {
+    if (document.hidden || busy) return;
+    read().then(function (v) { if (!busy && Date.now() > holdUntil) set(v); }, function () {});
+  }
+
+  /* ---------- запись (только владелец) ---------- */
+  var busy = false;
+  function token () {
+    var t = null;
+    try { t = localStorage.getItem(TOKEN_KEY); } catch (e) {}
+    if (!t) {
+      t = window.prompt('GitHub-токен для управления снегом (вводится один раз на этом устройстве):', '');
+      t = t && t.trim();
+      if (t) { try { localStorage.setItem(TOKEN_KEY, t); } catch (e) {} }
+    }
+    return t;
+  }
+  function write (v) {
+    var t = token();
+    if (!t) return Promise.reject(new Error('нет токена'));
+    var h = { Accept: 'application/vnd.github+json', Authorization: 'Bearer ' + t };
+    return fetch(API, { cache: 'no-store', headers: h })
+      .then(function (r) {
+        if (r.status === 404) return {};
+        if (r.status === 401 || r.status === 403) throw r;
+        if (!r.ok) throw r;
+        return r.json();
+      })
+      .then(function (j) {
+        var body = { message: v ? 'Снег: включён' : 'Снег: выключен',
+                     content: btoa(JSON.stringify({ snow: v }) + '\n') };
+        if (j.sha) body.sha = j.sha;
+        return fetch(API, { method: 'PUT', headers: h, body: JSON.stringify(body) });
+      })
+      .then(function (r) { if (!r.ok) throw r; })
+      .catch(function (r) {
+        if (r && (r.status === 401 || r.status === 403 || r.status === 404)) {
+          try { localStorage.removeItem(TOKEN_KEY); } catch (e) {}
+          throw new Error('токен не подошёл (код ' + r.status + '), при следующем нажатии спрошу заново');
+        }
+        throw new Error(r && r.status ? 'GitHub ответил ' + r.status : 'нет связи с GitHub');
+      });
+  }
+
+  btn.addEventListener('click', function () {
+    if (busy) return;
+    var v = !on;
+    busy = true; btn.disabled = true;
+    set(v);
+    write(v).then(function () {
+      holdUntil = Date.now() + 180000;
+    }, function (err) {
+      set(!v);
+      window.alert('Снег не переключился: ' + err.message);
+    }).then(function () { busy = false; btn.disabled = false; });
+  });
+
+  /* ---------- тройной тап по подвалу — показать/спрятать кнопку ---------- */
+  if (foot) {
+    var taps = 0, tapT = 0;
+    foot.addEventListener('click', function (e) {
+      if (btn.contains(e.target)) return;
+      taps++;
+      clearTimeout(tapT);
+      tapT = setTimeout(function () { taps = 0; }, 600);
+      if (taps >= 3) {
+        taps = 0;
+        btn.hidden = !btn.hidden;
+        var sel = window.getSelection && window.getSelection();
+        if (sel && sel.removeAllRanges) sel.removeAllRanges();
+      }
+    });
+  }
+
   window.addEventListener('resize', function () { if (on) size(); }, { passive: true });
   document.addEventListener('visibilitychange', function () {
     if (document.hidden) stop(); else if (on) start();
+    if (!document.hidden) sync();
   });
 
-  var saved = null;
-  try { saved = localStorage.getItem(KEY); } catch (e) {}
-  set(saved === '1', false);
+  sync();
+  setInterval(sync, POLL);
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
@@ -1858,7 +1971,7 @@ setTimeout(function () {
 
     var DPR = Math.min(window.devicePixelRatio || 1, 2);
     var W = 1, H = 1, beams = [], raf = 0, lastT = 0, N = 14;
-    var HUE_MIN = 34, HUE_SPAN = 10;  /* тёплый: золото → янтарь */
+    var HUE_MIN = 40, HUE_SPAN = 8;  /* тёплый: золото → янтарь */
 
     function mkBeam (i) {
       return {
