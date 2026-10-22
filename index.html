@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Эдуард Грамм · иллюзионист</title>
 <meta name="description" content="Эдуард Грамм, иллюзионист. Современное иллюзионное шоу для частных мероприятий: микромагия, шоу, левитация.">
 <!-- Safari тонирует этим свою панель с адресом. Ставим цвет подложки
@@ -57,10 +57,10 @@
      медленнее): непрерывное CSS-парение + параллакс от скролла
      (GSAP scrub — замирает, когда скролл стоит).
    Появления на GSAP + ScrollTrigger — посимвольная сборка
-   заголовков, stagger текста, вылет видео. Все появления
-   ПЕРЕИГРЫВАЕМЫЕ в обе стороны (toggleActions, без once):
-   элемент уходит при выходе из вида и возвращается снова.
-   Всё под prefers-reduced-motion → статичный фон, мгновенный текст.
+   заголовков, stagger текста, вылет видео. Появления одноразовые
+   (toggleActions 'play none none none'): проиграть при входе в вид и
+   оставить — переигрывание у порога триггера давало «подёргивание».
+   prefers-reduced-motion → статичный фон, текст проявляется за 0.2s без сдвига.
    ============================================================ */
 
 @font-face{
@@ -110,7 +110,9 @@
 /* Полосу прокрутки резервируем всегда: пока висит прелоадер, скролл
    залочен, и без этого в момент снятия оверлея полоса возвращалась бы и
    двигала всю страницу вбок — это и читалось как глич на стыке. */
-html{ -webkit-text-size-adjust:100%; background:#0a0a0a; color-scheme:dark; scrollbar-gutter:stable; }
+html{ -webkit-text-size-adjust:100%; -webkit-tap-highlight-color:transparent; background:#0a0a0a; color-scheme:dark; scrollbar-gutter:stable;
+  /* фокус с клавиатуры не прячется под нижним навбаром */
+  scroll-padding-bottom:calc(var(--tabbar-h) + 16px); }
 @media (prefers-reduced-motion: no-preference){ html{ scroll-behavior:smooth; } }
 
 body{
@@ -134,6 +136,9 @@ img,video,picture{ max-width:100%; height:auto; display:block; }
 a{ color:inherit; text-decoration:none; }
 button{ font:inherit; color:inherit; }
 a,button,.btn{ touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+/* Подпись кнопки — это управление, а не текст: долгий тап не должен её
+   выделять или открывать меню ссылки. Текст страницы остаётся выделяемым. */
+.btn, button, .tabbar__tab{ -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
 
 /* ============================================================
    Колонка-визитка + единицы измерения
@@ -205,15 +210,44 @@ a,button,.btn{ touch-action:manipulation; -webkit-tap-highlight-color:transparen
   -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none;
 }
-.btn:hover{
-  border-color:rgba(242,240,235,.5);
-  background:
-    linear-gradient(135deg, rgba(242,240,235,.2), rgba(242,240,235,.05)),
-    rgba(240,201,107,.14);
+/* :hover — только для мыши: на телефоне первый тап «залипает» в hover */
+@media (hover: hover) and (pointer: fine){
+  .btn:hover{
+    border-color:rgba(242,240,235,.5);
+    background:
+      linear-gradient(135deg, rgba(242,240,235,.2), rgba(242,240,235,.05)),
+      rgba(240,201,107,.14);
+  }
 }
-.btn:active{ transform:translateY(1px) scale(.99); }
+.btn:active{ transform:scale(.97); }
 @media (prefers-reduced-transparency: reduce){
   .btn{ -webkit-backdrop-filter:none; backdrop-filter:none; background:rgba(28,28,28,.97); }
+}
+/* Главное действие (позвонить): матовая горчица без стекла и блика —
+   «матовый чёрный + один повторяющийся акцент» из DESIGN.md. Таких кнопок
+   на странице две («забронировать» в hero — ведёт к контактам, и
+   «позвонить» в контактах),
+   остальные остаются стеклянными. */
+.btn--primary{
+  border-color:transparent; background:var(--accent); color:#0a0a0a; font-weight:600;
+  -webkit-backdrop-filter:none; backdrop-filter:none;
+  box-shadow:0 14px 34px -16px rgba(0,0,0,.7);
+}
+.btn--primary::after{ content:none; }
+@media (hover: hover) and (pointer: fine){ .btn--primary:hover{ border-color:transparent; background:var(--accent-hi); } }
+/* Буквы «вырезаны» из горчицы — сквозь слово виден фон и фото (заказчик,
+   22 октября). CSS так не умеет: background-clip:text даёт цветные буквы,
+   а не дырку. Поэтому JS кладёт в кнопку SVG — горчичная пилюля с маской,
+   в которой текст чёрный (= прозрачный). Настоящий текст остаётся в DOM
+   для скринридеров, но невидим. Без JS — сплошная пилюля с тёмным текстом. */
+.btn--primary.ko-on{ background:transparent; color:transparent; box-shadow:none; }
+@media (hover: hover) and (pointer: fine){ .btn--primary.ko-on:hover{ background:transparent; } }
+.btn__ko{ position:absolute; inset:0; z-index:-1; width:100%; height:100%; display:block; pointer-events:none; }
+.btn__ko .btn__ko-fill{ fill:var(--accent); transition:fill .25s var(--ease); }
+@media (hover: hover) and (pointer: fine){ .btn--primary.ko-on:hover .btn__ko-fill{ fill:var(--accent-hi); } }
+.btn--primary.ko-on:active .btn__ko-fill{ fill:var(--accent-hi); }
+@media (prefers-reduced-transparency: reduce){
+  .btn.btn--primary:not(.ko-on){ background:var(--accent); }
 }
 :focus-visible{ outline:2px solid var(--accent-hi); outline-offset:3px; border-radius:4px; }
 
@@ -270,7 +304,7 @@ a,button,.btn{ touch-action:manipulation; -webkit-tap-highlight-color:transparen
      прячется, пока человек не пролистает hero — класс nav-shown вешает
      скролл-обработчик, задержки в transition больше не нужны. */
   transform:translateY(100%); opacity:0;
-  transition:transform .8s var(--tab-ease), opacity .6s linear;
+  transition:transform .8s var(--tab-ease), opacity .45s var(--ease);
 }
 body.nav-shown .tabbar{ transform:none; opacity:1; }
 
@@ -330,15 +364,19 @@ body.nav-shown .tabbar{ transform:none; opacity:1; }
 .tabbar__tab{
   position:relative; z-index:3;
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;
-  min-width:0; color:var(--tab-idle);
-  transition:color .35s var(--tab-ease), transform .45s var(--tab-ease);
+  min-width:0; align-self:stretch; color:var(--tab-idle);
+  /* ≤300мс: навбар трогают часто, а скролл-спай двигает его на ходу —
+     длиннее, и горб заметно отстаёт от пальца (было .45s/.5s) */
+  transition:color .25s var(--tab-ease), transform .3s var(--tab-ease);
   -webkit-tap-highlight-color:transparent;
 }
-.tabbar__ico{ width:23px; height:23px; display:block; }
+.tabbar__ico{ width:23px; height:23px; display:block; transition:transform .12s var(--ease); }
+.tabbar__tab:active .tabbar__ico{ transform:scale(.88); }
 .tabbar__ico path, .tabbar__ico circle, .tabbar__ico rect{
   fill:none; stroke:currentColor; stroke-width:1.6;
   stroke-linecap:round; stroke-linejoin:round;
-  transition:stroke-width .35s var(--tab-ease);
+  /* stroke-width без перехода: анимация штриха — перерисовка SVG каждый
+     кадр; смену состояния и так несут подъём, цвет и свечение */
 }
 /* Карты веера залиты цветом бара и рисуются одна поверх другой — иначе
    обводки задних карт просвечивают сквозь передние и веер слипается
@@ -347,9 +385,11 @@ body.nav-shown .tabbar{ transform:none; opacity:1; }
 
 .tabbar__lbl{
   font-family:var(--font); font-weight:500;
-  font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; white-space:nowrap;
-  opacity:0; transform:translateY(3px);
-  transition:opacity .3s var(--tab-ease), transform .35s var(--tab-ease);
+  font-size:11px; letter-spacing:.08em; text-transform:uppercase; white-space:nowrap;
+  /* видны у всех пунктов: иконки без слов новичку непонятны (critique,
+     22 октября). Неактивные — цветом пункта (--tab-idle), активная горит. */
+  opacity:1;
+  transition:opacity .22s var(--tab-ease), transform .22s var(--tab-ease);
 }
 /* активный пункт поднимается в горб и подсвечивается — той же логикой,
    что лампочка в прелоадере: цвет не меняется, растёт свечение */
@@ -360,14 +400,16 @@ body.nav-shown .tabbar{ transform:none; opacity:1; }
 .tabbar__tab.is-active .tabbar__ico path,
 .tabbar__tab.is-active .tabbar__ico circle,
 .tabbar__tab.is-active .tabbar__ico rect{ stroke-width:1.9; }
-.tabbar__tab.is-active .tabbar__lbl{ opacity:1; transform:none; }
+
+/* 320px: ячейка 80px, «КОНТАКТЫ» с разрядкой .08em не влезает — ужимаем разрядку, не кегль */
+@media (max-width: 340px){ .tabbar__lbl{ letter-spacing:.02em; } }
 .tabbar__tab:focus-visible{ outline:2px solid var(--tab-active); outline-offset:-4px; border-radius:10px; }
 
 /* ---------- горб ---------- */
 .tabbar__notch{
   position:absolute; left:0; bottom:100%; z-index:2;
   height:30px; pointer-events:none;
-  transition:transform .5s var(--tab-ease);
+  transition:transform .32s var(--tab-ease);
   will-change:transform;
 }
 /* Стекло горба — отдельным слоем, обрезанным по силуэту кривой.
@@ -465,7 +507,7 @@ body.nav-shown .tabbar{ transform:none; opacity:1; }
 }
 .hero__copy{
   position:absolute; left:var(--pad-x); right:var(--pad-x);
-  bottom:clamp(112px, 24dvh, 190px); z-index:3;
+  bottom:max(clamp(112px, 24svh, 190px), calc(100% - 100svh + 40px)); z-index:3;
 }
 .hero__name{
   margin:0; font-weight:800; font-size:calc(57*var(--u)); line-height:calc(54*var(--u));
@@ -489,8 +531,8 @@ body.nav-shown .tabbar{ transform:none; opacity:1; }
    для имени на этой ориентации. */
 @media (max-height: 560px) and (orientation: landscape){
   .s--hero{ min-height:0; display:flex; justify-content:center; }
-  .hero__photo{ width:auto; max-width:none; height:92vh; max-height:92vh; }
-  .hero__copy{ bottom:clamp(28px, 10vh, 64px); }
+  .hero__photo{ width:auto; max-width:none; height:92svh; max-height:92svh; }
+  .hero__copy{ bottom:clamp(28px, 10svh, 64px); }
 }
 
 /* текст ниже первого экрана — форматы/пункты/фраза + кнопка, обычный поток документа */
@@ -503,7 +545,7 @@ body.nav-shown .tabbar{ transform:none; opacity:1; }
 .hero__points{
   margin:0; margin-top:var(--sp-5);
   list-style:none; padding:0;
-  font-weight:200; font-size:clamp(17px, 4.6cqw, 20px); line-height:1.5; letter-spacing:.012em;
+  font-weight:300; font-size:clamp(17px, 4.6cqw, 20px); line-height:1.5; letter-spacing:.012em;
 }
 .hero__points li{ position:relative; padding-left:calc(20*var(--u)); margin-bottom:var(--sp-1); }
 .hero__points li::before{
@@ -612,7 +654,7 @@ body.nav-shown .tabbar{ transform:none; opacity:1; }
   margin:0; font-size:clamp(17px, 4.6cqw, 20px); line-height:1.5; letter-spacing:.012em;
 }
 .act__body .lead{ font-weight:600; color:var(--ink); }
-.act__body .sub { font-weight:200; color:var(--ink-dim); }
+.act__body .sub { font-weight:300; color:var(--ink-dim); }
 .act__body .lead + .sub{ margin-top:var(--sp-1); }
 
 .video{
@@ -626,8 +668,8 @@ body.nav-shown .tabbar{ transform:none; opacity:1; }
 .video--wide{ aspect-ratio:233/360; }
 /* горизонтальное ( landscape) видео — для «Шоу»: внутри ссылка на 16:9 ролик */
 .video--h{ aspect-ratio:16/9; width:min(100%, clamp(300px, 100cqw, 420px)); }
-.video video{ width:100%; height:100%; object-fit:cover; background:#000; }
-.video__poster{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transition:opacity .4s var(--ease); }
+.video video{ width:100%; height:100%; object-fit:cover; background:var(--bg-deep); }
+.video__poster{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transition:opacity .25s var(--ease); }
 .video.is-playing .video__poster,
 .video.is-playing .video__play{ opacity:0; pointer-events:none; }
 .video__play{
@@ -637,23 +679,75 @@ body.nav-shown .tabbar{ transform:none; opacity:1; }
   background:linear-gradient(135deg, rgba(20,20,20,.72), rgba(10,10,10,.66));
   border:1px solid rgba(242,240,235,.3);
   -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.22), 0 18px 40px -12px rgba(0,0,0,.6);
-  color:#fff; cursor:pointer; transition:transform .18s var(--ease), opacity .3s var(--ease);
+  box-shadow:inset 0 1px 0 rgba(242,240,235,.22), 0 18px 40px -12px rgba(0,0,0,.6);
+  color:var(--ink); cursor:pointer; transition:transform .18s var(--ease), opacity .3s var(--ease);
 }
 .video__play::before{
   content:""; width:0; height:0; margin-left:5px;
   border-style:solid; border-width:11px 0 11px 18px;
-  border-color:transparent transparent transparent #fff;
+  border-color:transparent transparent transparent var(--ink);
 }
-.video__play:hover{ transform:scale(1.06); }
+@media (hover: hover) and (pointer: fine){ .video__play:hover{ transform:scale(1.06); } }
+.video__play:active{ transform:scale(.94); transition-duration:.1s; }
 .video__frame{
-  position:absolute; inset:0; width:100%; height:100%; border:0; display:none; background:#000;
+  position:absolute; inset:0; width:100%; height:100%; border:0; display:none; background:var(--bg-deep);
 }
 .video.is-playing .video__frame{ display:block; }
+/* Пока плеер VK грузится, iframe уже на месте, но под постером — иначе
+   после тапа мелькал чёрный прямоугольник. Кнопка гаснет до половины:
+   «нажатие принято, грузится». На load (или через 4с) — .is-playing. */
+.video.is-loading .video__frame{ display:block; }
+.video.is-loading .video__poster{ z-index:1; }
+.video.is-loading .video__play{ z-index:2; opacity:.5; pointer-events:none; }
 .video__ext-note{
   position:absolute; left:0; right:0; bottom:8px; z-index:3;
   text-align:center; font-size:11px; letter-spacing:.06em; text-transform:uppercase;
   color:var(--ink-faint); pointer-events:none;
+}
+
+/* ---------- Голоса гостей (вариант 1, 22 октября) ----------
+   Вместо отдельного блока отзывов — одна живая цитата под видео каждого
+   акта и крупная над прайсом: доверие там, где человек решает.
+   Раскладка (impeccable layout): видео и отзыв — пара «доказательство +
+   голос», поэтому цитата вплотную под видео, по центру и по его ширине.
+   Голос тонкий (вес 200, как основной текст), ударная фраза — 800, тот же
+   приём, что «а главное / концентрированные эмоции» в hero. Так цитата
+   не спорит с жирными .lead акта. Ёлочки горчицей — единственный акцент.
+   Слова — из скринов заказчика (media/отзывы/*.PNG), правлена пунктуация. */
+/* тёмный ореол — размытые карты колоды за текстом не спорят с тонкими буквами */
+.act__body, .voice, .hero__points, .hero__tag, .hero__more, .price__dur{
+  text-shadow:0 1px 14px rgba(10,10,10,.85);
+}
+.voice{
+  position:relative; z-index:3;
+  width:min(100%, clamp(240px, 74cqw, 330px)); margin:var(--sp-3) auto 0;
+  text-align:center;
+}
+.voice blockquote{
+  margin:0; font-weight:300; font-size:clamp(18px, 5cqw, 22px); line-height:1.3;
+  text-wrap:balance;
+}
+.voice blockquote b{ font-weight:800; }
+.voice blockquote::before, .voice blockquote::after{ color:var(--accent); font-weight:800; }
+.voice blockquote::before{ content:"«"; }
+.voice blockquote::after{ content:"»"; }
+.voice figcaption{
+  margin-top:var(--sp-2);
+  font-weight:600; font-size:clamp(11px, 3.2cqw, 13px); letter-spacing:.14em;
+  text-transform:uppercase; color:var(--ink-dim);
+}
+.voice figcaption::before{ content:"— "; }
+/* крупная — над прайсом. Легче заголовка «ПРАЙС» (вес 800 против его
+   800 при меньшем кегле и строчных), и отделена от него полным
+   межсекционным воздухом, чтобы не читалась его подзаголовком. */
+.voice--big{
+  width:auto; margin:0; padding-top:var(--sp-sec); padding-bottom:var(--sp-4);
+}
+.voice--big blockquote{
+  font-weight:300; font-size:clamp(23px, 7cqw, 30px); line-height:1.3; letter-spacing:-.01em;
+}
+.voice--big .voice__aside{
+  margin:var(--sp-2) 0 0; font-weight:200; font-size:clamp(17px, 4.6cqw, 20px); color:var(--ink-dim);
 }
 
 /* ---------- ПРАЙС ---------- */
@@ -671,11 +765,12 @@ body.nav-shown .tabbar{ transform:none; opacity:1; }
 /* весь текст под прайсом — по левому краю (убрана «лесенка» отступов) */
 .price__row{ margin-left:0; }
 .price__name{
+  padding-right:clamp(36px, 12cqw, 56px);
   margin:0; font-weight:900; font-size:clamp(20px, 6.2cqw, 26px); line-height:.92;
   text-transform:uppercase; letter-spacing:.01em;
 }
 .price__dur{
-  font-weight:200; font-size:clamp(13px, 3.8cqw, 16px); color:var(--ink-dim); letter-spacing:.06em;
+  font-weight:200; font-size:clamp(13px, 3.8cqw, 16px); color:var(--ink-dim); letter-spacing:.03em;
 }
 .price__sum{
   margin-top:var(--sp-1);
@@ -683,16 +778,8 @@ body.nav-shown .tabbar{ transform:none; opacity:1; }
   color:var(--accent); text-transform:uppercase; letter-spacing:.05em;
   font-variant-numeric:tabular-nums;
 }
-/* Сплошной --accent на тёмном фоне с тем же золотым свечением читался
-   горчицей («грязно»). Металлический градиент: светлый верх → насыщенный
-   низ, основа та же #E4B551. Без свечения — оно мутнит фон вокруг. */
-@supports ((-webkit-background-clip:text) or (background-clip:text)){
-  .price__sum{
-    background:linear-gradient(180deg, #F8E2A8 0%, #E4B551 55%, #C99A3A 100%);
-    -webkit-background-clip:text; background-clip:text;
-    color:transparent; -webkit-text-fill-color:transparent;
-  }
-}
+/* Цена — плоская матовая горчица, без градиента и свечения (22 октября:
+   заказчик отказался от «металлического золота» как от типового приёма). */
 .price__n{
   position:absolute; right:clamp(-72px, -17cqw, -40px); top:50%; transform:translateY(-52%);
   z-index:-1;
@@ -739,7 +826,8 @@ body.nav-shown .tabbar{ transform:none; opacity:1; }
 }
 .contact__foot{ touch-action:manipulation; }
 .contact__foot span{ display:block; }
-.contact__foot span + span{ margin-top:8px; color:var(--ink-faint); }
+.contact__foot span + span, .contact__foot a{ margin-top:8px; color:var(--ink-faint); }
+.contact__foot a{ display:inline-flex; align-items:center; min-height:44px; padding:0 6px; margin-top:-2px; }
 
 /* ============================================================
    Парящие карты на фоне (страничные координаты).
@@ -963,7 +1051,7 @@ html.pl-lock .rays, html.pl-lock .deck-bg{ visibility:hidden; }
   transition:opacity .7s var(--ease) .3s, background .25s var(--ease);
 }
 #preloader.is-ready .pl__enter{ opacity:1; pointer-events:auto; }
-.pl__enter:hover{ background:color-mix(in srgb, var(--ink) 9%, transparent); }
+@media (hover: hover) and (pointer: fine){ .pl__enter:hover{ background:color-mix(in srgb, var(--ink) 9%, transparent); } }
 .pl__enter:focus-visible{
   outline:1px solid color-mix(in srgb, var(--ink) 45%, transparent);
   outline-offset:7px; border-radius:999px;
@@ -1031,8 +1119,8 @@ html.pl-lock .rays, html.pl-lock .deck-bg{ visibility:hidden; }
 .ny-btn{
   position:relative; margin-top:var(--sp-3);
   display:inline-flex; align-items:center; gap:7px;
-  height:34px; padding:0 13px 0 10px; border-radius:999px;
-  font:600 10px/1 var(--font); letter-spacing:.08em; text-transform:uppercase;
+  height:44px; padding:0 15px 0 12px; border-radius:999px;
+  font:600 11px/1 var(--font); letter-spacing:.08em; text-transform:uppercase;
   color:var(--ink); cursor:pointer;
   border:1px solid rgba(242,240,235,.3);
   background:linear-gradient(135deg, rgba(242,240,235,.16), rgba(242,240,235,.03)), rgba(18,18,18,.35);
@@ -1043,7 +1131,7 @@ html.pl-lock .rays, html.pl-lock .deck-bg{ visibility:hidden; }
 }
 .ny-btn[hidden]{ display:none; }
 .ny-btn:disabled{ opacity:.55; cursor:progress; }
-.ny-btn:hover{ border-color:rgba(242,240,235,.55); }
+@media (hover: hover) and (pointer: fine){ .ny-btn:hover{ border-color:rgba(242,240,235,.55); } }
 .ny-btn:active{ transform:scale(.97); }
 .ny-btn__ico{ width:15px; height:15px; flex:none; transition:transform .8s var(--ease), filter .3s var(--ease); }
 .ny-btn[aria-pressed="true"]{ color:var(--accent-hi); border-color:color-mix(in srgb, var(--accent-hi) 60%, transparent); }
@@ -1057,7 +1145,9 @@ html.pl-lock .ny-btn{ visibility:hidden; }
   .ny-btn{ -webkit-backdrop-filter:none; backdrop-filter:none; background:rgba(28,28,28,.97); }
 }
 .ny-snow{
-  position:fixed; inset:0; z-index:99; pointer-events:none;
+  /* z-index 3 — тот же слой, что у текста, но канвас раньше в DOM: текст
+     рисуется поверх хлопьев, а фото (z2) — под ними. Бар (z100) сверху. */
+  position:fixed; inset:0; z-index:3; pointer-events:none;
   width:100%; height:100%;
   opacity:0; transition:opacity 1.2s var(--ease);
 }
@@ -1239,6 +1329,7 @@ html.pl-lock .ny-btn{ visibility:hidden; }
     <div class="deco__c deco__c--co2"><span class="deco__card deco__card--c"></span></div>
   </div>
 
+  <main>
   <!-- ===================== HERO (первый экран: фото + имя) ===================== -->
   <section class="s s--hero" id="hero">
     <img class="hero__photo" src="media/site/hero.webp" data-photo
@@ -1264,7 +1355,7 @@ html.pl-lock .ny-btn{ visibility:hidden; }
       <li>интерактив и юмор</li>
       <li>доброе настроение</li>
       <li>15 лет опыта</li>
-      <li>актуальность для зрителей из 21-ого века</li>
+      <li>актуальность для зрителей из 21-го века</li>
     </ul>
 
     <p class="hero__more">
@@ -1274,7 +1365,7 @@ html.pl-lock .ny-btn{ visibility:hidden; }
       <b>и развлекательной форме</b>
     </p>
 
-    <a href="#contact" class="btn hero__cta">забронировать</a>
+    <a href="#contact" class="btn btn--primary hero__cta">забронировать</a>
   </section>
 
   <p class="formats-label" data-split><span class="accent">Форматы</span> выступлений</p>
@@ -1296,9 +1387,13 @@ html.pl-lock .ny-btn{ visibility:hidden; }
         <p class="sub">для Welcome зоны или в перерывах банкета</p>
       </div>
       <figure class="video" data-video data-vk="video-230277884_456239031" data-vk-kind="video">
-        <img class="video__poster" src="media/site/poster-micro.webp" alt="" loading="lazy">
+        <img class="video__poster" src="media/site/poster-micro.webp" alt="" loading="lazy" width="600" height="900">
         <button class="video__play" type="button" aria-label="Смотреть промо микромагии"></button>
-        <iframe class="video__frame" allow="autoplay; encrypted-media; fullscreen" allowfullscreen loading="lazy"></iframe>
+        <iframe class="video__frame" title="Промо микромагии" allow="autoplay; encrypted-media; fullscreen" allowfullscreen loading="lazy"></iframe>
+      </figure>
+      <figure class="voice" data-reveal>
+        <blockquote><b>Вы чудо!</b> Очень профессионально, интересно, волшебно, интеллигентно</blockquote>
+        <figcaption>после выступления</figcaption>
       </figure>
     </div>
   </section>
@@ -1325,12 +1420,16 @@ html.pl-lock .ny-btn{ visibility:hidden; }
       <div class="act__body" data-reveal>
         <p class="lead">Визитная карточка иллюзиониста</p>
         <p class="sub">Выступление для всех зрителей одновременно во время банкета в качестве шоу-программы мероприятия</p>
-        <p class="lead">Интерактив, юмор, вау эффект.</p>
+        <p class="lead">Интерактив, юмор, вау-эффект.</p>
       </div>
       <figure class="video video--h" data-video data-vk="video-230277884_456239023" data-vk-kind="video">
-        <img class="video__poster" src="media/site/poster-show.webp" alt="" loading="lazy">
+        <img class="video__poster" src="media/site/poster-show.webp" alt="" loading="lazy" width="512" height="342">
         <button class="video__play" type="button" aria-label="Смотреть промо шоу"></button>
-        <iframe class="video__frame" allow="autoplay; encrypted-media; fullscreen" allowfullscreen loading="lazy"></iframe>
+        <iframe class="video__frame" title="Промо шоу" allow="autoplay; encrypted-media; fullscreen" allowfullscreen loading="lazy"></iframe>
+      </figure>
+      <figure class="voice" data-reveal>
+        <blockquote><b>Гости вообще в&nbsp;шоке,</b> как всё так получилось. Только положительные отзывы</blockquote>
+        <figcaption>невеста</figcaption>
       </figure>
     </div>
   </section>
@@ -1351,12 +1450,23 @@ html.pl-lock .ny-btn{ visibility:hidden; }
         <p class="sub">с левитацией вашего гостя на празднике</p>
       </div>
       <figure class="video video--wide" data-video data-vk="video-230277884_456239034" data-vk-kind="video">
-        <img class="video__poster" src="media/site/poster-levit.webp" alt="" loading="lazy">
+        <img class="video__poster" src="media/site/poster-levit.webp" alt="" loading="lazy" width="233" height="360">
         <button class="video__play" type="button" aria-label="Смотреть промо левитации"></button>
-        <iframe class="video__frame" allow="autoplay; encrypted-media; fullscreen" allowfullscreen loading="lazy"></iframe>
+        <iframe class="video__frame" title="Промо левитации" allow="autoplay; encrypted-media; fullscreen" allowfullscreen loading="lazy"></iframe>
+      </figure>
+      <figure class="voice" data-reveal>
+        <blockquote><b>Даже папе невесты понравилось.</b> А&nbsp;это очень сложно</blockquote>
+        <figcaption>невеста</figcaption>
       </figure>
     </div>
   </section>
+
+  <!-- ===================== ГОЛОС ПЕРЕД ПРАЙСОМ ===================== -->
+  <figure class="voice voice--big wrap" data-reveal>
+    <blockquote><b>Из 14 семейных пар&nbsp;14</b> попросили Ваш номер на&nbsp;будущее</blockquote>
+    <p class="voice__aside">Даже скептик Геннадий</p>
+    <figcaption>заказчики</figcaption>
+  </figure>
 
   <!-- ===================== ПРАЙС ===================== -->
   <section class="s price wrap" id="price">
@@ -1367,19 +1477,19 @@ html.pl-lock .ny-btn{ visibility:hidden; }
         <span class="price__n" data-n="1" aria-hidden="true">1</span>
         <p class="price__name">Микромагия</p>
         <span class="price__dur">// 30 – 45 минут</span>
-        <span class="price__sum">25 000 руб.</span>
+        <span class="price__sum">25&nbsp;000&nbsp;₽</span>
       </div>
       <div class="price__row">
         <span class="price__n price__n--geo" data-n="2" aria-hidden="true">2</span>
         <p class="price__name">Шоу</p>
         <span class="price__dur">// 20 – 25 минут</span>
-        <span class="price__sum">25 000 руб.</span>
+        <span class="price__sum">25&nbsp;000&nbsp;₽</span>
       </div>
       <div class="price__row">
         <span class="price__n price__n--geo" data-n="3" aria-hidden="true">3</span>
-        <p class="price__name">Микромагия + шоу</p>
-        <span class="price__dur">// сбор гостей и шоу-программа</span>
-        <span class="price__sum">45 000 руб.</span>
+        <p class="price__name">Микромагия + шоу + левитация</p>
+        <span class="price__dur">// полная программа</span>
+        <span class="price__sum">45&nbsp;000&nbsp;₽</span>
       </div>
     </div>
   </section>
@@ -1389,9 +1499,9 @@ html.pl-lock .ny-btn{ visibility:hidden; }
     <h2 class="contact__title" data-split>Контакты</h2>
 
     <div class="contact__btns" data-reveal>
+      <a class="btn btn--primary" href="tel:+79185418004">позвонить</a>
       <a class="btn" href="https://t.me/ElGrammino" target="_blank" rel="noopener">написать в телеграм</a>
       <a class="btn" href="https://max.ru/u/f9LHodD0cOIS-M3oo-QU2NM4VEI-LdABy_c8qnJuOqHQGXpA3Pcg3II67-o" target="_blank" rel="noopener">написать в <span translate="no">MAX</span></a>
-      <a class="btn" href="tel:+79185418004">позвонить</a>
     </div>
 
     <div class="contact__media">
@@ -1401,7 +1511,7 @@ html.pl-lock .ny-btn{ visibility:hidden; }
 
     <footer class="contact__foot">
       <span><span translate="no">Эдуард Грамм</span> — иллюзионист</span>
-      <span>+7 918 541-80-04</span>
+      <a href="tel:+79185418004">+7&nbsp;918&nbsp;541-80-04</a>
       <button class="ny-btn" id="nyBtn" type="button" aria-pressed="false" hidden>
         <svg class="ny-btn__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
           <path d="M12 2v20M3.34 7l17.32 10M3.34 17 20.66 7"/>
@@ -1411,6 +1521,7 @@ html.pl-lock .ny-btn{ visibility:hidden; }
       </button>
     </footer>
   </section>
+  </main>
 
 </div>
 
@@ -1862,7 +1973,7 @@ setTimeout(function () {
   if (foot) {
     var taps = 0, tapT = 0;
     foot.addEventListener('click', function (e) {
-      if (btn.contains(e.target)) return;
+      if (btn.contains(e.target) || e.target.closest('a')) return;
       taps++;
       clearTimeout(tapT);
       tapT = setTimeout(function () { taps = 0; }, 600);
@@ -1886,6 +1997,58 @@ setTimeout(function () {
 })();
 </script>
 <!-- GSAP 3.13.0 лежит у нас (assets/vendor) — без отдельного соединения с CDN -->
+<script>
+/* ---------- Главные кнопки: буквы вырезаны из пилюли ----------
+   SVG повторяет размер кнопки, шрифт, кегль, разрядку и регистр её текста.
+   Пересобирается при смене размера и после загрузки шрифтов. */
+(function () {
+  "use strict";
+  var NS = 'http://www.w3.org/2000/svg';
+  var btns = document.querySelectorAll('.btn--primary');
+  if (!btns.length || !window.SVGMaskElement) return;
+  var n = 0;
+
+  function el (tag, attrs) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+  function build (b) {
+    var w = b.clientWidth, h = b.clientHeight;
+    if (!w || !h) return;
+    var cs = getComputedStyle(b);
+    /* текст кнопки без прошлой SVG (иначе при пересборке слово дублируется) */
+    var txt = b.getAttribute('data-ko-text');
+    if (txt === null) { txt = b.textContent.replace(/\s+/g, ' ').trim(); b.setAttribute('data-ko-text', txt); }
+    if (cs.textTransform === 'uppercase') txt = txt.toUpperCase();
+    else if (cs.textTransform === 'lowercase') txt = txt.toLowerCase();
+    var id = b.getAttribute('data-ko') || ('ko' + (++n));
+    b.setAttribute('data-ko', id);
+    var svg = el('svg', { 'class': 'btn__ko', viewBox: '0 0 ' + w + ' ' + h, 'aria-hidden': 'true', focusable: 'false' });
+    var mask = el('mask', { id: id, maskUnits: 'userSpaceOnUse', x: 0, y: 0, width: w, height: h });
+    mask.appendChild(el('rect', { width: w, height: h, rx: h / 2, fill: '#fff' }));
+    var t = el('text', {
+      x: w / 2, y: h / 2, 'text-anchor': 'middle', 'dominant-baseline': 'central', fill: '#000',
+      'font-family': cs.fontFamily, 'font-size': cs.fontSize, 'font-weight': cs.fontWeight,
+      'letter-spacing': cs.letterSpacing === 'normal' ? 0 : cs.letterSpacing
+    });
+    t.textContent = txt;
+    mask.appendChild(t);
+    var defs = el('defs', {}); defs.appendChild(mask); svg.appendChild(defs);
+    svg.appendChild(el('rect', { 'class': 'btn__ko-fill', width: w, height: h, rx: h / 2, mask: 'url(#' + id + ')' }));
+    var old = b.querySelector('.btn__ko');
+    if (old) b.replaceChild(svg, old); else b.appendChild(svg);
+    b.classList.add('ko-on');
+  }
+  function all () { btns.forEach(build); }
+  all();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(all);
+  if ('ResizeObserver' in window) {
+    var ro = new ResizeObserver(function (list) { list.forEach(function (en) { build(en.target); }); });
+    btns.forEach(function (b) { ro.observe(b); });
+  }
+})();
+</script>
 <script src="assets/vendor/gsap.min.js"></script>
 <script src="assets/vendor/ScrollTrigger.min.js"></script>
 <script src="assets/vendor/SplitText.min.js"></script>
@@ -1932,8 +2095,9 @@ setTimeout(function () {
       current = i;
     }
 
-    /* Бар теперь внизу и верх экрана ничем не перекрыт — активной считаем
-       секцию, чей верх ближе всего к верхней кромке вьюпорта. */
+    /* Активна последняя секция, чей верх уже поднялся выше линии на 40%
+       высоты экрана. Прежнее «ближе всего к верху по модулю» посреди
+       длинной «Левитации» отдавало «Прайс»: его верх был ближе снизу. */
     var BAR_H = 14;   /* та же величина, что у scroll-margin-top секций */
     function spy () {
       /* у самого низа страницы последняя секция активна по определению —
@@ -1943,11 +2107,9 @@ setTimeout(function () {
         if (current !== tabs.length - 1) place(tabs.length - 1);
         return;
       }
-      var best = 0, bestD = Infinity;
+      var best = 0, line = Math.max(BAR_H, window.innerHeight * 0.4);
       for (var i = 0; i < targets.length; i++) {
-        if (!targets[i]) continue;
-        var d = Math.abs(targets[i].getBoundingClientRect().top - BAR_H);
-        if (d < bestD) { bestD = d; best = i; }
+        if (targets[i] && targets[i].getBoundingClientRect().top <= line) best = i;
       }
       if (best !== current) place(best);
     }
@@ -2023,8 +2185,16 @@ setTimeout(function () {
         return;
       }
       var oid = m[1], id = m[2];
+      /* постер держим, пока плеер не загрузится — без чёрной вспышки */
+      var shown = false;
+      function show () {
+        if (shown) return; shown = true;
+        wrap.classList.remove('is-loading'); wrap.classList.add('is-playing');
+      }
+      frame.addEventListener('load', show, { once: true });
+      setTimeout(show, 4000);
+      wrap.classList.add('is-loading');
       frame.src = 'https://vk.com/video_ext.php?oid=' + oid + '&id=' + id + '&hd=2&autoplay=1';
-      wrap.classList.add('is-playing');
     });
   });
 
@@ -2234,7 +2404,10 @@ setTimeout(function () {
         gsap.set(frames, { opacity: 0 });
         gsap.set(frames[0], { opacity: 1 });
         var seqTl = gsap.timeline({
-          scrollTrigger: { trigger: seq, start: 'top 72%', end: 'top 2%', scrub: true }
+          /* старт, когда фигура уже целиком на экране и проявилась (было 'top 72%':
+             первая смена шла, пока картинка ещё въезжала снизу); финиш —
+             пока голова в кадре */
+          scrollTrigger: { trigger: seq, start: 'top 45%', end: 'top -15%', scrub: true }
         });
         frames.slice(1).forEach(function (f, i) {
           seqTl.set(f, { opacity: 1 }, i + 1);
@@ -2289,6 +2462,12 @@ setTimeout(function () {
     mm.add('(prefers-reduced-motion: reduce)', function () {
       gsap.set('[data-split], [data-reveal] > *, [data-hero], [data-video], [data-photo], .act__num, .price__n', { clearProps: 'all', opacity: 1, y: 0 });
       gsap.set('[data-photo]', { clearProps: 'transform,filter,willChange', scale: 1, opacity: 1 });
+      /* «уменьшить движение» — не «без анимации»: текст и видео ниже
+         первого экрана проявляются прозрачностью за 0.2с, без сдвига */
+      gsap.utils.toArray('[data-split], [data-reveal] > *, [data-video]').forEach(function (el) {
+        gsap.from(el, { opacity: 0, duration: 0.2, ease: 'power1.out',
+          scrollTrigger: { trigger: el, start: 'top 92%', once: true } });
+      });
     });
   }
   /* ВАЖНО для бесшовного стыка: GSAP поднимаем как обычно, ПОКА оверлей
