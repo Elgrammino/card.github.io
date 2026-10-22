@@ -9,7 +9,7 @@
      нижнего навбара, чтобы панель браузера и бар читались как одно целое
      и полоса между ними исчезла. -->
 <!-- цвет фона страницы: им Safari/Chrome красят свою нижнюю панель -->
-<meta name="theme-color" content="#0a0908">
+<meta name="theme-color" content="#0a0a0a">
 <meta property="og:title" content="Эдуард Грамм · иллюзионист">
 <meta property="og:description" content="Современное иллюзионное шоу для частных мероприятий.">
 <meta property="og:type" content="website">
@@ -19,23 +19,24 @@
 <meta property="og:url" content="https://elgrammino.github.io/card.github.io/">
 <meta property="og:site_name" content="Эдуард Грамм">
 <meta property="og:locale" content="ru_RU">
-<meta property="og:image" content="https://elgrammino.github.io/card.github.io/media/og.jpg?v=1">
+<meta property="og:image" content="https://elgrammino.github.io/card.github.io/media/og.jpg?v=2">
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Эдуард Грамм, иллюзионист">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://elgrammino.github.io/card.github.io/media/og.jpg?v=1">
+<meta name="twitter:image" content="https://elgrammino.github.io/card.github.io/media/og.jpg?v=2">
 <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/icon-32.png">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
 
 <link rel="preload" href="fonts/Bounded-Variable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="fonts/Bounded-ExtraLight.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="media/site/hero.webp" as="image" fetchpriority="high">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700&display=swap" rel="stylesheet">
+<!-- three.js тянется цепочкой deck.js → three.module → three.core; без
+     modulepreload каждый файл ждал предыдущий -->
+<link rel="modulepreload" href="assets/deck/deck.js">
+<link rel="modulepreload" href="assets/deck/three.module.min.js">
+<link rel="modulepreload" href="assets/deck/three.core.min.js">
 
 <style>
 /* ============================================================
@@ -68,24 +69,31 @@
       url("fonts/Bounded-Variable.woff2") format("woff2"),
       url("fonts/Bounded-Regular.woff2")  format("woff2");
 }
-@font-face{ font-family:"Bounded"; font-weight:200; font-display:swap; src:url("fonts/Bounded-ExtraLight.woff2") format("woff2"); }
-@font-face{ font-family:"Bounded"; font-weight:900; font-display:swap; src:url("fonts/Bounded-Black.woff2") format("woff2"); }
+/* Отдельные ExtraLight/Black убраны: вариативный файл покрывает wght
+   200–900 и рисует эти веса один в один (сверено скриншотом) — −84 КБ.
+   Unbounded 700 — свой, а не с Google Fonts: их CSS блокировал все
+   скрипты страницы примерно на секунду. Файлы — латиница и кириллица
+   из того же Google-набора (OFL). */
+@font-face{ font-family:"Unbounded"; font-weight:700; font-display:swap; src:url("fonts/Unbounded-700-latin.woff2") format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face{ font-family:"Unbounded"; font-weight:700; font-display:swap; src:url("fonts/Unbounded-700-cyr.woff2") format("woff2");
+  unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116; }
 @font-face{ font-family:"Druk Text Cyr"; font-weight:900; font-display:swap; src:url("fonts/Druk-Text-Cyr-Heavy.woff2") format("woff2"); }
 @font-face{ font-family:"Druk Text Cyr"; font-weight:500; font-display:swap; src:url("fonts/Druk-Text-Cyr-Medium.woff2") format("woff2"); }
 
 :root{
-  --bg:        #121010;
-  --bg-deep:   #0c0a0a;
-  --surface:   #1b1714;
-  --line:      #332a27;
+  --bg:        #141414;
+  --bg-deep:   #0c0c0c;
+  --surface:   #1c1c1c;
+  --line:      #2f2e2f;
 
-  --ink:       #f3ede4;
-  --ink-dim:   #c2afa7;
-  --ink-faint: #9b8981;
+  --ink:       #F2F0EB;
+  --ink-dim:   #B9B6B9;
+  --ink-faint: #9B989B;
 
-  --accent:      #CDA434;
-  --accent-hi:   #E2BD55;
-  --accent-deep: #7D6420;
+  --accent:      #E4B551;
+  --accent-hi:   #F0C96B;
+  --accent-deep: #85672A;
 
   --maxw: 460px;
   --font:      "Bounded","Unbounded",system-ui,sans-serif;
@@ -95,14 +103,14 @@
 
   /* Фон страницы одной переменной: её же берёт прелоадер, поэтому при
      снятии оверлея фон не моргает — под ним ровно тот же самый. */
-  --page-bg:   #0a0908;
+  --page-bg:   #0a0a0a;
 }
 
 *,*::before,*::after{ box-sizing:border-box; }
 /* Полосу прокрутки резервируем всегда: пока висит прелоадер, скролл
    залочен, и без этого в момент снятия оверлея полоса возвращалась бы и
    двигала всю страницу вбок — это и читалось как глич на стыке. */
-html{ -webkit-text-size-adjust:100%; background:#0a0908; color-scheme:dark; scrollbar-gutter:stable; }
+html{ -webkit-text-size-adjust:100%; background:#0a0a0a; color-scheme:dark; scrollbar-gutter:stable; }
 @media (prefers-reduced-motion: no-preference){ html{ scroll-behavior:smooth; } }
 
 body{
@@ -118,7 +126,7 @@ body{
   :root{
     --page-bg:
       radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, var(--accent-deep) 14%, transparent), transparent 60%),
-      #0a0908;
+      #0a0a0a;
   }
   body{ background:var(--page-bg); }
 }
@@ -149,10 +157,10 @@ a,button,.btn{ touch-action:manipulation; -webkit-tap-highlight-color:transparen
   --pad-x: clamp(20px, 7cqw, 34px);
 
   /* низкоконтрастный тёмный фон: соседние секции сходятся без видимых
-     «полос» на стыках; края совпадают с body/html (#0a0908) */
+     «полос» на стыках; края совпадают с body/html (#0a0a0a) */
   background:
-    linear-gradient(180deg, #0a0908 0%, #0f0c0b 30%, #120e0d 52%, #0f0c0b 74%, #0a0908 100%);
-  box-shadow:0 0 0 1px #17120f, 0 30px 120px -30px rgba(0,0,0,.7);
+    linear-gradient(180deg, #0a0a0a 0%, #0f0f0f 30%, #141414 52%, #0f0f0f 74%, #0a0a0a 100%);
+  box-shadow:0 0 0 1px #181818, 0 30px 120px -30px rgba(0,0,0,.7);
   /* воздух под нижний навбар, чтобы телефон и подпись в контактах
      не уезжали под него */
   padding-bottom:calc(var(--tabbar-h) * .9 + env(safe-area-inset-bottom, 0px));
@@ -174,17 +182,17 @@ a,button,.btn{ touch-action:manipulation; -webkit-tap-highlight-color:transparen
   position:relative; isolation:isolate; overflow:hidden;
   display:inline-flex; align-items:center; justify-content:center; gap:.5em;
   border-radius:999px;
-  border:1px solid rgba(243,237,228,.38);
+  border:1px solid rgba(242,240,235,.38);
   background:
-    linear-gradient(180deg, rgba(243,237,228,.22), transparent 34%),
-    linear-gradient(135deg, rgba(243,237,228,.17), rgba(243,237,228,.03)),
-    rgba(18,16,15,.22);
+    linear-gradient(180deg, rgba(242,240,235,.22), transparent 34%),
+    linear-gradient(135deg, rgba(242,240,235,.17), rgba(242,240,235,.03)),
+    rgba(18,18,18,.22);
   -webkit-backdrop-filter:blur(28px) saturate(190%) brightness(1.09);
   backdrop-filter:blur(28px) saturate(190%) brightness(1.09);
   box-shadow:
-    inset 0 1.4px 0 rgba(243,237,228,.6),
+    inset 0 1.4px 0 rgba(242,240,235,.6),
     inset 0 -1px 0 rgba(0,0,0,.34),
-    inset 0 0 28px rgba(243,237,228,.08),
+    inset 0 0 28px rgba(242,240,235,.08),
     0 18px 50px -14px rgba(0,0,0,.64);
   color:var(--ink);
   font-family:var(--font); font-weight:200;
@@ -193,19 +201,19 @@ a,button,.btn{ touch-action:manipulation; -webkit-tap-highlight-color:transparen
 }
 .btn::after{
   content:""; position:absolute; inset:0; border-radius:inherit; padding:1.3px;
-  background:linear-gradient(135deg, rgba(243,237,228,.9), rgba(243,237,228,.14) 38%, transparent 54%, rgba(243,237,228,.4));
+  background:linear-gradient(135deg, rgba(242,240,235,.9), rgba(242,240,235,.14) 38%, transparent 54%, rgba(242,240,235,.4));
   -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none;
 }
 .btn:hover{
-  border-color:rgba(243,237,228,.5);
+  border-color:rgba(242,240,235,.5);
   background:
-    linear-gradient(135deg, rgba(243,237,228,.2), rgba(243,237,228,.05)),
-    rgba(226,189,85,.14);
+    linear-gradient(135deg, rgba(242,240,235,.2), rgba(242,240,235,.05)),
+    rgba(240,201,107,.14);
 }
 .btn:active{ transform:translateY(1px) scale(.99); }
 @media (prefers-reduced-transparency: reduce){
-  .btn{ -webkit-backdrop-filter:none; backdrop-filter:none; background:rgba(28,23,20,.97); }
+  .btn{ -webkit-backdrop-filter:none; backdrop-filter:none; background:rgba(28,28,28,.97); }
 }
 :focus-visible{ outline:2px solid var(--accent-hi); outline-offset:3px; border-radius:4px; }
 
@@ -250,9 +258,11 @@ a,button,.btn{ touch-action:manipulation; -webkit-tap-highlight-color:transparen
   --tab-glass:color-mix(in srgb, var(--surface) 62%, transparent);
   /* Цвет, которым мобильный Safari красит свою нижнюю панель. Страница им
      не управляет: замерено пипеткой по скриншоту IMG_2320 (при фоне
-     --page-bg #0a0908 панель выходит #0f0d0b). В этот цвет бар и гасится
-     снизу, иначе на границе вьюпорта видна чёткая ступенька. */
-  --tab-chrome:#0f0d0b;
+     --page-bg #0a0908 панель выходила #0f0d0b). В этот цвет бар и гасится
+     снизу, иначе на границе вьюпорта видна чёткая ступенька.
+     С графитовой палитрой фон стал нейтральным #0a0a0a, #0f0f0f — расчёт
+     по той же прибавке; перепроверить пипеткой на айфоне. */
+  --tab-chrome:#0f0f0f;
   /* кривая из прототипа — мягче проектной --ease, горб на ней не «щёлкает» */
   --tab-ease:cubic-bezier(.22,.8,.3,1);
   /* Выезд снизу. Раньше бар появлялся сразу после прелоадера и накрывал
@@ -531,7 +541,29 @@ body.nav-shown .tabbar{ transform:none; opacity:1; }
 /* «Шоу»: в show-bg прозрачные верхние 190 из 880 px ширины (21.6%) —
    поднимаем фото ровно на эту полосу, верхняя карта начинается в 6px от
    края секции. Раньше было -107px и .act{overflow:hidden} срезал карты. */
-#show  .act__photo{ top:calc(-21.6cqw + 6px); left:0; width:100%; }
+/* «Шоу» — раскадровка пружины (show-seq/1–5.webp, 880×960). Кадры
+   подогнаны под прежний show-bg: волосы на 50px из 880, т.е. на 5.7cqw —
+   ровно там, где они были при старом top:calc(-21.6cqw + 6px). Поэтому
+   top:6px. Кадры лежат стопкой, первый задаёт высоту; на экране всегда
+   ровно один кадр, смена жёсткая, как в гифке (см. seqTl). Низ кадров уже растушёван в самих файлах:
+   там в исходнике был стол. */
+#show  .act__photo{ top:6px; left:0; width:100%; }
+.show-seq img{ display:block; width:100%; height:auto; }
+/* слои, которые едут параллаксом (GSAP, только translate) — свой
+   композитный слой, чтобы фото с маской не перерисовывалось каждый кадр */
+.hero__photo, #micro .act__photo, #levit .act__photo, .show-seq{ will-change:transform; }
+.show-seq__f + .show-seq__f{ position:absolute; inset:0; }
+/* статичный вид (без GSAP / reduced-motion) — только 4-й кадр, без
+   просвечивающих соседей; GSAP сам выставит 1-й */
+.show-seq__f{ opacity:0; }
+.show-seq__f.show-seq__f--still{ opacity:1; }
+/* тёмное пятно под фигурой — раньше было впечатано в show-bg, держит
+   контраст текста акта поверх летящих карт фона */
+.show-shade{
+  position:absolute; z-index:1; pointer-events:none;
+  left:-25%; width:150%; top:74cqw; height:96cqw;
+  background:radial-gradient(closest-side, rgba(0,0,0,.9), rgba(0,0,0,.55) 60%, transparent);
+}
 #levit .act__photo{ top:calc(clamp(-40px, -9cqw, -22px) - 10px); left:auto; right:0; width:100%; }
 .act__wash{
   position:absolute; z-index:1; pointer-events:none; border-radius:50%;
@@ -568,6 +600,9 @@ body.nav-shown .tabbar{ transform:none; opacity:1; }
    заголовка сдвигаем правее — тот же зазор до цифры, что в «Микромагии» */
 #show .act__title,
 #levit .act__title{ padding-left:clamp(104px, 30cqw, 148px); }
+/* «Шоу»: пружина падает в колонку текста, поэтому заголовок опущен под
+   фигуру — к месту, где пиджак уже растушёван (84cqw в кадре + 6px). */
+#show .act__head{ padding-top:calc(80cqw + 6px); }
 .act__body{
   position:relative; z-index:2; margin-top:var(--sp-3);
   display:grid; gap:6px; max-width:clamp(250px, 84cqw, 340px);
@@ -599,8 +634,8 @@ body.nav-shown .tabbar{ transform:none; opacity:1; }
   position:absolute; inset:0; margin:auto;
   width:clamp(64px, 21cqw, 88px); height:clamp(64px, 21cqw, 88px);
   display:grid; place-items:center; border-radius:50%;
-  background:linear-gradient(135deg, rgba(20,17,16,.72), rgba(10,8,8,.66));
-  border:1px solid rgba(243,237,228,.3);
+  background:linear-gradient(135deg, rgba(20,20,20,.72), rgba(10,10,10,.66));
+  border:1px solid rgba(242,240,235,.3);
   -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.22), 0 18px 40px -12px rgba(0,0,0,.6);
   color:#fff; cursor:pointer; transition:transform .18s var(--ease), opacity .3s var(--ease);
@@ -650,10 +685,10 @@ body.nav-shown .tabbar{ transform:none; opacity:1; }
 }
 /* Сплошной --accent на тёмном фоне с тем же золотым свечением читался
    горчицей («грязно»). Металлический градиент: светлый верх → насыщенный
-   низ, основа та же #CDA434. Без свечения — оно мутнит фон вокруг. */
+   низ, основа та же #E4B551. Без свечения — оно мутнит фон вокруг. */
 @supports ((-webkit-background-clip:text) or (background-clip:text)){
   .price__sum{
-    background:linear-gradient(180deg, #F7E3A1 0%, #E3BD4E 55%, #C9A032 100%);
+    background:linear-gradient(180deg, #F8E2A8 0%, #E4B551 55%, #C99A3A 100%);
     -webkit-background-clip:text; background-clip:text;
     color:transparent; -webkit-text-fill-color:transparent;
   }
@@ -999,16 +1034,16 @@ html.pl-lock .rays, html.pl-lock .deck-bg{ visibility:hidden; }
   height:34px; padding:0 13px 0 10px; border-radius:999px;
   font:600 10px/1 var(--font); letter-spacing:.08em; text-transform:uppercase;
   color:var(--ink); cursor:pointer;
-  border:1px solid rgba(243,237,228,.3);
-  background:linear-gradient(135deg, rgba(243,237,228,.16), rgba(243,237,228,.03)), rgba(18,16,15,.35);
+  border:1px solid rgba(242,240,235,.3);
+  background:linear-gradient(135deg, rgba(242,240,235,.16), rgba(242,240,235,.03)), rgba(18,18,18,.35);
   -webkit-backdrop-filter:blur(16px) saturate(150%); backdrop-filter:blur(16px) saturate(150%);
-  box-shadow:inset 0 1px 0 rgba(243,237,228,.35), 0 10px 26px -12px rgba(0,0,0,.7);
+  box-shadow:inset 0 1px 0 rgba(242,240,235,.35), 0 10px 26px -12px rgba(0,0,0,.7);
   transition:border-color .3s var(--ease), color .3s var(--ease), transform .18s var(--ease);
   -webkit-tap-highlight-color:transparent;
 }
 .ny-btn[hidden]{ display:none; }
 .ny-btn:disabled{ opacity:.55; cursor:progress; }
-.ny-btn:hover{ border-color:rgba(243,237,228,.55); }
+.ny-btn:hover{ border-color:rgba(242,240,235,.55); }
 .ny-btn:active{ transform:scale(.97); }
 .ny-btn__ico{ width:15px; height:15px; flex:none; transition:transform .8s var(--ease), filter .3s var(--ease); }
 .ny-btn[aria-pressed="true"]{ color:var(--accent-hi); border-color:color-mix(in srgb, var(--accent-hi) 60%, transparent); }
@@ -1019,7 +1054,7 @@ html.pl-lock .rays, html.pl-lock .deck-bg{ visibility:hidden; }
 /* за прелоадером кнопку не видно и не нужно */
 html.pl-lock .ny-btn{ visibility:hidden; }
 @media (prefers-reduced-transparency: reduce){
-  .ny-btn{ -webkit-backdrop-filter:none; backdrop-filter:none; background:rgba(28,23,20,.97); }
+  .ny-btn{ -webkit-backdrop-filter:none; backdrop-filter:none; background:rgba(28,28,28,.97); }
 }
 .ny-snow{
   position:fixed; inset:0; z-index:99; pointer-events:none;
@@ -1270,9 +1305,17 @@ html.pl-lock .ny-btn{ visibility:hidden; }
 
   <!-- ===================== ШОУ ===================== -->
   <section class="s act" id="show">
-    <img class="act__photo" src="media/site/show-bg.webp" alt="" loading="lazy" data-photo
-         width="880" height="1480" style="object-position:center 26%">
+    <!-- Пружина карт: 5 кадров серии 00085–00089, проигрываются скроллом.
+         Без GSAP / при reduced-motion стоит 4-й кадр (см. .show-seq__f--still). -->
+    <div class="act__photo show-seq" data-photo aria-hidden="true">
+      <img class="show-seq__f" src="media/site/show-seq/1.webp" alt="" loading="lazy" decoding="async" width="880" height="960">
+      <img class="show-seq__f" src="media/site/show-seq/2.webp" alt="" loading="lazy" decoding="async" width="880" height="960">
+      <img class="show-seq__f" src="media/site/show-seq/3.webp" alt="" loading="lazy" decoding="async" width="880" height="960">
+      <img class="show-seq__f show-seq__f--still" src="media/site/show-seq/4.webp" alt="" loading="lazy" decoding="async" width="880" height="960">
+      <img class="show-seq__f" src="media/site/show-seq/5.webp" alt="" loading="lazy" decoding="async" width="880" height="960">
+    </div>
     <div class="act__wash" aria-hidden="true" style="top:clamp(300px,84cqw,460px)"></div>
+    <div class="show-shade" aria-hidden="true"></div>
 
     <div class="wrap">
       <div class="act__head">
@@ -1842,9 +1885,10 @@ setTimeout(function () {
   setInterval(sync, POLL);
 })();
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/SplitText.min.js"></script>
+<!-- GSAP 3.13.0 лежит у нас (assets/vendor) — без отдельного соединения с CDN -->
+<script src="assets/vendor/gsap.min.js"></script>
+<script src="assets/vendor/ScrollTrigger.min.js"></script>
+<script src="assets/vendor/SplitText.min.js"></script>
 <script>
 (function () {
   "use strict";
@@ -2154,6 +2198,51 @@ setTimeout(function () {
             scrollTrigger: { trigger: img, start: 'top 92%', once: true } });
       });
 
+      /* — Глубина на скролле: планы едут с разной скоростью. Только
+         transform (y), отдельно от opacity-появлений выше, scrub без
+         сглаживания — привязано к пальцу. Знаки подобраны так, чтобы
+         верх фото не срезался .act{overflow:hidden}: пока верх секции
+         в кадре, сдвиг положительный (вниз). — */
+      var hero = document.getElementById('hero');
+      var heroPhoto = hero && hero.querySelector('.hero__photo');
+      if (heroPhoto) {
+        /* фото отстаёт от страницы — уходит «вглубь», имя едет как обычно;
+           пачка карт deck.js приклеена к фото и едет вместе с ним */
+        gsap.to(heroPhoto, { y: 90, ease: 'none',
+          scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true } });
+      }
+      ['micro', 'levit'].forEach(function (id) {
+        var sec = document.getElementById(id);
+        var ph = sec && sec.querySelector('.act__photo');
+        if (!ph) return;
+        gsap.fromTo(ph, { y: 34 }, { y: -34, ease: 'none',
+          scrollTrigger: { trigger: sec, start: 'top bottom', end: 'bottom top', scrub: true } });
+      });
+      /* крупные цифры актов — передний план: чуть быстрее заголовка */
+      document.querySelectorAll('.act__num').forEach(function (n) {
+        gsap.fromTo(n, { y: 28 }, { y: -28, ease: 'none',
+          scrollTrigger: { trigger: n.closest('.act'), start: 'top bottom', end: 'center top', scrub: true } });
+      });
+
+      /* — «Шоу»: пружина карт идёт за скроллом, как гифка — кадры
+         сменяются жёстко, без перелива (перелив читался как кривой морф).
+         Скролл делится на равные доли, по доле на кадр. Плюс лёгкий
+         параллакс всей стопки. — */
+      var seq = document.querySelector('.show-seq');
+      if (seq) {
+        var frames = gsap.utils.toArray('.show-seq__f', seq);
+        gsap.set(frames, { opacity: 0 });
+        gsap.set(frames[0], { opacity: 1 });
+        var seqTl = gsap.timeline({
+          scrollTrigger: { trigger: seq, start: 'top 72%', end: 'top 2%', scrub: true }
+        });
+        frames.slice(1).forEach(function (f, i) {
+          seqTl.set(f, { opacity: 1 }, i + 1);
+          seqTl.set(frames[i], { opacity: 0 }, i + 1);
+        });
+        seqTl.fromTo(seq, { y: 18 }, { y: -14, ease: 'none', duration: frames.length }, 0);
+      }
+
       /* — группы текста: stagger fade-up — */
       document.querySelectorAll('[data-reveal]').forEach(function (group) {
         var kids = group.children.length ? group.children : [group];
@@ -2190,6 +2279,11 @@ setTimeout(function () {
 
       return function () { /* cleanup handled by matchMedia revert */ };
     });
+
+    /* триггеры считались по fonts.ready; ленивые картинки и iframe могли
+       догрузиться позже — пересчитать границы один раз после load */
+    if (document.readyState === 'complete') ScrollTrigger.refresh();
+    else window.addEventListener('load', function () { ScrollTrigger.refresh(); }, { once: true });
 
     /* reduced-motion: моментальный финальный вид */
     mm.add('(prefers-reduced-motion: reduce)', function () {
