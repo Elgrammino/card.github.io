@@ -111,11 +111,11 @@ function boot(){
   camera.lookAt(0, 0, 0);
 
   /* ---- свет: тёплый, приглушённый, в тон палитре ---- */
-  scene.add(new THREE.HemisphereLight(0xf2e3d0, 0x181310, 0.55));
+  scene.add(new THREE.HemisphereLight(0xf2e3d0, 0x161616, 0.55));
   const key = new THREE.DirectionalLight(0xffe4c8, 1.15);
   key.position.set(0.7, 1.3, 1.1);
   scene.add(key);
-  const rim = new THREE.DirectionalLight(0xCDA434, 0.35);   // --accent
+  const rim = new THREE.DirectionalLight(0xE4B551, 0.35);   // --accent
   rim.position.set(-1.0, -0.2, -0.7);
   scene.add(rim);
 
